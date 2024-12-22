@@ -2,10 +2,12 @@
 This file contains examples for stream request.
 """
 
-from dotenv import load_dotenv
-import schwabdev
 import logging
 import os
+
+from dotenv import load_dotenv
+
+import schwabdev
 
 
 def main():
@@ -20,24 +22,20 @@ def main():
     # define a variable for the steamer:
     streamer = client.stream
 
-
     # example of using your own response handler, prints to main terminal.
     # the first parameter is used by the stream, additional parameters are passed to the handler
     def my_handler(message):
         print("test_handler:" + message)
     streamer.start(my_handler)
 
-
     # start steamer with default response handler (print):
-    #streamer.start()
-
+    # streamer.start()
 
     # You can stream up to 500 keys.
     # By default all shortcut requests (below) will be "ADD" commands meaning the list of symbols will be added/appended
     # to current subscriptions for a particular service, however if you want to overwrite subscription (in a particular
     # service) you can use the "SUBS" command. Unsubscribing uses the "UNSUBS" command. To change the list of fields use
     # the "VIEW" command.
-
 
     # these three do the same thing
     # streamer.send(streamer.basic_request("LEVELONE_EQUITIES", "ADD", parameters={"keys": "AMD,INTC", "fields": "0,1,2,3,4,5,6,7,8"}))
@@ -70,14 +68,15 @@ def main():
 
     # streamer.send(streamer.account_activity("Account Activity", "0,1,2,3"))
 
-
     # stop the stream after 60 seconds (since this is a demo)
     import time
+
     time.sleep(60)
     streamer.stop()
     # if you don't want to clear the subscriptions, set clear_subscriptions=False
     # streamer.stop(clear_subscriptions=False)
-    # if True, then the next time you start the stream it will resubscribe to the previous subscriptions (except if program is restarted)
+    # if True, the next time you start the stream it will resubscribe to the previous subscriptions
+    # (except if program is restarted)
 
 
 if __name__ == '__main__':

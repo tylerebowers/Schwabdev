@@ -1,2 +1,3 @@
-from .client import Client
-#from .stream import Stream
+from .client import Client  # noqa
+
+# from .stream import Stream

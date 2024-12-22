@@ -4,24 +4,26 @@ Coded by Tyler Bowers
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
 
-import json
-import atexit
 import asyncio
-import logging
+import atexit
 import datetime
-import zoneinfo
+import json
+import logging
 import threading
-import websockets
+import zoneinfo
 from time import sleep
+
+import websockets
 import websockets.exceptions
 
-class Stream:
 
+class Stream:
     def __init__(self, client):
         """
-        Initialize the stream object to stream data from Schwab Streamer
-        :param client: Client object
-        :type client: Client
+        Initialize the stream object to stream data from Schwab Streamer.
+
+        Args:
+            client (Client): Client object.
         """
         self._websocket = None                                  # the websocket
         self._streamer_info = None                              # streamer info from api call
@@ -37,14 +39,15 @@ class Stream:
         def stop_atexit():
             if self.active:
                 self.stop()
-        atexit.register(stop_atexit)
 
+        atexit.register(stop_atexit)
 
     async def _start_streamer(self, receiver_func=print, **kwargs):
         """
-        Start the streamer
-        :param receiver_func: function to call when data is received
-        :type receiver_func: function
+        Start the streamer.
+
+        Args:
+            receiver_func (function): Function to call when data is received.
         """
         # get streamer info
         response = self._client.preferences()
@@ -74,10 +77,10 @@ class Stream:
 
                     # send subscriptions (that are queued or previously sent)
                     for service, subs in self.subscriptions.items():
-                        grouped = {} # group subscriptions by fields for more efficient requests
+                        grouped = {}  # group subscriptions by fields for more efficient requests
                         for key, fields in subs.items():
                             grouped.setdefault(self._list_to_string(fields), []).append(key)
-                        reqs = [] # list of requests to send for this service
+                        reqs = []  # list of requests to send for this service
                         for fields, keys in grouped.items():
                             reqs.append(self.basic_request(service=service, command="ADD", parameters={"keys": self._list_to_string(keys), "fields": fields}))
                         if reqs:
@@ -93,7 +96,7 @@ class Stream:
                 self.active = False
                 self._logger.info("Stream connection closed.")
                 break
-            except websockets.exceptions.ConnectionClosedError as e: # lost internet connection
+            except websockets.exceptions.ConnectionClosedError as e:  # lost internet connection
                 self.active = False
                 self._logger.error(e)
                 if (datetime.datetime.now(datetime.timezone.utc).timestamp() - start_time.timestamp()) <= 90:
@@ -107,10 +110,9 @@ class Stream:
                 self._logger.warning(f"Stream connection lost to server, reconnecting...")
                 self._wait_for_backoff()
 
-
     def _wait_for_backoff(self):
         """
-        Wait for the backoff time
+        Wait for the backoff time.
         """
         sleep(self.backoff_time)
         # exponential backoff and cap at 128s
@@ -118,13 +120,14 @@ class Stream:
 
     def start(self, receiver=print, daemon: bool = True, **kwargs):
         """
-        Start the stream
-        :param receiver: function to call when data is received
-        :type receiver: function
-        :param daemon: whether to run the thread in the background (as a daemon)
-        :type daemon: bool
+        Start the stream.
+
+        Args:
+            receiver (function): Function to call when data is received.
+            daemon (bool): Whether to run the thread in the background (as a daemon).
         """
         if not self.active:
+
             def _start_async():
                 asyncio.run(self._start_streamer(receiver, **kwargs))
 
@@ -134,26 +137,29 @@ class Stream:
         else:
             self._logger.warning("Stream already active.")
 
-    def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = (0,1,2,3,4),
-                   now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
+    def start_auto(
+        self,
+        receiver=print,
+        start_time: datetime.time = datetime.time(9, 29, 0),
+        stop_time: datetime.time = datetime.time(16, 0, 0),
+        on_days: list[int] = (0, 1, 2, 3, 4),
+        now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"),
+        daemon: bool = True,
+        **kwargs,
+    ):
         """
-        Start the stream automatically at market open and close, will NOT erase subscriptions
-        :param receiver: function to call when data is received
-        :type receiver: function
-        :param start_time: time to start the stream, must be later than datetime.time.min, default 9:30 (for EST)
-        :type start_time: datetime.time
-        :param stop_time: time to stop the stream, must be earlier than datetime.time.max, default 4:00 (for EST)
-        :type stop_time: datetime.time
-        :param on_days: day(s) to start the stream default: (0,1,2,3,4) = Mon-Fri, (0 = Monday, ..., 6 = Sunday)
-        :type on_days: list[int] | set(int)
-        :param now_timezone: timezone to use for now, default: ZoneInfo("America/New_York")
-        :type now_timezone: zoneinfo.ZoneInfo
-        :param daemon: whether to run the thread as a daemon
-        :type daemon: bool
-        """
-        def checker():
+        Start the stream automatically at market open and close, will NOT erase subscriptions.
 
+        Args:
+            receiver (function): Function to call when data is received.
+            start_time (datetime.time): Time to start the stream, must be later than datetime.time.min, default 9:30 (for EST).
+            stop_time (datetime.time): Time to stop the stream, must be earlier than datetime.time.max, default 4:00 (for EST).
+            on_days (list[int]): Day(s) to start the stream default: (0,1,2,3,4) = Mon-Fri, (0 = Monday, ..., 6 = Sunday).
+            now_timezone (zoneinfo.ZoneInfo): Timezone to use for now, default: ZoneInfo("America/New_York").
+            daemon (bool): Whether to run the thread as a daemon.
+        """
+
+        def checker():
             while True:
                 now = datetime.datetime.now(now_timezone)
                 in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
@@ -173,9 +179,10 @@ class Stream:
 
     def _record_request(self, request: dict):
         """
-        Record the request into self.subscriptions (for the event of crashes)
-        :param request: request
-        :type request: dict
+        Record the request into self.subscriptions (for the event of crashes).
+
+        Args:
+            request (dict): Request.
         """
         def str_to_list(st):
             if type(st) is str: return st.split(",")
@@ -207,23 +214,22 @@ class Stream:
                 for key in self.subscriptions[service].keys():
                     self.subscriptions[service][key] = fields
 
-
-
     def send(self, requests: list | dict):
         """
-        Send a request to the stream
-        :param requests: list of requests or a single request
-        :type requests: list | dict
+        Send a request to the stream.
+
+        Args:
+            requests (list | dict): List of requests or a single request.
         """
         # send the request using the async function
         asyncio.run(self.send_async(requests))
 
-
     async def send_async(self, requests: list | dict):
         """
-        Send an async (must be awaited) request to the stream (functionally equivalent to send)
-        :param requests: list of requests or a single request
-        :type requests: list | dict
+        Send an async (must be awaited) request to the stream (functionally equivalent to send).
+
+        Args:
+            requests (list | dict): List of requests or a single request.
         """
 
         # make sure requests is a list
@@ -244,9 +250,10 @@ class Stream:
 
     def stop(self, clear_subscriptions: bool = True):
         """
-        Stop the stream
-        :param clear_subscriptions: clear records
-        :type clear_subscriptions: bool
+        Stop the stream.
+
+        Args:
+            clear_subscriptions (bool): Clear records.
         """
         if clear_subscriptions:
             self.subscriptions = {}
@@ -255,15 +262,15 @@ class Stream:
 
     def basic_request(self, service: str, command: str, parameters: dict = None):
         """
-        Create a basic request (all requests follow this format)
-        :param service: service to use
-        :type service: str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW"|"LOGIN"|"LOGOUT")
-        :type command: str
-        :param parameters: parameters to use
-        :type parameters: dict
-        :return: stream request
-        :rtype: dict
+        Create a basic request (all requests follow this format).
+
+        Args:
+            service (str): Service to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW"|"LOGIN"|"LOGOUT").
+            parameters (dict): Parameters to use.
+
+        Returns:
+            dict: Stream request.
         """
         if self._streamer_info is None:
             response = self._client.preferences()
@@ -290,11 +297,13 @@ class Stream:
     @staticmethod
     def _list_to_string(ls: list | str | tuple | set):
         """
-        Convert a list to a string (e.g. [1, "B", 3] -> "1,B,3"), or passthrough if already a string
-        :param ls: list to convert
-        :type ls: list | str | tuple | set
-        :return: converted string
-        :rtype: str
+        Convert a list to a string (e.g. [1, "B", 3] -> "1,B,3"), or passthrough if already a string.
+
+        Args:
+            ls (list | str | tuple | set): List to convert.
+
+        Returns:
+            str: Converted string.
         """
         if isinstance(ls, str): return ls
         elif hasattr(ls, '__iter__'): return ",".join(map(str, ls)) # yes, this is true for string too but those are caught first
@@ -302,182 +311,182 @@ class Stream:
 
     def level_one_equities(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Level one equities
-        :param keys: list of keys to use (e.g. ["AMD", "INTC"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Level one equities.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["AMD", "INTC"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("LEVELONE_EQUITIES", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def level_one_options(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Level one options, key format: [Underlying Symbol (6 characters including spaces) | Expiration (6 characters) | Call/Put (1 character) | Strike Price (5+3=8 characters)]
-        :param keys: list of keys to use (e.g. ["GOOG  240809C00095000", "AAPL  240517P00190000"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Level one options.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["GOOG  240809C00095000", "AAPL  240517P00190000"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("LEVELONE_OPTIONS", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def level_one_futures(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Level one futures, key format: '/' + 'root symbol' + 'month code' + 'year code'; month code is 1 character: (F: Jan, G: Feb, H: Mar, J: Apr, K: May, M: Jun, N: Jul, Q: Aug, U: Sep, V: Oct, X: Nov, Z: Dec), year code is 2 characters (i.e. 2024 = 24)
-        :param keys: list of keys to use (e.g. ["/ESF24", "/GCG24"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Level one futures.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["/ESF24", "/GCG24"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("LEVELONE_FUTURES", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def level_one_futures_options(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Level one futures options, key format: '.' + '/' + 'root symbol' + 'month code' + 'year code' + 'Call/Put code' + 'Strike Price'
-        :param keys: list of keys to use (e.g. ["./OZCZ23C565"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Level one futures options.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["./OZCZ23C565"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("LEVELONE_FUTURES_OPTIONS", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def level_one_forex(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Level one forex, key format: 'from currency' + '/' + 'to currency'
-        :param keys: list of keys to use (e.g. ["EUR/USD", "JPY/USD"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Level one forex.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["EUR/USD", "JPY/USD"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("LEVELONE_FOREX", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def nyse_book(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        NYSE book orders
-        :param keys: list of keys to use (e.g. ["NIO", "F"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        NYSE book orders.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["NIO", "F"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("NYSE_BOOK", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def nasdaq_book(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        NASDAQ book orders
-        :param keys: list of keys to use (e.g. ["AMD", "CRWD"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        NASDAQ book orders.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["AMD", "CRWD"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("NASDAQ_BOOK", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def options_book(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Options book orders
-        :param keys: list of keys to use (e.g. ["GOOG  240809C00095000", "AAPL  240517P00190000"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Options book orders.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["GOOG  240809C00095000", "AAPL  240517P00190000"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("OPTIONS_BOOK", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def chart_equity(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Chart equity
-        :param keys: list of keys to use (e.g. ["GOOG", "AAPL"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Chart equity.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["GOOG", "AAPL"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("CHART_EQUITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def chart_futures(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Chart futures, key format: '/' + 'root symbol' + 'month code' + 'year code'; month code is 1 character: (F: Jan, G: Feb, H: Mar, J: Apr, K: May, M: Jun, N: Jul, Q: Aug, U: Sep, V: Oct, X: Nov, Z: Dec), year code is 2 characters (i.e. 2024 = 24)
-        :param keys: list of keys to use (e.g. ["/ESF24", "/GCG24"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Chart futures.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["/ESF24", "/GCG24"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("CHART_FUTURES", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def screener_equity(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
-        Screener equity, key format: (PREFIX)_(SORTFIELD)_(FREQUENCY); Prefix: ($COMPX, $DJI, $SPX.X, INDEX_AL, NYSE, NASDAQ, OTCBB, EQUITY_ALL); Sortfield: (VOLUME, TRADES, PERCENT_CHANGE_UP, PERCENT_CHANGE_DOWN, AVERAGE_PERCENT_VOLUME), Frequency: (0 (all day), 1, 5, 10, 30 60)
-        :param keys: list of keys to use (e.g. ["$DJI_PERCENT_CHANGE_UP_60", "NASDAQ_VOLUME_30"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Screener equity.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["$DJI_PERCENT_CHANGE_UP_60", "NASDAQ_VOLUME_30"]).
+            fields (list | str): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("SCREENER_EQUITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def screener_options(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
         """
         Screener option key format: (PREFIX)_(SORTFIELD)_(FREQUENCY); Prefix: (OPTION_PUT, OPTION_CALL, OPTION_ALL); Sortfield: (VOLUME, TRADES, PERCENT_CHANGE_UP, PERCENT_CHANGE_DOWN, AVERAGE_PERCENT_VOLUME), Frequency: (0 (all day), 1, 5, 10, 30 60)
-        :param keys: list of keys to use (e.g. ["OPTION_PUT_PERCENT_CHANGE_UP_60", "OPTION_CALL_TRADES_30"])
-        :type keys: list | str
-        :param fields: list of fields to use
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+
+        Args:
+            keys (str | list): List of keys to use (e.g. ["OPTION_PUT_PERCENT_CHANGE_UP_60", "OPTION_CALL_TRADES_30"]).
+            fields (str | list): List of fields to use.
+            command (str): Command to use ("SUBS"|"ADD"|"UNSUBS"|"VIEW").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("SCREENER_OPTION", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
 
     def account_activity(self, keys="Account Activity", fields="0,1,2,3", command: str = "SUBS") -> dict:
         """
-        Account activity
-        :param keys: list of keys to use (e.g. ["Account Activity"])
-        :type keys: list | str
-        :param fields: list of fields to use (e.g. ["0,1,2,3"])
-        :type fields: list | str
-        :param command: command to use ("SUBS"|"UNSUBS")
-        :type command: str
-        :return: stream request
-        :rtype: dict
+        Account activity.
+
+        Args:
+            keys (list | str): List of keys to use (e.g. ["Account Activity"]).
+            fields (list | str): List of fields to use (e.g. ["0,1,2,3"]).
+            command (str): Command to use ("SUBS"|"UNSUBS").
+
+        Returns:
+            dict: Stream request.
         """
         return self.basic_request("ACCT_ACTIVITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})

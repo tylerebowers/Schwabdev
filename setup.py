@@ -1,6 +1,6 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages, setup
 
-VERSION = '2.4.4' # Also update version in api.py
+VERSION = '2.4.4'  # Also update version in api.py
 DESCRIPTION = 'An easy and lightweight wrapper for using the Charles Schwab API.'
 with open('README.md', 'r') as f:
     LONG_DESCRIPTION = f.read()
@@ -23,7 +23,19 @@ setup(
         'websockets',
         'cryptography',
     ],
-    keywords=['python', 'schwab', 'api', 'client', 'finance', 'trading', 'stocks', 'equities', 'options', 'forex', 'futures'],
+    keywords=[
+        'python',
+        'schwab',
+        'api',
+        'client',
+        'finance',
+        'trading',
+        'stocks',
+        'equities',
+        'options',
+        'forex',
+        'futures',
+    ],
     classifiers=[
         'Topic :: Office/Business :: Financial :: Investment',
         'Development Status :: 5 - Production/Stable',
@@ -36,6 +48,6 @@ setup(
     project_urls={
         'Source': 'https://github.com/tylerebowers/Schwab-API-Python',
         'Youtube': 'https://www.youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8',
-        'PyPI': 'https://pypi.org/project/schwabdev/'
-    }
+        'PyPI': 'https://pypi.org/project/schwabdev/',
+    },
 )
