@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schwabdev Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Using the Streamer</h1>
+<p>Examples can be found in <code>examples/stream_demo.py</code>, there is also a streamer guide for more details.</p>
+<p>To first use the streamer we have to initialize the client as normal <code>client = schwabdev.Client(...)</code>, the initialization of the client object also initializes a streamer which can be accessed via <code>client.stream</code>. It is recommended to set a streamer variable such as <code>streamer = client.stream</code> for shorter code and readability, documentation will also reference this variable name.</p>
+<pre>
+    import schwabdev
+    client = schwabdev.Client(...)
+    streamer = client.stream
+</pre>
+
+<h3>Starting the stream</h3>
+<p>To start the streamer you simply call <code>streamer.start()</code>, however you will need a response handler to do something useful, see below. The stream will close after ~30 seconds if there are no subscriptions. By default the stream starts as a daemon thread, meaning that if the main thread terminates then the stream will too, however if you want the stream to continue despite the main thread terminating then add <code>daemon=False</code> to the .start(...) parameters - this is useful if you are only using the response handler for processing.</p>
+<h3>Using your own response handler</h3>
+<p>In typical applications you will want to use a seperate response handler that parses received data from the stream. The default method just prints to the terminal. </p>
+<pre>
+    def my_handler(message):
+        print("TEST" + message)
+    streamer.start(my_handler)
+</pre>
+<p>In the above example, the <code>my_handler(...)</code> function is called whenever a response is received from the stream, and prints "TEST" prefixed with the response to the terminal. It is important to code this function such that it is not too taxing on the system as we dont want the response handler to run behind the streamer. You can also pass in variables, args and/or kwargs, into the start function which will be passed to the <code>my_handler</code> function.  </p>
+
+<h3>Starting the stream automatically</h3>
+<p>If you want to start the streamer automatically when the market opens then instead of <code>streamer.start()</code> use the call <code>streamer.start_auto(...)</code>, the default values  will start & stop the streamer during normal market hours (9:30am-4:00pm). Starting the stream automatically will preserve the previous subscriptions.
+
+<blockquote>
+Syntax:<br>
+    &emsp;  <code>streamer.start_auto(receiver=print, start_time=datetime.time(9, 29, 0), stop_time=datetime.time(16, 0, 0), on_days=(0,1,2,3,4), now_timezone=zoneinfo.ZoneInfo("America/New_York"), daemon=True)</code>
+<br>Params:
+<ul style="margin: 0">
+    <li>start_time(datetime.time): when to start the streamer </li>
+    <li>stop_time(datetime.time): when to stop the streamer </li>  
+    <li>on_days(list|tuple): which days to start and stop the streamer, the default (Mon-Fri) is <code>on_days=(0,1,2,3,4)</code>. </li>
+    <li>now_timezone(zoneinfo.ZoneInfo): custom timezone, default is "America/New_York" = Eastern Time </li>
+</ul>
+</blockquote>
+
+
+<h3>Stopping the stream</h3>
+<p>To stop the streamer use <code>streamer.stop()</code>, pass the parameter <code>clear_subscriptions=False</code> (default: true) if you want to keep the recorded subscriptions -&gt; this means that the next time you start the steam it will resubscribe to the previous subscriptions (except if program is restarted).</p>
+
+<h3>Sending stream requests</h3>
+<p>Sending in requests to the streamer can be done using the <code>streamer.send(message)</code> function. Schwabdev offers shortcut functions for <strong>all</strong> streamable assets (covered below), to subscribe to an equity, pass in <code>streamer.level_one_equities(...)</code> to the send function. Important: "0" must always be included in the fields. Shown here is every way to use the shortcut functions:</p>
+<pre>
+    # Every way to subscribe to the fields 0,1,2,3 for equities "AMD" and "INTC"
+    streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3"))
+    streamer.send(streamer.level_one_equities(["AMD","INTC"], ["0","1","2","3"]))
+    streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3", command="ADD"))
+    streamer.send(streamer.basic_request("LEVELONE_EQUITIES", "ADD", parameters={"keys": "AMD,INTC", "fields": "0,1,2,3"}))
+</pre>
+<p>If you are using an async function, then sending asyncronous requests to the streamer can be done using the <code>streamer.send_async(message)</code> function. </p>
+<pre>
+    # Asyncronous subscription request for fields 0,1,2,3 of equities "AMD" and "INTC"
+    await streamer.send_async(streamer.level_one_equities("AMD,INTC", "0,1,2,3"))
+</pre>
+<h2>Streamable assets</h2>
+<p>Notes:  </p>
+<ul>
+    <li>"0" must always be included in the fields.</li>
+    <li>The list of fields and their definitions can be found in the streamer guide pdf.</li>
+    <li>The maximum number of keys that can be subscribed to at once is 500.</li>
+    <li>Shortcut function commands can be changed by setting the command parameter i.e. command="ADD". The default is the "ADD" command with the exception of account_activity with a default of "SUBS". Each command is explained below:
+        <ul>
+            <li>"ADD" &rarr; the list of symbols will be added/appended to current subscriptions for a particular service, </li>
+            <li>"SUBS" &rarr; overwrites ALL current subscriptions (in a particular service) with the list of symbols passed in. </li>
+            <li>"UNSUBS" &rarr; removes the list of symbols from current subscriptions for a particular service. </li>
+            <li>"VIEW" &rarr; change the list of subscribed fields for the passed in symbols. *<em>Might not be functional on Schwab's end.</em></li>
+        </ul>
+    </li>
+    <li>These shortcuts all send the same thing:
+        <ul>
+            <li><code>streamer.basic_request("LEVELONE_EQUITIES", "ADD", parameters={"keys": "AMD,INTC", "fields": "0,1,2,3,4"}))</code></li>
+            <li><code>streamer.level_one_equities("AMD,INTC", "0,1,2,3,4", command="ADD"))</code></li>
+            <li><code>streamer.level_one_equities(["AMD", "INTC"], "0,1,2,3,4")</code></li>
+            <li><code>streamer.level_one_equities("AMD,INTC", ["0", "1", "2", "3", "4"])</code></li>
+            <li><code>streamer.level_one_equities("AMD,INTC", "0,1,2,3,4")</code></li>
+        </ul>
+    </li>
+    <li>Different products have different methods of sending data:
+        <ul>
+            <li>LEVELONE_EQUITIES, LEVELONE_OPTIONS, LEVELONE_FUTURES, LEVELONE_FUTURES_OPTIONS, and LEVELONE_FOREX all stream <strong>changes</strong>, meaning that the data you receive overwrites the previous fields. E.g. if you first receive {"1": 20, "2": 25, "3": 997}, then secondly receive {"2": 28}, the current data (for secondly) will be {"1": 20, "2": 28, "3": 997}</li>
+            <li>NYSE_BOOK, NASDAQ_BOOK, OPTIONS_BOOK, SCREENER_EQUITY, and SCREENER_OPTION all stream <strong>whole</strong> data, meaning all fields.</li>
+            <li>CHART_EQUITY, CHART_FUTURES, and ACCT_ACTIVITY stream <strong>all sequence</strong> data, meaning you are given a sequence number for each response.</li>
+        </ul>
+    </li>
+    </ul>
+
+<p>Listed below are the shortcut functions for all streamable assets.</p>
+
+<h3>Level one equities</h3>
+<blockquote>
+<p><code>streamer.send(streamer.level_one_equities(keys, fields))</code><br>Key examples: "AMD", "INTC", "$SPX"</p>
+</blockquote>
+
+<h3>Level one options</h3>
+<blockquote>
+<p><code>streamer.send(streamer.level_one_options(keys, fields))</code><br>Key examples: "AAPL&nbsp;&nbsp;240517P00190000", "AAPL&nbsp;&nbsp;251219C00200000"   </p>
+<blockquote>
+<p>Key format: Underlying Symbol (6 chars including spaces) + Expiration (6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)<br>Expiration is in YYMMDD format.</p>
+</blockquote>
+</blockquote>
+
+<h3>Level one futures</h3>
+<blockquote>
+<p><code>streamer.send(streamer.level_one_futures(keys, fields))</code><br>Key examples: "/ESF24", "/GCG24", "/ES"</p>
+<blockquote>
+<p>Key format: '/' + 'root symbol' + 'month code' + 'year code'<br>Month code is 1 character: (F: Jan, G: Feb, H: Mar, J: Apr, K: May, M: Jun, N: Jul, Q: Aug, U: Sep, V: Oct, X: Nov, Z: Dec)<br>Year code is 2 characters (i.e. 2024 = 24)</p>
+</blockquote>
+</blockquote>
+
+<h3>Level one futures options</h3>
+<blockquote>
+<p><code>streamer.send(streamer.level_one_futures_options(keys, fields))</code><br>Key examples: "./OZCZ23C565"</p>
+<blockquote>
+<p>Key format: '.' + '/' + 'root symbol' + 'month code' + 'year code' + 'Call/Put (1 char)' + 'Strike Price'<br>Month code is 1 character: (F: Jan, G: Feb, H: Mar, J: Apr, K: May, M: Jun, N: Jul, Q: Aug, U: Sep, V: Oct, X: Nov, Z: Dec)<br>Year code is 2 characters (i.e. 2024 = 24)</p>
+</blockquote>
+</blockquote>
+
+<h3>Level one forex</h3>
+<blockquote>
+<p><code>streamer.send(streamer.level_one_forex(keys, fields))</code><br>Key examples: "EUR/USD", "GBP/USD", "EUR/JPY", "EUR/GBP"</p>
+</blockquote>
+
+<h3>NYSE book orders</h3>
+<blockquote>
+<p><code>streamer.send(streamer.nyse_book(keys, fields))</code><br>Key examples: "F", "NIO", "ACU"</p>
+</blockquote>
+
+<h3>NASDAQ book orders</h3>
+<blockquote>
+<p><code>streamer.send(streamer.nasdaq_book(keys, fields))</code><br>Key examples: "AMD", "INTC"</p>
+</blockquote>
+
+<h3>Options book orders</h3>
+<blockquote>
+<p><code>streamer.send(streamer.options_book(keys, fields))</code><br>Key examples: "AAPL&nbsp;&nbsp;240517P00190000", "AAPL&nbsp;&nbsp;251219C00200000"  </p>
+<blockquote>
+<p>Key format: Underlying Symbol (6 chars including spaces) + Expiration (6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)<br>Expiration is in YYMMDD format.</p>
+</blockquote>
+</blockquote>
+
+<h3>Chart equity</h3>
+<blockquote>
+<p><code>streamer.send(streamer.chart_equity(keys, fields))</code><br>Key examples: "AMD", "INTC"</p>
+</blockquote>
+
+<h3>Chart futures</h3>
+<blockquote>
+<p><code>streamer.send(streamer.chart_futures(keys, fields))</code><br>Key examples: "/ESF24", "/GCG24"  </p>
+<blockquote>
+<p>Key format: '/' + 'root symbol' + 'month code' + 'year code'<br>Month code is 1 character: (F: Jan, G: Feb, H: Mar, J: Apr, K: May, M: Jun, N: Jul, Q: Aug, U: Sep, V: Oct, X: Nov, Z: Dec)<br>Year code is 2 characters (i.e. 2024 = 24)</p>
+</blockquote>
+</blockquote>
+
+<h3>Screener equity</h3>
+<blockquote>
+<p><code>streamer.send(streamer.screener_equity(keys, fields))</code><br>Key examples: "$DJI_PERCENT_CHANGE_UP_60", "NASDAQ_VOLUME_30"</p>
+<blockquote>
+<p>Key format: <code>(PREFIX)_(SORTFIELD)_(FREQUENCY)</code><br>Prefix: $COMPX, $DJI, $SPX.X, INDEX_AL, NYSE, NASDAQ, OTCBB, EQUITY_ALL<br>Sortfield: VOLUME, TRADES, PERCENT_CHANGE_UP, PERCENT_CHANGE_DOWN, AVERAGE_PERCENT_VOLUME<br>Frequency: 0 (all day), 1, 5, 10, 30 60  </p>
+</blockquote>
+</blockquote>
+
+<h3>Screener options</h3>
+<blockquote>
+<p><code>streamer.send(streamer.screener_options(keys, fields))</code><br>Key examples: "OPTION_PUT_PERCENT_CHANGE_UP_60", "OPTION_CALL_TRADES_30"</p>
+<blockquote>
+<p>Key format: <code>(PREFIX)_(SORTFIELD)_(FREQUENCY)</code><br>Prefix: OPTION_PUT, OPTION_CALL, OPTION_ALL<br>Sortfield: VOLUME, TRADES, PERCENT_CHANGE_UP, PERCENT_CHANGE_DOWN, AVERAGE_PERCENT_VOLUME<br>Frequency: 0 (all day), 1, 5, 10, 30 60  </p>
+</blockquote>
+</blockquote>
+
+<h3>Account activity</h3>
+<blockquote>
+<p><code>streamer.send(streamer.account_activity("Account Activity", "0,1,2,3"))</code><br>There is only one key: "Account Activity" and the fields should be "0,1,2,3"<br>Only "SUBS"(default) and "UNSUBS" are supported for command.</p>
+</blockquote>
+
+</body>

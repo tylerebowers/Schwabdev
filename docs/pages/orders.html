@@ -1,67 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schwabdev Documentation</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-# Placing Orders
-After making a client object i.e. `client = schwabdev.Client(...)` we can place orders using the `client.order_place(...)` method.
-### Notes:
-* Orders are currently only supported for equities and options.
+<h1>Placing Orders</h1>
+<p>After making a client object i.e. client = schwabdev.Client(...) we can place orders using the client.order_place(...) method.</p>
+<h3>Notes:</h3>
+<ul>
+    <li>Orders are currently only supported for equities and options.
+</ul>
+<h3>Place an order</h3>
+<blockquote>
+Syntax:<br>
+    &emsp;  <code>client.order_place(account_hash, order)</code>
+<br>Params:
+<ul style="margin: 0">
+    <li>account_hash(str): account hash to get place order on.  </li>
+    <li>order(dict): Order dict to place, there are examples in orders.md and in the Schwab documentation. </li>
+</ul>
+Return:<br>
+&emsp;(request.Response)  Response object.
+<br>Note:<br>
+    &emsp;Get the order id by checking the headers.<br>
+    &emsp;<code>order_id = resp.headers.get('location', '/').split('/')[-1]</code><br>
+    &emsp;<em>If order is immediately filled then the id might not be returned</em>
+</blockquote>
 
-## Table of Contents
-- [Order Methods](#order-methods)
-    - [Place an order](#place-an-order)
-    - [Get specific order details](#get-specific-order-details)
-    - [Cancel a specific order](#cancel-a-specific-order)
-    - [Replace a specific order](#replace-a-specific-order)
-- [Order Examples](#order-examples)
-    - [Buy 10 shares of AMD at Market price](#buy-10-shares-of-amd-at-market-price)
-    - [Buy 4 shares of INTC at limit price $10.00](#buy-4-shares-of-intc-at-limit-price-1000)
-    - [Sell 3 options example](#sell-3-options-example)
-    - [Buy 3 options example](#buy-3-options-example)
-    - [Buy Limited Vertical Call Spread](#buy-limited-vertical-call-spread)
-    - [Conditional Order: If 10 shares XYZ filled then sell 10 shares ABC](#conditional-order-if-10-shares-xyz-filled-then-sell-10-shares-abc)
-    - [Conditional Order: If 2 shares XYZ filled then cancel sell 2 shares ABC](#conditional-order-if-2-shares-xyz-filled-then-cancel-sell-2-shares-abc)
-    - [Conditional Order: If 5 shares XYZ filled then OCO sell 5 shares ABC or 5 shares IJK](#conditional-order-if-5-shares-xyz-filled-then-oco-sell-5-shares-abc-or-5-shares-ijk).
-    - [Sell Trailing Stop: 10 shares XYZ with a trailing stop price of 10 (offset)](#sell-trailing-stop-10-shares-xyz-with-a-trailing-stop-price-of-10-offset)
-    - [Iron Condor](#iron-condor)
+<h3>Get specific order details</h3>
+<blockquote>
+Syntax:<br>
+    &emsp;  <code>print(client.order_details(account_hash, order_id)</code>
+<br>Params:
+<ul style="margin: 0">
+    <li>account_hash(str): account hash that order was placed on.  </li>
+    <li>order_id(int): order id to get details of.</li>
+</ul>
+Return:<br>
+&emsp;(request.Response)  Details of the order.
+</blockquote>
 
-## Order Methods
-### Place an order 
-> Syntax: `client.order_place(account_hash, order)`  
-> * Param account_hash(str): account hash to get place order on.  
-> * Param order(dict): Order dict to place, there are examples in below and in the Schwab documentation. 
-> 
-> Returns(request.Response):  Response object.  
->> Get the order id by checking the headers.  
->> `order_id = response.headers.get('location', '/').split('/')[-1]`  
->> *If order is immediately filled then the id might not be returned*
+<h3>Cancel a specific order</h3>
+<blockquote>
+Syntax:<br>
+    &emsp;  <code>client.order_cancel(account_hash, order_id)</code>
+<br>Params:
+<ul style="margin: 0">
+    <li>account_hash(str): account hash that order was placed on.  </li>
+    <li>order_id(int): order id to cancel.  </li>
+</ul>
+Return:<br>
+&emsp;(request.Response) Empty if successful.
+</blockquote>
 
-### Get specific order details
-> Syntax: `print(client.order_details(account_hash, order_id)`  
-> * Param account_hash(str): account hash that order was placed on.  
-> * Param order_id(int): order id to get details of.
-> 
-> Returns(request.Response):  Details of the order.
+<h3>Replace a specific order</h3>
+<blockquote>
+Syntax:<br>
+    &emsp;  <code>client.order_replace(account_hash, orderID, order)</code>
+<br>Params:
+<ul style="margin: 0">
+    <li>account_hash(str): account hash that order was placed on.  </li>
+    <li>orderID(int): order id to be replace.  </li>
+    <li>order(dict): Order dict to replace orderID with.   </li>
+</ul>
+Return:<br>
+&emsp;(request.Response)  Empty if successful.
+</blockquote>
 
-### Cancel a specific order
-> Syntax: `client.order_cancel(account_hash, order_id)`  
-> * Param account_hash(str): account hash that order was placed on.  
-> * Param order_id(int): order id to cancel.  
-> 
-> Returns(request.Response): Empty if successful.  
-
-### Replace a specific order
-> Syntax: `client.order_replace(account_hash, orderID, order)`  
-> * Param account_hash(str): account hash that order was placed on.  
-> * Param orderID(int): order id to be replace.  
-> * Param order(dict): Order dict to replace orderID with.   
-> 
-> Returns(request.Response):  Empty if successful.  
-
-## Order Examples
-*Please adjust for your usage.*
-
-### Buy 10 shares of AMD at Market price.
-
-```py
-order = {"orderType": "MARKET",
+<h2>Order Examples</h2>
+<p><em>Please adjust for your usage.</em></p>
+<h3>Buy 10 shares of AMD at Market price.</h3>
+<pre>order = {"orderType": "MARKET",
          "session": "NORMAL",
          "duration": "DAY",
          "orderStrategyType": "SINGLE",
@@ -76,32 +89,29 @@ order = {"orderType": "MARKET",
              }
             ]
          }
-```
+</pre>
 
-### Buy 4 shares of INTC at limit price $10.00 
-
-```py
-order = {"orderType": "LIMIT", 
-         "session": "NORMAL", 
-         "duration": "DAY", 
-         "orderStrategyType": "SINGLE", 
+<h3>Buy 4 shares of INTC at limit price $10.00</h3>
+<pre>order = {"orderType": "LIMIT",
+         "session": "NORMAL",
+         "duration": "DAY",
+         "orderStrategyType": "SINGLE",
          "price": '10.00',
          "orderLegCollection": [
-             {"instruction": "BUY", 
-              "quantity": 4, 
+             {"instruction": "BUY",
+              "quantity": 4,
               "instrument": {
-                  "symbol": "INTC", 
+                  "symbol": "INTC",
                   "assetType": "EQUITY"
               }
               }
          ]
          }
-```
+</pre>
 
-### Sell 3 options example
-*Symbol format:* Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)
-```py
-order = {'orderType': 'LIMIT',
+<h3>Sell 3 options example</h3>
+<p><em>Symbol format:</em> Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)</p>
+<pre>order = {'orderType': 'LIMIT',
          'session': 'NORMAL',
          'price': 1.0,
          'duration': 'GOOD_TILL_CANCEL',
@@ -116,12 +126,11 @@ order = {'orderType': 'LIMIT',
               }
          ]
          }
-```
+</pre>
 
-### Buy 3 options example
-*Symbol format:* Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)
-```py
-order = {'orderType': 'LIMIT',
+<h3>Buy 3 options example</h3>
+<p><em>Symbol format:</em> Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)</p>
+<pre>order = {'orderType': 'LIMIT',
          'session': 'NORMAL',
          'price': 0.1,
          'duration': 'GOOD_TILL_CANCEL',
@@ -136,11 +145,10 @@ order = {'orderType': 'LIMIT',
               }
          ]
          }
-```
+</pre>
 
-### Buy Limited Vertical Call Spread
-```py
-order = {
+<h3>Buy Limited Vertical Call Spread</h3>
+<pre>order = {
     "orderType": "NET_DEBIT",
     "session": "NORMAL",
     "price": "0.10",
@@ -165,11 +173,10 @@ order = {
         }
     ]
 }
-```
+</pre>
 
-### Conditional Order: If 10 shares XYZ filled then sell 10 shares ABC.
-```py
-order = {"orderType": "LIMIT",
+<h3>Conditional Order: If 10 shares XYZ filled then sell 10 shares ABC.</h3>
+<pre>order = {"orderType": "LIMIT",
          "session": "NORMAL",
          "price": "34.97",
          "duration": "DAY",
@@ -204,12 +211,10 @@ order = {"orderType": "LIMIT",
              }
          ]
          }
-```
+</pre>
 
-### Conditional Order: If 2 shares XYZ filled then cancel sell 2 shares ABC.
-
-```py
-order = {"orderStrategyType": "OCO",
+<h3>Conditional Order: If 2 shares XYZ filled then cancel sell 2 shares ABC.</h3>
+<pre>order = {"orderStrategyType": "OCO",
          "childOrderStrategies": [
              {
                  "orderType": "LIMIT",
@@ -248,12 +253,10 @@ order = {"orderStrategyType": "OCO",
              }
          ]
          }
-```
+</pre>
 
-### Conditional Order: If 5 shares XYZ filled then OCO sell 5 shares ABC or 5 shares IJK.
-Buy 5 shares of XYZ at a Limit price of $14.97 good for the Day. Once filled, 2 sell orders are immediately sent: Sell 5 shares of XYZ at a Limit price of $15.27 and Sell 5 shares of IJK with a Stop order where the stop price is $11.27. If one of the sell orders fill, the other order is immediately cancelled. Both Sell orders are Good till Cancel. Also known as a 1st Trigger OCO order.
-```py
-order = {"orderStrategyType": "TRIGGER",
+<h3>Conditional Order: If 5 shares XYZ filled then sell 5 shares ABC and 5 shares IJK.</h3>
+<pre>order = {"orderStrategyType": "TRIGGER",
          "session": "NORMAL",
          "duration": "DAY",
          "orderType": "LIMIT",
@@ -310,11 +313,10 @@ order = {"orderStrategyType": "TRIGGER",
              }
          ]
          }
-```
+</pre>
 
-### Sell Trailing Stop: 10 shares XYZ with a trailing stop price of 10 (offset).
-```py
-order = {"complexOrderStrategyType": "NONE",
+<h3 id="sell-trailing-stop-10-shares-xyz-with-a-trailing-stop-price-of-10-offset-">Sell Trailing Stop: 10 shares XYZ with a trailing stop price of 10 (offset).</h3>
+<pre>order = {"complexOrderStrategyType": "NONE",
          "orderType": "TRAILING_STOP",
          "session": "NORMAL",
          "stopPriceLinkBasis": "BID",
@@ -333,11 +335,10 @@ order = {"complexOrderStrategyType": "NONE",
              }
          ]
          }
-```
+</pre>
 
-### Iron Condor:
-```py
-order = {
+<h3>Iron Condor:</h3>
+<pre>order = {
         "orderStrategyType": "SINGLE",
         "orderType": "NET_CREDIT",
         "price": price,
@@ -379,4 +380,6 @@ order = {
         "duration": "DAY",
         "session": "NORMAL"
     }
-```
+</pre>
+
+</body>

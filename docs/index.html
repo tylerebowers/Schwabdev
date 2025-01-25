@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schwabdev Documentation</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        const url = new URL(window.location);
+		function new_iframe_source(new_src) {
+			document.getElementById("content_iframe").src=new_src;
+            url.searchParams.set('source', new_src);
+            window.history.pushState({}, null, url);
+		}
+	</script>
+</head>
+<body>
+    <div class="topbar">
+        <h1>Schwabdev Documentation</h1>
+    </div>
+
+    <div class="side-panel">
+        <ul class="tree">
+            <li>Getting Started
+                <ul>
+                    <li onclick="new_iframe_source('pages/welcome.html')">Welcome</li>
+                    <li onclick="new_iframe_source('pages/quickstart.html')">Quick Start</li>
+                    <li onclick="new_iframe_source('pages/installation.html')">Installation</li>
+                </ul>
+            </li>
+            <li>Usage
+                <ul>
+                    <li onclick="new_iframe_source('pages/client.html')">Client</li>
+                    <li onclick="new_iframe_source('pages/api.html')">API Calls</li>
+                    <li onclick="new_iframe_source('pages/stream.html')">Streaming</li>
+                    <li onclick="new_iframe_source('pages/orders.html')">Orders</li>
+                </ul>
+            </li>
+            <li>Other
+                <ul>
+                    <li onclick="new_iframe_source('pages/troubleshooting.html')">Troubleshooting</li>
+                </ul>
+            </li>
+            <li>Links
+                <ul>
+                    <li><a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord</a></li>
+                    <li><a target="_blank" href="https://youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8">Youtube</a></li>
+                    <li><a target="_blank" href="https://github.com/tylerebowers/Schwabdev">Github</a></li>
+                    <li><a target="_blank" href="https://pypi.org/project/schwabdev/">PyPI</a></li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <iframe src="pages/welcome.html" id="content_iframe"></iframe>
+    </div>
+</body>
+<script>
+    if (url.searchParams.has('source')){
+        new_iframe_source(url.searchParams.get('source'));
+    }
+</script>
+</html>
