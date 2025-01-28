@@ -29,6 +29,6 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Welcome to The Unofficial Schwab Python Wrapper!")
-    print("Github: https://github.com/tylerebowers/Schwab-API-Python")
+    print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
+    print("Documentation: https://tylerebowers.github.io/Schwabdev/")
     main()  # call the user code above

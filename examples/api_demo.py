@@ -87,8 +87,7 @@ def main():
 
 
     print("\nGet all transactions for an account")
-    print(client.transactions(account_hash, datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30),
-                              datetime.datetime.now(datetime.timezone.utc), "TRADE").json())
+    print(client.transactions(account_hash, datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30), datetime.datetime.now(datetime.timezone.utc), "TRADE").json())
     sleep(3)
 
     # get details for a specific transaction (no demo implemented)
@@ -107,6 +106,7 @@ def main():
 
     print("\nGet a single quote")
     print(client.quote("INTC").json())
+    #print(client.quote("SPXW  241111P06000000").json()) # expired contract now, just an example
     sleep(3)
 
     print("\nGet an option chain")
@@ -147,8 +147,6 @@ def main():
 
 
 if __name__ == '__main__':
-    print("Welcome to The Unofficial Schwab Python Wrapper!")
-    print("Github: https://github.com/tylerebowers/Schwab-API-Python")
-    print("API documentation: https://github.com/tylerebowers/Schwab-API-Python/blob/master/docs/api.md")
-    print("Client documentation: https://github.com/tylerebowers/Schwab-API-Python/blob/master/docs/client.md")
+    print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
+    print("Documentation: https://tylerebowers.github.io/Schwabdev/")
     main()  # call the user code above
