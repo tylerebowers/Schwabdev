@@ -14,6 +14,10 @@ import os
 #load environment
 dotenv.load_dotenv()
 
+# warn user if they have not added their keys to the .env
+if len(os.getenv('app_key')) != 32 or len(os.getenv('app_secret')) != 16:
+    raise Exception("Add you app key and app secret to the .env file.")
+
 # set logging level
 logging.basicConfig(level=logging.INFO)
 

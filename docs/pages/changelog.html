@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schwabdev Documentation</title>
+    <link rel="stylesheet" href="../lib/pages.css">
+</head>
+<body>
+
+<p>
+    Version 2.5.0<br>
+    <ul>
+        <li>Added parameter call_on_notify which calls a function before the refresh token is about to expire</li>
+        <li>Added parameter capture_callback set to True to host a webserver to capture the callback (callback url needs a port)</li>
+        <li>Moved all code to Google Docstrings</li>
+        <li>New Documentation</li>
+        <li>Improved refresh logic</li>
+        <li>Now only one logger across modules</li>
+        <li>Added Parameter use_session (default true) use a session to send requests and refresh the session for each new access token</li>
+        <li>Increased request timeout to 10s and increased streamer pong timeout to 30s</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.4.4 <br>
+    <ul>
+        <li>Better stream start_auto</li>
+        <li>More efficient sending of queued stream requests</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.4.2 <br>
+    <ul>
+        <li>Fixed 2.4.1(yanked) issue in client.quote(...) </li>
+    </ul>
+</p>
+
+<p>
+    Version 2.4.0 <br>
+    <ul>
+        <li>Improved stream stability</li>
+        <li>Added automatic capture of auth url (off by default)</li>
+        <li>Changed from prints to logging module</li>
+        <li>Better automatic stream starter</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.3.0 <br>
+    <ul>
+        <li>Token management rework</li>
+        <li>Datetime conversion bugfix</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.2.6 <br>
+    <ul>
+        <li>Python 3.11 compatibility hotfix</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.2.5 <br>
+    <ul>
+        <li>Changed streaming daemon mode</li>
+        <li>Improved type hinting</li>
+        <li>Fixed issue in stream start_auto</li>
+        <li>Better "time remaining" prints</li>
+        <li></li>
+    </ul>
+</p>
+
+<p>
+    Version 2.2.3 <br>
+    <ul>
+        <li>Added async stream sending function send_async</li>
+        <li>Changed streamer datetime implementation</li>
+        <li>Better print messages</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.2.2 <br>
+    <ul>
+        <li>Improved datetime usage</li>
+        <li>Improved stream crash handling</li>
+        <li>Better var type enforcement</li>
+        <li>Changed tokens.json file format</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.2.1 <br>
+    <ul>
+        <li>Better error messages</li>
+        <li>Bugfixes</li>
+        <li> renamed screener_option to screener_options in streamer</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.2.0 <br>
+    <ul>
+        <li>Streaming recovery will resend subscriptions if the stream crashes (toggleable)</li>
+        <li>Better initialization error messages</li>
+        <li>Removed color printing for compatibility</li>
+        <li>Context menu docs for streamer</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.1.1 <br>
+    <ul>
+        <li>Args/Kwargs can now be passed to the response_handler during stream start.</li>
+    </ul>
+</p>
+
+<p>
+    Version 2.1.0 <br>
+    <ul>
+        <li>Inline documentation for all user-facing functions</li>
+    </ul>
+</p>
+<p>
+    Version 2.0.2 <br>
+    <ul>
+        <li>Added adjustable timeout parameter for requests</li>
+        <li>Increased default timeout</li>
+    </ul>
+</p>
+<p>
+    Version 2.0.1<br>
+    <ul>
+        <li>Added Streamer</li>
+    </ul>
+</p>
+<p>
+    Version 1.9.0 <br>
+    <ul>
+        <li>Changed to color prints</li>
+        <li>Preparation for streamer</li>
+    </ul>
+</p>
+<p>
+    Version 1.0.0 <br>
+    <ul>
+        <li>Initial release</li>
+        <li>Support for all API Calls</li>
+        <li>Automatic token refresh</li>
+    </ul>
+</p>
+
+</body>

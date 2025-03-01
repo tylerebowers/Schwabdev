@@ -9,22 +9,17 @@ Useful links:
 * Watch the [Youtube](https://youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8) tutorials.
 * View the [Github](https://github.com/tylerebowers/Schwab-API-Python) repository.
 
-## Installation and Setup
-Full setup instructions can be found in the [documentation page](https://tylerebowers.github.io/Schwabdev/?source=pages%2Fquickstart.html).  
-
-`pip install schwabdev`  
-*You may need to use `pip3` instead of `pip`*  
+### Quick Start Guide: [Start Here](https://tylerebowers.github.io/Schwabdev/?source=pages%2Fquickstart.html)
 
 
-
-## What can this program do?
-Automatic token management and refreshes.
-Authenticate and access the full api with minimal code. [see examples](https://github.com/tylerebowers/Schwabdev/blob/main/examples/api_demo.py)
-Stream real-time data with a customizable response handler [see examples](https://github.com/tylerebowers/Schwabdev/blob/main/examples/stream_demo.py)
-Place orders and get order details [see examples](https://tylerebowers.github.io/Schwabdev/?source=pages%2Forders.html)
-Optional capture of callback urls when callback has a port (starts webserver on this port).
-Optional automatic starting/stopping of streamer when market opens/closes.
-Streaming stability with automatic restarts if the streamer crashes.
+### What can this program do?
+- Automatic token management and refreshes.  
+- Authenticate and access the full api with minimal code. [see examples](https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/api_demo.py)  
+- Stream real-time data with a customizable response handler [see examples](https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/stream_demo.py)  
+- Place orders and get order details [see examples](https://tylerebowers.github.io/Schwabdev/?source=pages%2Forders.html)  
+- Optional capture of callback urls when callback has a port (starts webserver on this port).  
+- Optional automatic starting/stopping of streamer when market opens/closes.  
+- Streaming stability with automatic restarts if the streamer crashes.  
 
 ### Developer Notes
 The schwabdev folder contains code for main operations:   
@@ -33,12 +28,12 @@ The schwabdev folder contains code for main operations:
  - `tokens.py` contains functions relating to token management.
  - `stream.py` contains functions for streaming data from websockets.
 
-## Youtube Tutorials
+### Youtube Tutorials
 *Github code has changed since these videos*
 1. [Authentication and Requests](https://www.youtube.com/watch?v=kHbom0KIJwc&ab_channel=TylerBowers) 
 2. [Streaming Real-time Data](https://www.youtube.com/watch?v=t7F2dUecgWc&list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8&index=2&ab_channel=TylerBowers) 
 
-## MIT License
+### MIT License
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

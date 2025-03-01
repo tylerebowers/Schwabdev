@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schwabdev Documentation</title>
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/prism.css">
+    <script src="../lib/prism.js"></script>
+    <script>
+    async function loadCode(filePath, baseId) {
+        const response = await fetch(filePath);
+        const code = await response.text();
+        let block = document.getElementById(baseId);
+        let download = document.getElementById(baseId+"-download");
+        let copy = document.getElementById(baseId+"-copy");
+
+        block.textContent = code;
+        Prism.highlightElement(block);
+
+        if (!!download) {
+            download.setAttribute('href', filePath);
+        }
+        if (!!copy) {
+            copy.setAttribute()
+        }
+    }
+    </script>
+</head>
+<body>
+
+<div style="white-space: pre">
+These examples use the <code>.env</code> file to store keys.
+To use the <code>.env</code> file you need to install the Python <a target="_blank" href="https://pypi.org/project/python-dotenv/">python-dotenv</a> package.
+</div>
+
+<pre><code id="dotenv-code" class="language-python">
+    # INCLUDE THIS FILE IN YOUR .gitignore TO AVOID LEAKING YOUR CREDENTIALS IF YOU ARE PUSHING TO GITHUB!
+    # learn about gitignore https://git-scm.com/docs/gitignore
+
+    app_key = "Your app key"
+    app_secret = "Your app secret"
+    callback_url = "https://127.0.0.1"
+</code></pre>
+<a id="dotenv-code-download" href="../examples/.env" download>Download .env Template</a>
+
+<div style="white-space: pre">
+You can find all examples in the <code>docs/examples/</code> folder <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples">here</a>.
+These are the same example files (except no jupyter notebooks), just run them like a normal python file with your keys in the <code>.env</code> file.:
+</div>
+
+<button onclick="loadCode('../examples/api_demo.py', 'main-code')">All API Calls</button>
+<button onclick="loadCode('../examples/stream_demo.py', 'main-code')">All Stream Requests</button>
+<button onclick="loadCode('../examples/playground.py', 'main-code')">Playground</button>
+<button onclick="loadCode('../examples/processing_streaming_data.py', 'main-code')">Processing Stream Data</button>
+<br>
+<a id="main-code-download" href="" download>Download the shown file</a>
+<br>
+<!--<a id="main-code-copy" href="" download>Copy this code</a>-->
+
+<pre><code id="main-code" class="language-python" data-src="">
+    #Use the buttons above to select an example file
+</code></pre>
+
+
+</body>
+</html>

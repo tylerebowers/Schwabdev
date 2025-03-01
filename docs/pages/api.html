@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schwabdev Documentation</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/prism.css">
+    <script src="../lib/prism.js"></script>
 </head>
 <body>
 
 <h1>Client API access</h1>
 <p>
-    After making a client object i.e. <code>client = schwabdev.Client(...)</code> we are free to make api calls or start a stream. <br>
+    After making a client object i.e. <code class="language-python">client = schwabdev.Client(...)</code> we are free to make api calls or start a stream. <br>
     Below is a list of all possible calls that can be made with the api. You can also reference the <a target="_blank" href="https://developer.schwab.com/products/trader-api--individual">schwab documentation</a>, each call is named similarly.
 </p>
 
@@ -29,20 +31,20 @@
 <h3>Get account number and hashes for linked accounts</h3>
 <blockquote>
 Syntax:<br>
-    &emsp; <code>client.account_linked()</code> <br>
+    &emsp; <code class="language-python">client.account_linked()</code> <br>
 Return: <br>
     &emsp;(request.Response) list of dict containing account numbers and hashes
 <details open><summary><u>Return Example</u></summary>
-<pre>
+<pre><code class="language-python">
 [{'accountNumber': 'XXXXXXXX', 'hashValue': 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'}]
-</pre>
+</code></pre>
 </details>
 </blockquote>
 
 <h3>Get details for all linked accounts</h3>
 <blockquote>
 Syntax:<br>
-&emsp;<code>client.account_details_all(fields=None)</code> <br>
+&emsp;<code class="language-python">client.account_details_all(fields=None)</code> <br>
 Params:
 <ul style="margin: 0">
     <li>fields(str): Additional fields to get; Options: "positions" current positions.  </li>
@@ -50,7 +52,7 @@ Params:
 Return:<br>
 &emsp;(request.Response) list of dict containing details for all linked accounts
     <details><summary><u>Return Example</u></summary>
-<pre>
+<pre><code class="language-python">
 [{'securitiesAccount':
            {'type': 'MARGIN',
             'accountNumber': 'XXXXXXXX',
@@ -129,37 +131,37 @@ Return:<br>
                                   'stockBuyingPower': 0.0}},
        'aggregatedBalance': {'currentLiquidationValue': 0.0,
                              'liquidationValue': 0.0}}]
-</pre>
-If the parameter <code>fields="positions"</code> is set then each account will have a <code>positions</code> field with a list of <code>position</code> objects shown here:
+</code></pre>
+If the parameter <code class="language-python">fields="positions"</code> is set then each account will have a <code class="language-python">positions</code> field with a list of <code class="language-python">position</code> objects shown here:
 
-<pre>
-[{'shortQuantity': 0.0,                   
-  'averagePrice': 0.0,          
-  'currentDayProfitLoss': 0.0,          
+<pre><code class="language-python">
+[{'shortQuantity': 0.0,
+  'averagePrice': 0.0,
+  'currentDayProfitLoss': 0.0,
   'currentDayProfitLossPercentage': 0.0,
-  'longQuantity': 0.0,                    
-  'settledLongQuantity': 0.0,             
-  'settledShortQuantity': 0.0,            
-  'instrument': {'assetType': 'XXXXXX',   
-                 'cusip': 'XXXXXXXXX',    
-                 'symbol': 'XX',          
-                 'netChange': 0.0},      
-  'marketValue': 0.0,                  
-  'maintenanceRequirement': 0.0,        
-  'averageLongPrice': 0.0,    
+  'longQuantity': 0.0,
+  'settledLongQuantity': 0.0,
+  'settledShortQuantity': 0.0,
+  'instrument': {'assetType': 'XXXXXX',
+                 'cusip': 'XXXXXXXXX',
+                 'symbol': 'XX',
+                 'netChange': 0.0},
+  'marketValue': 0.0,
+  'maintenanceRequirement': 0.0,
+  'averageLongPrice': 0.0,
   'taxLotAverageLongPrice': 0.0,
-  'longOpenProfitLoss': 0.0,    
-  'previousSessionLongQuantity': 0.0,     
+  'longOpenProfitLoss': 0.0,
+  'previousSessionLongQuantity': 0.0,
   'currentDayCost': 0.0}, ...]
 (Truncated)
-</pre>
+</code></pre>
 </details>
 
 </blockquote>
 <h3>Get specific account positions</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.account_details(account_hash, fields=None)</code>
+    &emsp;  <code class="language-python">client.account_details(account_hash, fields=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get details of.  </li>
@@ -168,107 +170,107 @@ Syntax:<br>
 Return:<br>
 &emsp;(request.Response)  dict containing details for all linked accounts (example output shortened)
 <details><summary><u>Return Example</u></summary><br>
-<pre>
-{'securitiesAccount':                                                                                                                                                                                                        
-           {'type': 'MARGIN',                                                                                                                                                                                                 
-            'accountNumber': 'XXXXXXXX',                                                                                                                                                                                      
-            'roundTrips': 0,                                                                                                                                                                                                  
-            'isDayTrader': False,                                                                                                                                                                                             
-            'isClosingOnlyRestricted': False,                                                                                                                                                                                 
-            'pfcbFlag': False,                                                                                                                                                                                                
-            'initialBalances': {'accruedInterest': 0.0,                                                                                                                                                                       
-                                'availableFundsNonMarginableTrade': 0.0,                                                                                                                                                      
-                                'bondValue': 0.0,                                                                                                                                                                             
-                                'buyingPower': 0.0,                                                                                                                                                                           
-                                'cashBalance': 0.0,                                                                                                                                                                           
-                                'cashAvailableForTrading': 0.0,                                                                                                                                                               
-                                'cashReceipts': 0.0,                                                                                                                                                                          
-                                'dayTradingBuyingPower': 0.0,                                                                                                                                                                 
-                                'dayTradingBuyingPowerCall': 0.0,                                                                                                                                                             
-                                'dayTradingEquityCall': 0.0,                                                                                                                                                                  
-                                'equity': 0.0,                                                                                                                                                                                
-                                'equityPercentage': 0.0,                                                                                                                                                                      
-                                'liquidationValue': 0.0,                                                                                                                                                                      
-                                'longMarginValue': 0.0,                                                                                                                                                                       
-                                'longOptionMarketValue': 0.0,                                                                                                                                                                 
-                                'longStockValue': 0.0,                                                                                                                                                                        
-                                'maintenanceCall': 0.0,                                                                                                                                                                       
-                                'maintenanceRequirement': 0.0,                                                                                                                                                                
-                                'margin': 0.0,                                                                                                                                                                                
-                                'marginEquity': 0.0,                                                                                                                                                                          
-                                'moneyMarketFund': 0.0,                                                                                                                                                                       
-                                'mutualFundValue': 0.0,                                                                                                                                                                       
-                                'regTCall': 0.0,                                                                                                                                                                              
-                                'shortMarginValue': 0.0,                                                                                                                                                                      
-                                'shortOptionMarketValue': 0.0,                                                                                                                                                                
-                                'shortStockValue': 0.0,                                                                                                                                                                       
-                                'totalCash': 0.0,                                                                                                                                                                             
-                                'isInCall': False,                                                                                                                                                                            
-                                'pendingDeposits': 0.0,                                                                                                                                                                       
-                                'marginBalance': 0.0,                                                                                                                                                                         
-                                'shortBalance': 0.0,                                                                                                                                                                          
-                                'accountValue': 0.0},                                                                                                                                                                         
-            'currentBalances': {'accruedInterest': 0.0,                                                                                                                                                                       
-                                'cashBalance': 0.0,                                                                                                                                                                           
-                                'cashReceipts': 0.0,                                                                                                                                                                          
-                                'longOptionMarketValue': 0.0,                                                                                                                                                                 
-                                'liquidationValue': 0.0,                                                                                                                                                                      
-                                'longMarketValue': 0.0,                                                                                                                                                                       
-                                'moneyMarketFund': 0.0,                                                                                                                                                                       
-                                'savings': 0.0,                                                                                                                                                                               
-                                'shortMarketValue': 0.0,                                                                                                                                                                      
-                                'pendingDeposits': 0.0,                                                                                                                                                                       
-                                'mutualFundValue': 0.0,                                                                                                                                                                       
-                                'bondValue': 0.0,                                                                                                                                                                             
-                                'shortOptionMarketValue': 0.0,                                                                                                                                                                
-                                'availableFunds': 0.0,                                                                                                                                                                        
-                                'availableFundsNonMarginableTrade': 0.0,                                                                                                                                                      
-                                'buyingPower': 0.0,                                                                                                                                                                           
-                                'buyingPowerNonMarginableTrade': 0.0,                                                                                                                                                         
-                                'dayTradingBuyingPower': 0.0,                                                                                                                                                                 
-                                'equity': 0.0,                                                                                                                                                                                
-                                'equityPercentage': 0.0,                                                                                                                                                                      
-                                'longMarginValue': 0.0,                                                                                                                                                                       
-                                'maintenanceCall': 0.0,                                                                                                                                                                       
-                                'maintenanceRequirement': 0.0,                                                                                                                                                                
-                                'marginBalance': 0.0,                                                                                                                                                                         
-                                'regTCall': 0.0,                                                                                                                                                                              
-                                'shortBalance': 0.0,                                                                                                                                                                          
-                                'shortMarginValue': 0.0,                                                                                                                                                                      
-                                'sma': 0.0},                                                                                                                                                                                  
-            'projectedBalances': {'availableFunds': 0.0,                                                                                                                                                                      
-                                  'availableFundsNonMarginableTrade': 0.0,                                                                                                                                                    
-                                  'buyingPower': 0.0,                                                                                                                                                                         
-                                  'dayTradingBuyingPower': 0.0,                                                                                                                                                               
-                                  'dayTradingBuyingPowerCall': 0.0,                                                                                                                                                           
-                                  'maintenanceCall': 0.0,                                                                                                                                                                     
-                                  'regTCall': 0.0,                                                                                                                                                                            
-                                  'isInCall': False,                                                                                                                                                                          
-                                  'stockBuyingPower': 0.0}},                                                                                                                                                                  
-       'aggregatedBalance': {'currentLiquidationValue': 0.0,                                                                                                                                                                  
-                             'liquidationValue': 0.0}}</pre>
-If the parameter <code>fields="positions"</code> is set then each account will have a <code>positions</code> field with a list of <code>position</code> objects shown here:
+<pre><code class="language-python">
+{'securitiesAccount':
+           {'type': 'MARGIN',
+            'accountNumber': 'XXXXXXXX',
+            'roundTrips': 0,
+            'isDayTrader': False,
+            'isClosingOnlyRestricted': False,
+            'pfcbFlag': False,
+            'initialBalances': {'accruedInterest': 0.0,
+                                'availableFundsNonMarginableTrade': 0.0,
+                                'bondValue': 0.0,
+                                'buyingPower': 0.0,
+                                'cashBalance': 0.0,
+                                'cashAvailableForTrading': 0.0,
+                                'cashReceipts': 0.0,
+                                'dayTradingBuyingPower': 0.0,
+                                'dayTradingBuyingPowerCall': 0.0,
+                                'dayTradingEquityCall': 0.0,
+                                'equity': 0.0,
+                                'equityPercentage': 0.0,
+                                'liquidationValue': 0.0,
+                                'longMarginValue': 0.0,
+                                'longOptionMarketValue': 0.0,
+                                'longStockValue': 0.0,
+                                'maintenanceCall': 0.0,
+                                'maintenanceRequirement': 0.0,
+                                'margin': 0.0,
+                                'marginEquity': 0.0,
+                                'moneyMarketFund': 0.0,
+                                'mutualFundValue': 0.0,
+                                'regTCall': 0.0,
+                                'shortMarginValue': 0.0,
+                                'shortOptionMarketValue': 0.0,
+                                'shortStockValue': 0.0,
+                                'totalCash': 0.0,
+                                'isInCall': False,
+                                'pendingDeposits': 0.0,
+                                'marginBalance': 0.0,
+                                'shortBalance': 0.0,
+                                'accountValue': 0.0},
+            'currentBalances': {'accruedInterest': 0.0,
+                                'cashBalance': 0.0,
+                                'cashReceipts': 0.0,
+                                'longOptionMarketValue': 0.0,
+                                'liquidationValue': 0.0,
+                                'longMarketValue': 0.0,
+                                'moneyMarketFund': 0.0,
+                                'savings': 0.0,
+                                'shortMarketValue': 0.0,
+                                'pendingDeposits': 0.0,
+                                'mutualFundValue': 0.0,
+                                'bondValue': 0.0,
+                                'shortOptionMarketValue': 0.0,
+                                'availableFunds': 0.0,
+                                'availableFundsNonMarginableTrade': 0.0,
+                                'buyingPower': 0.0,
+                                'buyingPowerNonMarginableTrade': 0.0,
+                                'dayTradingBuyingPower': 0.0,
+                                'equity': 0.0,
+                                'equityPercentage': 0.0,
+                                'longMarginValue': 0.0,
+                                'maintenanceCall': 0.0,
+                                'maintenanceRequirement': 0.0,
+                                'marginBalance': 0.0,
+                                'regTCall': 0.0,
+                                'shortBalance': 0.0,
+                                'shortMarginValue': 0.0,
+                                'sma': 0.0},
+            'projectedBalances': {'availableFunds': 0.0,
+                                  'availableFundsNonMarginableTrade': 0.0,
+                                  'buyingPower': 0.0,
+                                  'dayTradingBuyingPower': 0.0,
+                                  'dayTradingBuyingPowerCall': 0.0,
+                                  'maintenanceCall': 0.0,
+                                  'regTCall': 0.0,
+                                  'isInCall': False,
+                                  'stockBuyingPower': 0.0}},
+       'aggregatedBalance': {'currentLiquidationValue': 0.0,
+                             'liquidationValue': 0.0}}</code></pre>
+If the parameter <code class="language-python">fields="positions"</code> is set then each account will have a <code class="language-python">positions</code> field with a list of <code class="language-python">position</code> objects shown here:
 (Truncated)
 
-<pre>
-[{'shortQuantity': 0.0,                   
-  'averagePrice': 0.0,          
-  'currentDayProfitLoss': 0.0,          
+<pre><code class="language-python">
+[{'shortQuantity': 0.0,
+  'averagePrice': 0.0,
+  'currentDayProfitLoss': 0.0,
   'currentDayProfitLossPercentage': 0.0,
-  'longQuantity': 0.0,                    
-  'settledLongQuantity': 0.0,             
-  'settledShortQuantity': 0.0,            
-  'instrument': {'assetType': 'XXXXXX',   
-                 'cusip': 'XXXXXXXXX',    
-                 'symbol': 'XX',          
-                 'netChange': 0.0},      
-  'marketValue': 0.0,                  
-  'maintenanceRequirement': 0.0,        
-  'averageLongPrice': 0.0,    
+  'longQuantity': 0.0,
+  'settledLongQuantity': 0.0,
+  'settledShortQuantity': 0.0,
+  'instrument': {'assetType': 'XXXXXX',
+                 'cusip': 'XXXXXXXXX',
+                 'symbol': 'XX',
+                 'netChange': 0.0},
+  'marketValue': 0.0,
+  'maintenanceRequirement': 0.0,
+  'averageLongPrice': 0.0,
   'taxLotAverageLongPrice': 0.0,
-  'longOpenProfitLoss': 0.0,    
-  'previousSessionLongQuantity': 0.0,     
-  'currentDayCost': 0.0}, ...]</pre><br></details>
+  'longOpenProfitLoss': 0.0,
+  'previousSessionLongQuantity': 0.0,
+  'currentDayCost': 0.0}, ...]</code></pre><br></details>
 
 
 
@@ -279,7 +281,7 @@ If the parameter <code>fields="positions"</code> is set then each account will h
 <h3>Get orders for a linked account</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.account_orders(accountHash, fromEnteredTime, toEnteredTime, maxResults=None, status=None)</code>
+    &emsp;  <code class="language-python">client.account_orders(accountHash, fromEnteredTime, toEnteredTime, maxResults=None, status=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get details of.  </li>
@@ -292,7 +294,7 @@ Return:<br>
 &emsp;(request.Response)  Returns up to [maxResults] orders from the account tied to account_hash from [from_entered_time] to [to_entered_time] with status [status].
 <details><summary><u>Return Example</u></summary>
 (Truncated)
-<pre>
+<pre><code class="language-python">
 [{'session': 'NORMAL',
   'duration': 'GOOD_TILL_CANCEL',
   'orderType': 'LIMIT',
@@ -307,27 +309,27 @@ Return:<br>
   'orderLegCollection': [{'orderLegType': 'EQUITY',
                           'legId': 1,
                           'instrument': {'assetType': 'EQUITY',
-                                         'cusip': 'XXXXXXXXX', 
+                                         'cusip': 'XXXXXXXXX',
                                          'symbol': 'XXX',
                                          'instrumentId': XXXXXXXX},
-                          'instruction': 'BUY', 
-                          'positionEffect': 'OPENING', 
+                          'instruction': 'BUY',
+                          'positionEffect': 'OPENING',
                           'quantity': 0.0}],
   'orderStrategyType': 'SINGLE',
-  'orderId': XXXXXXXXXXXXX, 
-  'cancelable': True, 
-  'editable': True, 
+  'orderId': XXXXXXXXXXXXX,
+  'cancelable': True,
+  'editable': True,
   'status': 'PENDING_ACTIVATION',
-  'enteredTime': 'YYYY-MM-DDT00:00:00+0000', 
+  'enteredTime': 'YYYY-MM-DDT00:00:00+0000',
   'accountNumber': XXXXXXXX},
-... ]</pre>
+... ]</code></pre>
 </details>
 </blockquote>
 
 <h3>Place an order</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.order_place(account_hash, order)</code>
+    &emsp;  <code class="language-python">client.order_place(account_hash, order)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get place order on.  </li>
@@ -337,7 +339,7 @@ Return:<br>
 &emsp;(request.Response)  Response object.
 <br>Note:<br>
     &emsp;Get the order id by checking the headers.<br>
-    &emsp;<code>order_id = resp.headers.get('location', '/').split('/')[-1]</code><br>
+    &emsp;<code class="language-python">order_id = resp.headers.get('location', '/').split('/')[-1]</code><br>
     &emsp;<em>If order is immediately filled then the id might not be returned</em><br>
     &emsp;More information about orders can be found <a href="orders.html">here</a>.
 </blockquote>
@@ -345,7 +347,7 @@ Return:<br>
 <h3>Get specific order details</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>print(client.order_details(account_hash, order_id)</code>
+    &emsp;  <code class="language-python">print(client.order_details(account_hash, order_id)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash that order was placed on.  </li>
@@ -358,7 +360,7 @@ Return:<br>
 <h3>Cancel a specific order</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.order_cancel(account_hash, order_id)</code>
+    &emsp;  <code class="language-python">client.order_cancel(account_hash, order_id)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash that order was placed on.  </li>
@@ -371,7 +373,7 @@ Return:<br>
 <h3>Replace a specific order</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.order_replace(account_hash, orderID, order)</code>
+    &emsp;  <code class="language-python">client.order_replace(account_hash, orderID, order)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash that order was placed on.  </li>
@@ -385,7 +387,7 @@ Return:<br>
 <h3>Get account orders for all linked accounts</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.account_orders_all(fromEnteredTime, toEnteredTime, maxResults=None, status=None)</code>
+    &emsp;  <code class="language-python">client.account_orders_all(fromEnteredTime, toEnteredTime, maxResults=None, status=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get details of.  </li>
@@ -398,7 +400,7 @@ Return:<br>
 &emsp;(request.Response)  Returns up to [maxResults] orders from all linked accounts from [from_entered_time] to [to_entered_time] with status [status].
 <details><summary><u>Return Example</u></summary>
 (Truncated)
-<pre>
+<pre><code class="language-python">
 [{'session': 'NORMAL',
   'duration': 'GOOD_TILL_CANCEL',
   'orderType': 'LIMIT',
@@ -413,27 +415,27 @@ Return:<br>
   'orderLegCollection': [{'orderLegType': 'EQUITY',
                           'legId': 1,
                           'instrument': {'assetType': 'EQUITY',
-                                         'cusip': 'XXXXXXXXX', 
+                                         'cusip': 'XXXXXXXXX',
                                          'symbol': 'XXX',
                                          'instrumentId': XXXXXXXX},
-                          'instruction': 'BUY', 
-                          'positionEffect': 'OPENING', 
+                          'instruction': 'BUY',
+                          'positionEffect': 'OPENING',
                           'quantity': 0.0}],
   'orderStrategyType': 'SINGLE',
-  'orderId': XXXXXXXXXXXXX, 
-  'cancelable': True, 
-  'editable': True, 
+  'orderId': XXXXXXXXXXXXX,
+  'cancelable': True,
+  'editable': True,
   'status': 'PENDING_ACTIVATION',
-  'enteredTime': 'YYYY-MM-DDT00:00:00+0000', 
+  'enteredTime': 'YYYY-MM-DDT00:00:00+0000',
   'accountNumber': XXXXXXXX},
-... ]</pre>
+... ]</code></pre>
 </details>
 </blockquote>
 
 <h3>Preview order (not implemented by Schwab yet)</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.order_preview(account_hash, orderObject)</code>
+    &emsp;  <code class="language-python">client.order_preview(account_hash, orderObject)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get place order on.  </li>
@@ -442,8 +444,8 @@ Syntax:<br>
 Return:<br>
 &emsp;(request.Response)  A preview of the order.
 <details><summary><u>Return Example</u></summary>
-<pre>
-#NOT IMPLEMENTED</pre>
+<pre><code class="language-python">
+#NOT IMPLEMENTED</code></pre>
 </details>
 </blockquote>
 
@@ -451,7 +453,7 @@ Return:<br>
 <h3>Get all transactions for an account</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.transactions(accountHash, startDate, endDate, types, symbol=None)</code>
+    &emsp;  <code class="language-python">client.transactions(accountHash, startDate, endDate, types, symbol=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get transactions from.  </li>
@@ -464,7 +466,7 @@ Return:<br>
 &emsp;(request.Response)  A list of transactions.
 <details><summary><u>Return Example</u></summary>
 (Truncated)
-<pre>
+<pre><code class="language-python">
 [{'activityId': XXXXXXXXXXX,
   'time': 'YYYY-MM-DDT00:00:00+0000',
   'accountNumber': 'XXXXXXXX',
@@ -515,17 +517,17 @@ Return:<br>
                                     'instrumentId': XXXXXXXX,
                                     'closingPrice': 0.0,
                                     'type': 'COMMON_STOCK'},
-                     'amount': 0.0, 
+                     'amount': 0.0,
                      'cost': 0.0,
                      'price': 0.0,
-                     'positionEffect': 'CLOSING'}]}, ... ]</pre>
+                     'positionEffect': 'CLOSING'}]}, ... ]</code></pre>
 </details>
 </blockquote>
 
 <h3>Get details for a specific transaction</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.transaction_details(account_hash, transactionId)</code>
+    &emsp;  <code class="language-python">client.transaction_details(account_hash, transactionId)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get transactions from.  </li>
@@ -535,8 +537,8 @@ Return:<br>
 &emsp;(request.Response)  Details of the transaction.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
-# NO EXAMPLE</pre>
+<pre><code class="language-python">
+# NO EXAMPLE</code></pre>
 </details>
 </blockquote>
 
@@ -544,11 +546,11 @@ Return:<br>
 <h3>Get user preferences for accounts, includes streaming information</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.preferences()</code><br>Return:<br>
+    &emsp;  <code class="language-python">client.preferences()</code><br>Return:<br>
 &emsp;(request.Response)  User preferences for an accounts.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {'accounts': [{'accountNumber': 'XXXXXXXX',
                'primaryAccount': True,
                'type': 'BROKERAGE',
@@ -562,7 +564,7 @@ Syntax:<br>
                    'schwabClientChannel': 'N9',
                    'schwabClientFunctionId': 'APIAPP'}],
  'offers': [{'level2Permissions': True,
-             'mktDataPermission': 'NP'}]}</pre>
+             'mktDataPermission': 'NP'}]}</code></pre>
 </details>
 </blockquote>
 
@@ -570,7 +572,7 @@ Syntax:<br>
 <h3>Get a list of quotes</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.quotes(symbols=None, fields=None, indicative=False)</code>
+    &emsp;  <code class="language-python">client.quotes(symbols=None, fields=None, indicative=False)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>symbols(list|str): list of symbols to get quotes for. i.e. ["AAPL", "AMD"] or "AAPL,AMD"  </li>
@@ -581,7 +583,7 @@ Return:<br>
 &emsp;(request.Response)  A list of quote dicts.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "AAPL": {
        "assetMainType": "EQUITY",
@@ -722,14 +724,14 @@ Return:<br>
            "regularMarketTradeTime": 1729281600213,
        },
    },
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
 <h3>Get a single quote</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.quote(symbol_id, fields=None)</code>
+    &emsp;  <code class="language-python">client.quote(symbol_id, fields=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>symbol_id(str): symbol id to get quote for. i.e. "AAPL"   (note: use client.quotes(...) for futures)</li>
@@ -739,7 +741,7 @@ Return:<br>
 &emsp;(request.Response)  A quote dict.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "INTC": {
        "assetMainType": "EQUITY",
@@ -813,7 +815,7 @@ Return:<br>
            "regularMarketTradeTime": 1729281600078,
        },
    }
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
@@ -821,7 +823,7 @@ Return:<br>
 <h3>Get an option chain</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.option_chains(symbol, contractType=None, strikeCount=None, includeUnderlyingQuote=None, strategy=None,
+    &emsp;  <code class="language-python">client.option_chains(symbol, contractType=None, strikeCount=None, includeUnderlyingQuote=None, strategy=None,
                interval=None, strike=None, range=None, fromDate=None, toDate=None, volatility=None, underlyingPrice=None,
                interestRate=None, daysToExpiration=None, expMonth=None, optionType=None, entitlement=None)</code>
 <br>Params:
@@ -848,7 +850,7 @@ Return:<br>
 &emsp;(request.Response)  A list of option chain dicts.
 <details><summary><u>Return Example</u></summary>
 (Truncated)
-<pre>
+<pre><code class="language-python">
 {
    "symbol": "AAPL",
    "status": "SUCCESS",
@@ -1113,11 +1115,11 @@ Return:<br>
                    "inTheMoney": True,
                    "mini": False,
                }
-           ], 
+           ],
            ...
        }
    }
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
@@ -1125,7 +1127,7 @@ Return:<br>
 <h3>Get an option expiration chain</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.option_expiration_chain(symbol)</code>
+    &emsp;  <code class="language-python">client.option_expiration_chain(symbol)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>symbol(str): symbol to get option expiration chain for. i.e. "AAPL"</li>
@@ -1135,7 +1137,7 @@ Return:<br>
 <details><summary><u>Return Example</u></summary>
 (Truncated)
 
-<pre>
+<pre><code class="language-python">
 {
    "expirationList": [
        {
@@ -1228,7 +1230,7 @@ Return:<br>
        },
      ...
    ]
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
@@ -1236,7 +1238,7 @@ Return:<br>
 <h3>Get price history for a symbol</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.price_history(symbol, periodType=None, period=None, frequencyType=None, frequency=None, startDate=None,
+    &emsp;  <code class="language-python">client.price_history(symbol, periodType=None, period=None, frequencyType=None, frequency=None, startDate=None,
                       endDate=None, needExtendedHoursData=None, needPreviousClose=None)</code>
 <br>Params:
 <ul style="margin: 0">
@@ -1254,7 +1256,7 @@ Return:<br>
 &emsp;(request.Response)  A dict containing price history in candles.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "candles": [
        {
@@ -1356,7 +1358,7 @@ Return:<br>
    ],
    "symbol": "AAPL",
    "empty": False,
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
@@ -1364,7 +1366,7 @@ Return:<br>
 <h3>Get movers for an index</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.movers(symbol, sort=None, frequency=None)</code>
+    &emsp;  <code class="language-python">client.movers(symbol, sort=None, frequency=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>symbol(str): index symbol to get movers for. Options: \$DJI, \$COMPX, $SPX, NYSE, NASDAQ, OTCBB, INDEX_ALL, EQUITY_ALL, OPTION_ALL, OPTION_PUT, OPTION_CALL</li>
@@ -1375,7 +1377,7 @@ Return:<br>
 &emsp;(request.Response)  A list of movers.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "screeners": [
        {
@@ -1489,7 +1491,7 @@ Return:<br>
            "symbol": "DIS",
        },
    ]
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
@@ -1497,7 +1499,7 @@ Return:<br>
 <h3>Get market hours for a symbol</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.market_hours(symbols, date=None)</code>
+    &emsp;  <code class="language-python">client.market_hours(symbols, date=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>symbols(list|str): symbol to get market hours for. Options: equity, option, bond, future, forex  </li>
@@ -1507,7 +1509,7 @@ Return:<br>
 &emsp;(request.Response)  A list of market hours.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "equity": {
        "EQ": {
@@ -1570,14 +1572,14 @@ Return:<br>
            },
        },
    },
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
 <h3>Get market hours for a market</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.market_hour(market_id, date=None)</code>
+    &emsp;  <code class="language-python">client.market_hour(market_id, date=None)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>market_id(str): market id to get market hours for. Options: equity, option, bond, future, forex  </li>
@@ -1587,7 +1589,7 @@ Return:<br>
 &emsp;(request.Response)  market hours for market_id.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "equity": {
        "EQ": {
@@ -1618,7 +1620,7 @@ Return:<br>
            },
        }
    }
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
@@ -1626,7 +1628,7 @@ Return:<br>
 <h3>Get instruments for a symbol</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.instruments(symbol, projection)</code>
+    &emsp;  <code class="language-python">client.instruments(symbol, projection)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>symbol(str): symbol to get instruments for. i.e. "AAPL"</li>
@@ -1636,7 +1638,7 @@ Return:<br>
 &emsp;(request.Response)  A dict of instruments.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "instruments": [
        {
@@ -1705,14 +1707,14 @@ Return:<br>
            "assetType": "EQUITY",
        }
    ]
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 
 <h3>Get instruments for a cusip</h3>
 <blockquote>
 Syntax:<br>
-    &emsp;  <code>client.instrument_cusip(cusip_id)</code>
+    &emsp;  <code class="language-python">client.instrument_cusip(cusip_id)</code>
 <br>Params:
 <ul style="margin: 0">
     <li>cusip_id(str): cusip id to get instruments for. i.e. "AAPL"</li>
@@ -1721,7 +1723,7 @@ Return:<br>
 &emsp;(request.Response)  An instrument.
 <details><summary><u>Return Example</u></summary>
 
-<pre>
+<pre><code class="language-python">
 {
    "instruments": [
        {
@@ -1732,7 +1734,7 @@ Return:<br>
            "assetType": "EQUITY",
        }
    ]
-}</pre>
+}</code></pre>
 </details>
 </blockquote>
 

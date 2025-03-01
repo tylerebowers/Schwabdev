@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schwabdev Documentation</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/prism.css">
+    <script src="../lib/prism.js"></script>
 </head>
 <body>
 
@@ -21,7 +23,7 @@ Syntax:<br>
 <br>Params:
 <ul style="margin: 0">
     <li>account_hash(str): account hash to get place order on.  </li>
-    <li>order(dict): Order dict to place, there are examples in orders.md and in the Schwab documentation. </li>
+    <li>order(dict): Order dict to place, there are examples in below and in the Schwab documentation. </li>
 </ul>
 Return:<br>
 &emsp;(request.Response)  Response object.
@@ -74,25 +76,27 @@ Return:<br>
 <h2>Order Examples</h2>
 <p><em>Please adjust for your usage.</em></p>
 <h3>Buy 10 shares of AMD at Market price.</h3>
-<pre>order = {"orderType": "MARKET",
-         "session": "NORMAL",
-         "duration": "DAY",
-         "orderStrategyType": "SINGLE",
-         "orderLegCollection": [
-             {
-                 "instruction": "BUY",
-                 "quantity": 10,
-                 "instrument": {
-                     "symbol": "AMD",
-                     "assetType": "EQUITY"
-                 }
+<pre><code class="language-python">
+order = {"orderType": "MARKET",
+     "session": "NORMAL",
+     "duration": "DAY",
+     "orderStrategyType": "SINGLE",
+     "orderLegCollection": [
+         {
+             "instruction": "BUY",
+             "quantity": 10,
+             "instrument": {
+                 "symbol": "AMD",
+                 "assetType": "EQUITY"
              }
-            ]
          }
-</pre>
+        ]
+     }
+</code></pre>
 
 <h3>Buy 4 shares of INTC at limit price $10.00</h3>
-<pre>order = {"orderType": "LIMIT",
+<pre><code class="language-python">
+order = {"orderType": "LIMIT",
          "session": "NORMAL",
          "duration": "DAY",
          "orderStrategyType": "SINGLE",
@@ -107,11 +111,12 @@ Return:<br>
               }
          ]
          }
-</pre>
+</code></pre>
 
 <h3>Sell 3 options example</h3>
 <p><em>Symbol format:</em> Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)</p>
-<pre>order = {'orderType': 'LIMIT',
+<pre><code class="language-python">
+order = {'orderType': 'LIMIT',
          'session': 'NORMAL',
          'price': 1.0,
          'duration': 'GOOD_TILL_CANCEL',
@@ -126,11 +131,12 @@ Return:<br>
               }
          ]
          }
-</pre>
+</code></pre>
 
 <h3>Buy 3 options example</h3>
 <p><em>Symbol format:</em> Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3=8 chars)</p>
-<pre>order = {'orderType': 'LIMIT',
+<pre><code class="language-python">
+order = {'orderType': 'LIMIT',
          'session': 'NORMAL',
          'price': 0.1,
          'duration': 'GOOD_TILL_CANCEL',
@@ -145,10 +151,11 @@ Return:<br>
               }
          ]
          }
-</pre>
+</code></pre>
 
 <h3>Buy Limited Vertical Call Spread</h3>
-<pre>order = {
+<pre><code class="language-python">
+order = {
     "orderType": "NET_DEBIT",
     "session": "NORMAL",
     "price": "0.10",
@@ -173,10 +180,11 @@ Return:<br>
         }
     ]
 }
-</pre>
+</code></pre>
 
 <h3>Conditional Order: If 10 shares XYZ filled then sell 10 shares ABC.</h3>
-<pre>order = {"orderType": "LIMIT",
+<pre><code class="language-python">
+order = {"orderType": "LIMIT",
          "session": "NORMAL",
          "price": "34.97",
          "duration": "DAY",
@@ -211,10 +219,11 @@ Return:<br>
              }
          ]
          }
-</pre>
+</code></pre>
 
 <h3>Conditional Order: If 2 shares XYZ filled then cancel sell 2 shares ABC.</h3>
-<pre>order = {"orderStrategyType": "OCO",
+<pre><code class="language-python">
+order = {"orderStrategyType": "OCO",
          "childOrderStrategies": [
              {
                  "orderType": "LIMIT",
@@ -253,10 +262,11 @@ Return:<br>
              }
          ]
          }
-</pre>
+</code></pre>
 
 <h3>Conditional Order: If 5 shares XYZ filled then sell 5 shares ABC and 5 shares IJK.</h3>
-<pre>order = {"orderStrategyType": "TRIGGER",
+<pre><code class="language-python">
+order = {"orderStrategyType": "TRIGGER",
          "session": "NORMAL",
          "duration": "DAY",
          "orderType": "LIMIT",
@@ -313,10 +323,11 @@ Return:<br>
              }
          ]
          }
-</pre>
+</code></pre>
 
 <h3 id="sell-trailing-stop-10-shares-xyz-with-a-trailing-stop-price-of-10-offset-">Sell Trailing Stop: 10 shares XYZ with a trailing stop price of 10 (offset).</h3>
-<pre>order = {"complexOrderStrategyType": "NONE",
+<pre><code class="language-python">
+order = {"complexOrderStrategyType": "NONE",
          "orderType": "TRAILING_STOP",
          "session": "NORMAL",
          "stopPriceLinkBasis": "BID",
@@ -335,10 +346,11 @@ Return:<br>
              }
          ]
          }
-</pre>
+</code></pre>
 
 <h3>Iron Condor:</h3>
-<pre>order = {
+<pre><code class="language-python">
+order = {
         "orderStrategyType": "SINGLE",
         "orderType": "NET_CREDIT",
         "price": price,
@@ -380,6 +392,6 @@ Return:<br>
         "duration": "DAY",
         "session": "NORMAL"
     }
-</pre>
+</code></pre>
 
 </body>

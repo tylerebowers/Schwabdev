@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schwabdev Documentation</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="lib/index.css">
     <script>
         const url = new URL(window.location);
 		function new_iframe_source(new_src) {
@@ -14,6 +14,7 @@
 		}
 	</script>
 </head>
+
 <body>
     <div class="topbar">
         <h1>Schwabdev Documentation</h1>
@@ -30,6 +31,7 @@
             </li>
             <li>Usage
                 <ul>
+                    <li onclick="new_iframe_source('pages/examples.html')">Examples</li>
                     <li onclick="new_iframe_source('pages/client.html')">Client</li>
                     <li onclick="new_iframe_source('pages/api.html')">API Calls</li>
                     <li onclick="new_iframe_source('pages/stream.html')">Streaming</li>
@@ -39,6 +41,7 @@
             <li>Other
                 <ul>
                     <li onclick="new_iframe_source('pages/troubleshooting.html')">Troubleshooting</li>
+                    <li onclick="new_iframe_source('pages/changelog.html')">Changelog</li>
                 </ul>
             </li>
             <li>Links
