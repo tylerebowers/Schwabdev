@@ -1,6 +1,6 @@
 """
 This file functions as a "terminal emulator".
-It allows you to enter python code to test the api without restarting th whole program.
+It allows you to enter python code to test the api without restarting the whole program.
 """
 
 import logging
