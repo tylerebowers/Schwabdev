@@ -2,12 +2,14 @@
 This file contains examples for every api call.
 """
 
-from dotenv import load_dotenv
-from time import sleep
-import schwabdev
 import datetime
 import logging
 import os
+from time import sleep
+
+from dotenv import load_dotenv
+
+import schwabdev
 
 
 def main():
@@ -116,7 +118,9 @@ def main():
     print("\nGet an option chain")
     print("There is a lot to print so this is not shown, the demo code is commented out")
     # print(client.option_chains("AAPL").json())
-    # Here is another example for SPX, note that if you call with just $SPX then you will exceed the buffer on Schwab's end hence the additional parameters to limit the size of return.
+    # Here is another example for SPX, note that if you call with just $SPX
+    # you will exceed the buffer on Schwab's end
+    # hence, the additional parameters to limit the size of return.
     # print(client.option_chains("$SPX", contractType="CALL", range="ITM").json())
     sleep(3)
 

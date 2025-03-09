@@ -1,11 +1,14 @@
 """
-This file functions as a "terminal emulator" so you can enter python code to test the api without restarting th whole program.
+This file functions as a "terminal emulator".
+It allows you to enter python code to test the api without restarting the whole program.
 """
 
-from dotenv import load_dotenv
-import schwabdev
 import logging
 import os
+
+from dotenv import load_dotenv
+
+import schwabdev
 
 
 def main():

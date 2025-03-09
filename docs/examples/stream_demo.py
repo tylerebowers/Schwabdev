@@ -2,10 +2,12 @@
 This file contains examples for stream requests.
 """
 
-from dotenv import load_dotenv
-import schwabdev
 import logging
 import os
+
+from dotenv import load_dotenv
+
+import schwabdev
 
 
 def main():
@@ -33,7 +35,7 @@ def main():
 
 
     # start steamer with default response handler (print):
-    #streamer.start()
+    # streamer.start()
 
 
     # You can stream up to 500 keys.
@@ -81,7 +83,8 @@ def main():
     streamer.stop()
     # if you don't want to clear the subscriptions, set clear_subscriptions=False
     # streamer.stop(clear_subscriptions=False)
-    # if True, then the next time you start the stream it will resubscribe to the previous subscriptions (except if program is restarted)
+    # if True, the next time you start the stream it will resubscribe to the previous subscriptions
+    # (except if program is restarted)
 
 
 if __name__ == '__main__':

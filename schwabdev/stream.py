@@ -4,16 +4,20 @@ Coded by Tyler Bowers
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
 
-import time
-import json
-import atexit
 import asyncio
-import logging
+import atexit
 import datetime
-import zoneinfo
+import json
+import logging
 import threading
+import time
+import zoneinfo
+from enum import IntEnum
+
 import websockets
 import websockets.exceptions
+
+from schwabdev.enums import DaysOfWeek
 
 
 class Stream:
@@ -79,7 +83,7 @@ class Stream:
 
                     # send subscriptions (that are queued or previously sent)
                     for service, subs in self.subscriptions.items():
-                        grouped = {} # group subscriptions by fields for more efficient requests
+                        grouped: dict[str, list[str]] = {} # group subscriptions by fields for more efficient requests
                         for key, fields in subs.items():
                             grouped.setdefault(self._list_to_string(fields), []).append(key)
                         reqs = [] # list of requests to send for this service
@@ -150,7 +154,7 @@ class Stream:
             self._client.logger.warning("Stream already active.")
 
     def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = (0,1,2,3,4),
+                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: set[DaysOfWeek] | list[int] = DaysOfWeek.all_weekdays(),
                    now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
         """
         Start the stream automatically at market open and close, will NOT erase subscriptions
@@ -159,15 +163,16 @@ class Stream:
             receiver (function, optional): function to call when data is received. Defaults to print.
             start_time (datetime.time, optional): time to start the stream. Defaults to 9:30 (for EST).
             stop_time (datetime.time, optional): time to stop the stream. Defaults to 4:00 (for EST).
-            on_days (list[int], optional): day(s) to start the stream default: (0,1,2,3,4) = Mon-Fri, (0 = Monday, ..., 6 = Sunday). Defaults to (0,1,2,3,4).
+            on_days (list[int] | list[DaysOfWeek], optional): day(s) to start the stream default: DaysOfWeek.all_weekdays() = Mon-Fri = (0,1,2,3,4), (0 = Monday, ..., 6 = Sunday).
             now_timezone (zoneinfo.ZoneInfo, optional): timezone to use for now. Defaults to ZoneInfo("America/New_York").
             daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
         """
         def checker():
-
+            if all(isinstance(day, int) for day in on_days):
+                on_days = DaysOfWeek.from_integer_list(on_days)
             while True:
                 now = datetime.datetime.now(now_timezone)
-                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
+                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in {day.value for day in on_days})
                 if in_hours and not self.active:
                     if len(self.subscriptions) == 0:
                         self._client.logger.warning("No subscriptions, starting stream anyways.")
