@@ -100,8 +100,6 @@ class Client:
             case TimeFormat.YYYY_MM_DD | TimeFormat.YYYY_MM_DD.value:
                 return dt.strftime('%Y-%m-%d')
             case _:
-                return dt
-                ## Do we not want to raise an error here?
                 raise ValueError(f"Unsupported time format: {format}")
 
 
