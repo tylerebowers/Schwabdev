@@ -3,19 +3,21 @@ This file contains a class to manage tokens
 Coded by Tyler Bowers
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
+import base64
+import datetime
+import http.server
+import json
+import logging
 import os
 import ssl
-import json
-import base64
-import logging
-import requests
-import datetime
 import webbrowser
-import http.server
+from typing import Callable
+
+import requests
 
 
 class Tokens:
-    def __init__(self, client, app_key, app_secret, callback_url, tokens_file="tokens.json", capture_callback=False, call_on_notify=None):
+    def __init__(self, client, app_key: str, app_secret: str, callback_url: str, tokens_file: str="tokens.json", capture_callback=False, call_on_notify=None):
         """
         Initialize a tokens manager
 
@@ -28,25 +30,7 @@ class Tokens:
             capture_callback (bool): Use a webserver with self-signed cert to callback
             call_on_notify (function | None): Function to call when user needs to be notified (e.g. for input)
         """
-
-        if app_key is None:
-            raise Exception("[Schwabdev] app_key cannot be None.")
-        if app_secret is None:
-            raise Exception("[Schwabdev] app_secret cannot be None.")
-        if callback_url is None:
-            raise Exception("[Schwabdev] callback_url cannot be None.")
-        if tokens_file is None:
-            raise Exception("[Schwabdev] tokens_file cannot be None.")
-        if len(app_key) != 32 or len(app_secret) != 16:
-            raise Exception("[Schwabdev] App key or app secret invalid length.")
-        if callback_url[0:5] != "https":
-            raise Exception("[Schwabdev] callback_url must be https.")
-        if callback_url[-1] == "/":
-            raise Exception("[Schwabdev] callback_url cannot be path (ends with \"/\").")
-        if tokens_file[-1] == '/':
-            raise Exception("[Schwabdev] Tokens file cannot be path.")
-        if not callable(call_on_notify) and call_on_notify is not None:
-            raise Exception("[Schwabdev] call_on_notify must be callable (a function).")
+        self._validate_input(app_key, app_secret, callback_url, tokens_file, call_on_notify)
 
         self._client = client                               # client object
         self._app_key = app_key                             # app key credential
@@ -87,6 +71,40 @@ class Tokens:
             # Tokens must be updated.
             self.update_refresh_token()
 
+    @staticmethod
+    def _validate_input(app_key: str, app_secret: str, callback_url: str, tokens_file: str, call_on_notify: Callable) -> None:
+        """
+        Validates initialization parameters.
+
+        Args:
+            app_key (str): App key credentials.
+            app_secret (str): App secret credentials.
+            callback_url (str): URL for callback.
+            tokens_file (str): Path to the tokens file.
+
+        Raises:
+            ValueError: If any validation checks fail.
+        """
+        if not app_key:
+            raise ValueError("[Schwabdev] app_key cannot be None.")
+        if not app_secret:
+            raise ValueError("[Schwabdev] app_secret cannot be None.")
+        if not callback_url:
+            raise ValueError("[Schwabdev] callback_url cannot be None.")
+        if not tokens_file:
+            raise ValueError("[Schwabdev] tokens_file cannot be None.")
+
+        if len(app_key) != 32 or len(app_secret) != 16:
+            raise ValueError("[Schwabdev] App key or app secret invalid length.")
+        if not callback_url.startswith("https"):
+            raise ValueError("[Schwabdev] callback_url must be https.")
+        if callback_url.endswith("/"):
+            raise Exception("[Schwabdev] callback_url cannot be path (ends with \"/\").")
+        if tokens_file.endswith("/"):
+            raise Exception("[Schwabdev] Tokens file cannot be path.")
+        if call_on_notify is not None and not callable(call_on_notify):
+            raise ValueError("[Schwabdev] call_on_notify must be a callable function.")
+
     def _post_oauth_token(self, grant_type: str, code: str):
         """
         Makes API calls for auth code and refresh tokens
@@ -111,7 +129,7 @@ class Tokens:
             raise Exception("Invalid grant type; options are 'authorization_code' or 'refresh_token'")
         return requests.post('https://api.schwabapi.com/v1/oauth/token', headers=headers, data=data)
 
-    def _set_tokens(self, at_issued: datetime, rt_issued: datetime, token_dictionary: dict):
+    def _set_tokens(self, at_issued: datetime.datetime, rt_issued: datetime.datetime, token_dictionary: dict):
         """
         Writes token file and sets variables
 
@@ -216,10 +234,9 @@ class Tokens:
 
         """
         from cryptography import x509
-        from cryptography.x509.oid import NameOID
-        from cryptography.hazmat.primitives import hashes
-        from cryptography.hazmat.primitives import serialization
+        from cryptography.hazmat.primitives import hashes, serialization
         from cryptography.hazmat.primitives.asymmetric import rsa
+        from cryptography.x509.oid import NameOID
 
         # make folders for cert files
         os.makedirs(os.path.dirname(key_filepath), exist_ok=True)
@@ -308,7 +325,7 @@ class Tokens:
 
         HTTPHandler.shared = shared
         httpd = http.server.HTTPServer((url_base, url_port), HTTPHandler)
-        #httpd.socket.settimeout(1)
+        # httpd.socket.settimeout(1)
 
         cert_filepath = os.path.expanduser("~/.schwabdev/localhost.crt")
         key_filepath = os.path.expanduser("~/.schwabdev/localhost.key")
@@ -343,7 +360,7 @@ class Tokens:
             self._client.logger.error(e)
             self._client.logger.warning("Could not open browser for authorization (open the link manually)")
 
-        #parse the callback url
+        # parse the callback url
         url_split = self._callback_url.split("://")[-1].split(":")
         url_base = url_split[0]
         url_port = url_split[-1] # this may or may not have the port

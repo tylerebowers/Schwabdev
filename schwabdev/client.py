@@ -3,12 +3,17 @@ This file contains functions to create a client class that accesses the Schwab a
 Coded by Tyler Bowers
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
-import time
-import logging
 import datetime
-import requests
+import logging
 import threading
+import time
 import urllib.parse
+from typing import Any
+
+import requests
+
+from schwabdev.enums import TimeFormat
+
 from .stream import Stream
 from .tokens import Tokens
 
@@ -72,7 +77,7 @@ class Client:
             if params[key] is None: del params[key]
         return params
 
-    def _time_convert(self, dt = None, form="8601"):
+    def _time_convert(self, dt=None, format: str | TimeFormat=TimeFormat.ISO_8601) -> str | int | None:
         """
         Convert time to the correct format, passthrough if a string, preserve None if None for params parser
 
@@ -85,16 +90,18 @@ class Client:
         """
         if dt is None or not isinstance(dt, datetime.datetime):
             return dt
-        elif form == "8601":  # assume datetime object from here on
-            return f"{dt.isoformat().split('+')[0][:-3]}Z"
-        elif form == "epoch":
-            return int(dt.timestamp())
-        elif form == "epoch_ms":
-            return int(dt.timestamp() * 1000)
-        elif form == "YYYY-MM-DD":
-            return dt.strftime("%Y-%m-%d")
-        else:
-            return dt
+        match format:
+            case TimeFormat.ISO_8601 | TimeFormat.ISO_8601.value:
+                return f"{dt.isoformat().split('+')[0][:-3]}Z"
+            case TimeFormat.EPOCH | TimeFormat.EPOCH.value:
+                return int(dt.timestamp())
+            case TimeFormat.EPOCH_MS | TimeFormat.EPOCH_MS.value:
+                return int(dt.timestamp() * 1000)
+            case TimeFormat.YYYY_MM_DD | TimeFormat.YYYY_MM_DD.value:
+                return dt.strftime('%Y-%m-%d')
+            case _:
+                raise ValueError(f"Unsupported time format: {format}")
+
 
     def _format_list(self, l: list | str | None):
         """
@@ -117,7 +124,7 @@ class Client:
             return ",".join(l)
         else:
             return l
-        
+
     _base_api_url = "https://api.schwabapi.com"
 
     """
@@ -136,7 +143,7 @@ class Client:
                             headers={'Authorization': f'Bearer {self.tokens.access_token}'},
                             timeout=self.timeout)
 
-    def account_details_all(self, fields: str = None) -> requests.Response:
+    def account_details_all(self, fields: str | None = None) -> requests.Response:
         """
         All the linked account information for the user logged in. The balances on these accounts are displayed by default however the positions on these accounts will be displayed based on the "positions" flag.
 
@@ -151,7 +158,7 @@ class Client:
                             params=self._params_parser({'fields': fields}),
                             timeout=self.timeout)
 
-    def account_details(self, accountHash: str, fields: str = None) -> requests.Response:
+    def account_details(self, accountHash: str, fields: str | None = None) -> requests.Response:
         """
         Specific account information with balances and positions. The balance information on these accounts is displayed by default but Positions will be returned based on the "positions" flag.
 
@@ -167,7 +174,7 @@ class Client:
                             params=self._params_parser({'fields': fields}),
                             timeout=self.timeout)
 
-    def account_orders(self, accountHash: str, fromEnteredTime: datetime.datetime | str, toEnteredTime: datetime.datetime | str, maxResults: int = None, status: str = None) -> requests.Response:
+    def account_orders(self, accountHash: str, fromEnteredTime: datetime.datetime | str, toEnteredTime: datetime.datetime | str, maxResults: int | None = None, status: str | None = None) -> requests.Response:
         """
         All orders for a specific account. Orders retrieved can be filtered based on input parameters below. Maximum date range is 1 year.
 
@@ -185,8 +192,8 @@ class Client:
                             headers={"Accept": "application/json", 'Authorization': f'Bearer {self.tokens.access_token}'},
                             params=self._params_parser(
                                 {'maxResults': maxResults,
-                                 'fromEnteredTime': self._time_convert(fromEnteredTime, "8601"),
-                                 'toEnteredTime': self._time_convert(toEnteredTime, "8601"),
+                                 'fromEnteredTime': self._time_convert(fromEnteredTime, TimeFormat.ISO_8601),
+                                 'toEnteredTime': self._time_convert(toEnteredTime, TimeFormat.ISO_8601),
                                  'status': status}),
                             timeout=self.timeout)
 
@@ -257,7 +264,7 @@ class Client:
                             json=order,
                             timeout=self.timeout)
 
-    def account_orders_all(self, fromEnteredTime: datetime.datetime | str, toEnteredTime: datetime.datetime | str, maxResults: int = None, status: str = None) -> requests.Response:
+    def account_orders_all(self, fromEnteredTime: datetime.datetime | str, toEnteredTime: datetime.datetime | str, maxResults: str | None = None, status: str | None = None) -> requests.Response:
         """
         Get all orders for all accounts
 
@@ -274,8 +281,8 @@ class Client:
                             headers={"Accept": "application/json", 'Authorization': f'Bearer {self.tokens.access_token}'},
                             params=self._params_parser(
                                 {'maxResults': maxResults,
-                                 'fromEnteredTime': self._time_convert(fromEnteredTime, "8601"),
-                                 'toEnteredTime': self._time_convert(toEnteredTime, "8601"),
+                                 'fromEnteredTime': self._time_convert(fromEnteredTime, TimeFormat.ISO_8601),
+                                 'toEnteredTime': self._time_convert(toEnteredTime, TimeFormat.ISO_8601),
                                  'status': status}),
                             timeout=self.timeout)
 
@@ -287,7 +294,7 @@ class Client:
                                       "Content-Type": "application.json"}, data=orderObject)
     """
 
-    def transactions(self, accountHash: str, startDate: datetime.datetime | str, endDate: datetime.datetime | str, types: str, symbol: str = None) -> requests.Response:
+    def transactions(self, accountHash: str, startDate: datetime.datetime | str, endDate: datetime.datetime | str, types: str, symbol: str | None = None) -> requests.Response:
         """
         All transactions for a specific account. Maximum number of transactions in response is 3000. Maximum date range is 1 year.
 
@@ -304,8 +311,8 @@ class Client:
         return self._session.get(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/transactions',
                             headers={'Authorization': f'Bearer {self.tokens.access_token}'},
                             params=self._params_parser(
-                                {'startDate': self._time_convert(startDate, "8601"),
-                                 'endDate': self._time_convert(endDate, "8601"),
+                                {'startDate': self._time_convert(startDate, TimeFormat.ISO_8601),
+                                 'endDate': self._time_convert(endDate, TimeFormat.ISO_8601),
                                  'symbol': symbol,
                                  'types': types}),
                             timeout=self.timeout)
@@ -340,7 +347,7 @@ class Client:
     Market Data
     """
 
-    def quotes(self, symbols : list[str] | str, fields: str = None, indicative: bool = False) -> requests.Response:
+    def quotes(self, symbols : list[str] | str, fields: str | None = None, indicative: bool = False) -> requests.Response:
         """
         Get quotes for a list of tickers
 
@@ -360,7 +367,7 @@ class Client:
                                  'indicative': indicative}),
                             timeout=self.timeout)
 
-    def quote(self, symbol_id: str, fields: str = None) -> requests.Response:
+    def quote(self, symbol_id: str, fields: str | None = None) -> requests.Response:
         """
         Get quote for a single symbol
 
@@ -376,9 +383,9 @@ class Client:
                             params=self._params_parser({'fields': fields}),
                             timeout=self.timeout)
 
-    def option_chains(self, symbol: str, contractType: str = None, strikeCount: any = None, includeUnderlyingQuote: bool = None, strategy: str = None,
-               interval: any = None, strike: any = None, range: str = None, fromDate: datetime.datetime | str = None, toDate: datetime.datetime | str = None, volatility: any = None, underlyingPrice: any = None,
-               interestRate: any = None, daysToExpiration: any = None, expMonth: str = None, optionType: str = None, entitlement: str = None) -> requests.Response:
+    def option_chains(self, symbol: str, contractType: str | None = None, strikeCount: Any = None, includeUnderlyingQuote: bool | None = None, strategy: str | None = None,
+               interval: Any = None, strike: Any = None, range: str | None = None, fromDate: datetime.datetime | str | None = None, toDate: datetime.datetime | str | None = None, volatility: Any = None, underlyingPrice: Any = None,
+               interestRate: Any = None, daysToExpiration: Any = None, expMonth: str | None = None, optionType: str | None = None, entitlement: str | None = None) -> requests.Response:
         """
         Get Option Chain including information on options contracts associated with each expiration for a ticker.
 
@@ -421,8 +428,8 @@ class Client:
                                  'interval': interval,
                                  'strike': strike,
                                  'range': range,
-                                 'fromDate': self._time_convert(fromDate, "YYYY-MM-DD"),
-                                 'toDate': self._time_convert(toDate, "YYYY-MM-DD"),
+                                 'fromDate': self._time_convert(fromDate, TimeFormat.YYYY_MM_DD),
+                                 'toDate': self._time_convert(toDate, TimeFormat.YYYY_MM_DD),
                                  'volatility': volatility,
                                  'underlyingPrice': underlyingPrice,
                                  'interestRate': interestRate,
@@ -447,8 +454,8 @@ class Client:
                             params=self._params_parser({'symbol': symbol}),
                             timeout=self.timeout)
 
-    def price_history(self, symbol: str, periodType: str = None, period: any = None, frequencyType: str = None, frequency: any = None, startDate: datetime.datetime | str = None,
-                      endDate: any = None, needExtendedHoursData: bool = None, needPreviousClose: bool = None) -> requests.Response:
+    def price_history(self, symbol: str, periodType: str | None = None, period: str | None = None, frequencyType: str | None = None, frequency: Any = None, startDate: datetime.datetime | str | None = None,
+                      endDate: Any = None, needExtendedHoursData: bool | None = None, needPreviousClose: bool | None = None) -> requests.Response:
         """
         Get price history for a ticker
 
@@ -473,13 +480,13 @@ class Client:
                                                         'period': period,
                                                         'frequencyType': frequencyType,
                                                         'frequency': frequency,
-                                                        'startDate': self._time_convert(startDate, 'epoch_ms'),
-                                                        'endDate': self._time_convert(endDate, 'epoch_ms'),
+                                                        'startDate': self._time_convert(startDate, TimeFormat.EPOCH_MS),
+                                                        'endDate': self._time_convert(endDate, TimeFormat.EPOCH_MS),
                                                         'needExtendedHoursData': needExtendedHoursData,
                                                         'needPreviousClose': needPreviousClose}),
                             timeout=self.timeout)
 
-    def movers(self, symbol: str, sort: str = None, frequency: any = None) -> requests.Response:
+    def movers(self, symbol: str, sort: str | None = None, frequency: Any = None) -> requests.Response:
         """
         Get movers in a specific index and direction
 
@@ -501,7 +508,7 @@ class Client:
                                                         'frequency': frequency}),
                             timeout=self.timeout)
 
-    def market_hours(self, symbols: list[str], date: datetime.datetime | str = None) -> requests.Response:
+    def market_hours(self, symbols: list[str], date: datetime.datetime | str | None = None) -> requests.Response:
         """
         Get Market Hours for dates in the future across different markets.
 
@@ -516,10 +523,10 @@ class Client:
                             headers={'Authorization': f'Bearer {self.tokens.access_token}'},
                             params=self._params_parser(
                                 {'markets': symbols, #self._format_list(symbols),
-                                 'date': self._time_convert(date, 'YYYY-MM-DD')}),
+                                 'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}),
                             timeout=self.timeout)
 
-    def market_hour(self, market_id: str, date: datetime.datetime | str = None) -> requests.Response:
+    def market_hour(self, market_id: str, date: datetime.datetime | str | None = None) -> requests.Response:
         """
         Get Market Hours for dates in the future for a single market.
 
@@ -532,7 +539,7 @@ class Client:
         """
         return self._session.get(f'{self._base_api_url}/marketdata/v1/markets/{market_id}',
                             headers={'Authorization': f'Bearer {self.tokens.access_token}'},
-                            params=self._params_parser({'date': self._time_convert(date, 'YYYY-MM-DD')}),
+                            params=self._params_parser({'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}),
                             timeout=self.timeout)
 
     def instruments(self, symbol: str, projection: str) -> requests.Response:
