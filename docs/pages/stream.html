@@ -180,7 +180,23 @@ Syntax:<br>
 
 <h3>Account activity</h3>
 <blockquote>
-<p><code>streamer.send(streamer.account_activity("Account Activity", "0,1,2,3"))</code><br>There is only one key: "Account Activity" and the fields should be "0,1,2,3"<br>Only "SUBS"(default) and "UNSUBS" are supported for command.</p>
+    <p><code>streamer.send(streamer.account_activity("Account Activity", "0,1,2,3"))</code><br>
+    There is only one key: "Account Activity" and the fields should be "0,1,2,3"<br>
+    Only "SUBS"(default) and "UNSUBS" are supported for command.</p>
+
+<h4>Response Message Types</h4>
+<p>When using the account activity stream, the response message types (which are displayed in field "2") are as follows:</p>
+    <ul>
+        <li><strong>OrderCreated</strong>: Indicates an order has been successfully created.</li>
+        <li><strong>OrderAccepted</strong>: Confirms that the order has been accepted for processing.</li>
+        <li><strong>OrderMonitorCreated</strong>: A monitor is set up for tracking the order's status.</li>
+        <li><strong>ExecutionRequested</strong>: Execution of the order has been requested.</li>
+        <li><strong>ExecutionRequestCreated</strong>: A request for execution is officially logged.</li>
+        <li><strong>ExecutionRequestCompleted</strong>: The requested execution has been completed successfully.</li>
+        <li><strong>OrderFillCompleted</strong>: The order is fully filled and finalized.</li>
+        <li><strong>OrderMonitorCompleted</strong>: The monitoring process for the order has concluded.</li>
+        <li><strong>OrderMonitorUpdated</strong>: The monitor tracking the order status is updated.</li>
+    </ul>
 </blockquote>
 
 </body>
