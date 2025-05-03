@@ -5,6 +5,8 @@ This is a work in progress and is not yet complete.
 Coded by Tyler Bowers.
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
+import json
+
 
 class presets:  
 
@@ -29,6 +31,17 @@ class presets:
         }
         if price is not None: toRet['price'] = price
         return toRet
+
+
+    @staticmethod
+    def trigger_assembler(order_one, order_two):
+        order_one["orderStrategyType"] = "TRIGGER"
+        return json.dumps({
+            **order_one,
+            "childOrderStrategies": [
+                order_two
+            ]
+        })
 
 
     class equity:
