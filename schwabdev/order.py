@@ -34,13 +34,11 @@ class presets:
 
 
     @staticmethod
-    def trigger_assembler(order_one, order_two):
-        order_one["orderStrategyType"] = "TRIGGER"
+    def trigger_assembler(*args):
+        args[0]["orderStrategyType"] = "TRIGGER"
         return json.dumps({
-            **order_one,
-            "childOrderStrategies": [
-                order_two
-            ]
+            **args[0],
+            "childOrderStrategies": [arg for arg in args[1:]]
         })
 
 
