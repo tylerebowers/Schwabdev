@@ -145,7 +145,7 @@ class Tokens:
 
         Args:
             force_access_token (bool): force update of access token. Defaults to False
-            force_refresh_token (bool): force update of refresh token (also updates refresh token). Defaults to False
+            force_refresh_token (bool): force update of refresh token (also updates access token). Defaults to False
 
         Returns:
             bool: True if tokens were updated and False otherwise
