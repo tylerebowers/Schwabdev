@@ -4,14 +4,15 @@ Coded by Tyler Bowers
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
 
-import time
-import json
-import atexit
 import asyncio
-import logging
+import atexit
 import datetime
-import zoneinfo
+import json
+import logging
 import threading
+import time
+import zoneinfo
+
 import websockets
 import websockets.exceptions
 
@@ -79,7 +80,7 @@ class Stream:
 
                     # send subscriptions (that are queued or previously sent)
                     for service, subs in self.subscriptions.items():
-                        grouped = {} # group subscriptions by fields for more efficient requests
+                        grouped: dict[str, list[str]] = {} # group subscriptions by fields for more efficient requests
                         for key, fields in subs.items():
                             grouped.setdefault(self._list_to_string(fields), []).append(key)
                         reqs = [] # list of requests to send for this service
@@ -150,7 +151,7 @@ class Stream:
             self._client.logger.warning("Stream already active.")
 
     def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = (0,1,2,3,4),
+                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = [0,1,2,3,4],
                    now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
         """
         Start the stream automatically at market open and close, will NOT erase subscriptions
@@ -273,7 +274,7 @@ class Stream:
         self.send(self.basic_request(service="ADMIN", command="LOGOUT"))
         self.active = False
 
-    def basic_request(self, service: str, command: str, parameters: dict = None):
+    def basic_request(self, service: str, command: str, parameters: dict | None = None):
         """
         Create a basic request (all requests follow this format)
 

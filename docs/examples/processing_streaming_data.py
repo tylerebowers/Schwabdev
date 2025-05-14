@@ -3,15 +3,17 @@ This file is an example of how to process streaming data.
 While you can process completely in the response handler this could leave the stream with a backlog.
 The preferred method is to use a shared list, shown here as "shared_list"
 """
-from datetime import datetime
-import schwabdev
-import logging
-import dotenv
-import time
 import json
+import logging
 import os
+import time
+from datetime import datetime
 
-#load environment
+import dotenv
+
+import schwabdev
+
+# load environment
 dotenv.load_dotenv()
 
 # warn user if they have not added their keys to the .env
@@ -25,8 +27,10 @@ logging.basicConfig(level=logging.INFO)
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 streamer = client.stream
 
-#define a response handler
-shared_list = []
+# define a response handler
+shared_list: list[str] = []
+
+
 def response_handler(message):
     shared_list.append(message)
 
@@ -35,11 +39,11 @@ streamer.start(response_handler)
 streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8"))
 
 
-while True: #proccessing on list is done here
-    #print the most recent message
+while True: # proccessing on list is done here
+    # print the most recent message
     while len(shared_list) > 0: # while there is still data to consume from the list
-        oldest_response = json.loads(shared_list.pop(0)) # get the oldest data from the list
-        #print(oldest_response)
+        oldest_response = json.loads(shared_list.pop(0))  # get the oldest data from the list
+        # print(oldest_response)
         for rtype, services in oldest_response.items():
             if rtype == "data":
                 for service in services:
@@ -55,6 +59,6 @@ while True: #proccessing on list is done here
             elif rtype == "notify":
                 pass # this is a heartbeat (usually) which means that the stream is still alive
             else:
-                #unidentified response type
+                # unidentified response type
                 print(oldest_response)
     time.sleep(0.5) # slow down difference checking
