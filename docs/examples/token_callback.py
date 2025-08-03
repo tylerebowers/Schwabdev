@@ -1,6 +1,6 @@
 """
 This file contains example of connecting to remote token storage callback.
-pip install numpy redis
+pip install redis
 """
 
 import datetime
