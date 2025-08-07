@@ -17,7 +17,7 @@ import requests
 
 
 class Tokens:
-    def __init__(self, client, app_key: str, app_secret: str, callback_url: str, tokens_file: str="tokens.json", capture_callback=False, call_on_notify=None):
+    def __init__(self, client, app_key: str, app_secret: str, callback_url: str, tokens_file: str="tokens.json", get_token_callback=None, set_token_callback=None, capture_callback=False, call_on_notify=None):
         """
         Initialize a tokens manager
 
@@ -27,10 +27,12 @@ class Tokens:
             app_secret (str): App secret credential
             callback_url (str): Url for callback
             tokens_file (str): Path to tokens file
+            get_token_callback (function | None): Function for getting token, override for file storage
+            set_token_callback (function | None): Function for setting token, override for file storage
             capture_callback (bool): Use a webserver with self-signed cert to callback
             call_on_notify (function | None): Function to call when user needs to be notified (e.g. for input)
         """
-        self._validate_input(app_key, app_secret, callback_url, tokens_file, call_on_notify)
+        self._validate_input(app_key, app_secret, callback_url, tokens_file, get_token_callback, set_token_callback, call_on_notify)
 
         self._client = client                               # client object
         self._app_key = app_key                             # app key credential
@@ -46,33 +48,50 @@ class Tokens:
         self._refresh_token_timeout = 7 * 24 * 60 * 60      # in seconds (from schwab)
         self._tokens_file = tokens_file                     # path to tokens file
 
+        self._get_token_callback = get_token_callback       # function for getting token, override for file storage
+        self._set_token_callback = set_token_callback       # function for setting token, override for file storage
+        self._token_storage_override: bool = (
+            get_token_callback is not None and set_token_callback is not None
+        )
+        if self._token_storage_override:
+            self._client.logger.info("Token Storage overriden to use Get/Set Functions")
+
         self._capture_callback = capture_callback               # use a webserver with self-signed cert to callback
         self.call_on_notify = call_on_notify                    # function to call when user needs to be notified (e.g. for input)
 
         try:
-            with open(self._tokens_file, 'r') as f: # Load tokens if the file exists.
-                d = json.load(f)
-                token_dictionary = d.get("token_dictionary")
-                self.access_token = token_dictionary.get("access_token")
-                self.refresh_token = token_dictionary.get("refresh_token")
-                self.id_token = token_dictionary.get("id_token")
-                self._access_token_issued = datetime.datetime.fromisoformat(d.get("access_token_issued")).replace(tzinfo=datetime.timezone.utc)
-                self._refresh_token_issued = datetime.datetime.fromisoformat(d.get("refresh_token_issued")).replace(tzinfo=datetime.timezone.utc)
+            # Get Token Override 
+            if self._token_storage_override:
+                d = self._get_token_callback()
+            else:
+                with open(self._tokens_file, 'r') as f: # Load tokens if the file exists.
+                    d = json.load(f)
 
-                self.update_tokens()  # check if tokens need to be updated and update if needed
-                at_delta = self._access_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._access_token_issued).total_seconds()
-                rt_delta = self._refresh_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._refresh_token_issued).total_seconds()
-                self._client.logger.info(f"Access token expires in {'-' if at_delta < 0 else ''}{int(abs(at_delta) / 3600):02}H:{int((abs(at_delta) % 3600) / 60):02}M:{int((abs(at_delta) % 60)):02}S")
-                self._client.logger.info(f"Refresh token expires in {'-' if rt_delta < 0 else ''}{int(abs(rt_delta) / 3600):02}H:{int((abs(rt_delta) % 3600) / 60):02}M:{int((abs(rt_delta) % 60)):02}S")
+            token_dictionary = d.get("token_dictionary")
+            self.access_token = token_dictionary.get("access_token")
+            self.refresh_token = token_dictionary.get("refresh_token")
+            self.id_token = token_dictionary.get("id_token")
+            self._access_token_issued = datetime.datetime.fromisoformat(d.get("access_token_issued")).replace(tzinfo=datetime.timezone.utc)
+            self._refresh_token_issued = datetime.datetime.fromisoformat(d.get("refresh_token_issued")).replace(tzinfo=datetime.timezone.utc)
+
+            self.update_tokens()  # check if tokens need to be updated and update if needed
+            at_delta = self._access_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._access_token_issued).total_seconds()
+            rt_delta = self._refresh_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._refresh_token_issued).total_seconds()
+            self._client.logger.info(f"Access token expires in {'-' if at_delta < 0 else ''}{int(abs(at_delta) / 3600):02}H:{int((abs(at_delta) % 3600) / 60):02}M:{int((abs(at_delta) % 60)):02}S")
+            self._client.logger.info(f"Refresh token expires in {'-' if rt_delta < 0 else ''}{int(abs(rt_delta) / 3600):02}H:{int((abs(rt_delta) % 3600) / 60):02}M:{int((abs(rt_delta) % 60)):02}S")
 
         except Exception as e:
             self._client.logger.error(e)
-            self._client.logger.warning(f"Token file does not exist or invalid formatting, creating \"{str(tokens_file)}\"")
+            if not self._token_storage_override:
+                msg = f"Token file does not exist or invalid formatting, creating \"{str(tokens_file)}\""
+            else:
+                msg = "Get Token Function Failed"
+            self._client.logger.warning(msg)
             # Tokens must be updated.
             self.update_refresh_token()
 
     @staticmethod
-    def _validate_input(app_key: str, app_secret: str, callback_url: str, tokens_file: str, call_on_notify: Callable) -> None:
+    def _validate_input(app_key: str, app_secret: str, callback_url: str, tokens_file: str, get_token_callback: Callable, set_token_callback: Callable, call_on_notify: Callable) -> None:
         """
         Validates initialization parameters.
 
@@ -81,6 +100,9 @@ class Tokens:
             app_secret (str): App secret credentials.
             callback_url (str): URL for callback.
             tokens_file (str): Path to the tokens file.
+            get_token_callback (function | None): Function for getting token, override for file storage
+            set_token_callback (function | None): Function for setting token, override for file storage
+            call_on_notify (function | None): Function to call when user needs to be notified (e.g. for input)
 
         Raises:
             ValueError: If any validation checks fail.
@@ -92,16 +114,16 @@ class Tokens:
         if not callback_url:
             raise ValueError("[Schwabdev] callback_url cannot be None.")
         if not tokens_file:
-            raise ValueError("[Schwabdev] tokens_file cannot be None.")
-
+            if not callable(get_token_callback) or not callable(set_token_callback):
+                raise ValueError("[Schwabdev] tokens_file or get_token_callback and set_token_callback must be provided.")
+        elif tokens_file.endswith("/"):
+            raise Exception("[Schwabdev] Tokens file cannot be path.")
         if len(app_key) != 32 or len(app_secret) != 16:
             raise ValueError("[Schwabdev] App key or app secret invalid length.")
         if not callback_url.startswith("https"):
             raise ValueError("[Schwabdev] callback_url must be https.")
         if callback_url.endswith("/"):
             raise Exception("[Schwabdev] callback_url cannot be path (ends with \"/\").")
-        if tokens_file.endswith("/"):
-            raise Exception("[Schwabdev] Tokens file cannot be path.")
         if call_on_notify is not None and not callable(call_on_notify):
             raise ValueError("[Schwabdev] call_on_notify must be a callable function.")
 
@@ -147,11 +169,15 @@ class Tokens:
         self._access_token_issued = at_issued
         self._refresh_token_issued = rt_issued
         try:
-            with open(self._tokens_file, 'w') as f:
-                to_write = {"access_token_issued": at_issued.isoformat(),
+            to_write = {"access_token_issued": at_issued.isoformat(),
                             "refresh_token_issued": rt_issued.isoformat(),
                             "token_dictionary": token_dictionary}
-                json.dump(to_write, f, ensure_ascii=False, indent=4)
+
+            if self._token_storage_override:
+                self._set_token_callback(to_write)
+            else:
+                with open(self._tokens_file, 'w') as f:
+                    json.dump(to_write, f, ensure_ascii=False, indent=4)
         except Exception as e:
             self._client.logger.error(e)
             self._client.logger.error("Could not write tokens file")

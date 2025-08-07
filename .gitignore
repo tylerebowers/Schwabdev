@@ -2,3 +2,5 @@
 __pycache__/
 *.env
 tokens.json
+build/
+*.egg-info

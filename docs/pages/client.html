@@ -21,13 +21,15 @@ With a github repo you can include <code>*.env</code> and <code>tokens.json</cod
     client = schwabdev.Client(app_key, app_secret)
 </code></pre>
 <p>And from here on "client" can be used to make api calls via <code>client.XXXX()</code>, all calls are outlined in <code>examples/api_demo.py</code> and <code>docs/api.md</code>.<br>Now lets look at all of the parameters that can be passed to the client constructor:</p>
-<code>client = schwabdev.Client(app_key, app_secret, callback_url="https://127.0.0.1", tokens_file="tokens.json", timeout=10, capture_callback=False, use_session=True, call_on_notify=None)</code> (default values shown)
+<code>client = schwabdev.Client(app_key, app_secret, callback_url="https://127.0.0.1", tokens_file="tokens.json", get_token_callback=None, set_token_callback=None, timeout=10, capture_callback=False, use_session=True, call_on_notify=None)</code> (default values shown)
 <blockquote>
 <ul>
     <li>app_key (str): App key credential (e.g. "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx").</li>
     <li>app_secret (str): App secret credential (e.g. "xxxxxxxxxxxxxxxx").</li>
     <li>callback_url (str): URL for callback (e.g. "https://127.0.0.1").</li>
     <li>tokens_file (str): Path to tokens file (e.g. "tokens.json").</li>
+    <li>get_token_callback (function | None): Function for getting token, override for file storage (e.g. lambda: json.loads(r.get('schwab:token'))).</li>
+    <li>set_token_callback (function | None): Function for setting token, override for file storage (e.g. lambda token: r.set('schwab:token', json.dumps(token))).</li>
     <li>timeout (int): Request timeout in seconds (how long to wait for a response).</li>
     <li>capture_callback (bool): Use a webserver with self-signed cert to capture callback with code (no copy/pasting urls during auth).</li>
     <li>use_session (bool): Use a requests session for requests instead of creating a new session for each request (new session made for every new access token).</li>
@@ -37,6 +39,7 @@ With a github repo you can include <code>*.env</code> and <code>tokens.json</cod
 
 Notes:
 <ul>
+    <li>Parameter tokens_file - Is the default and suggested method for storing the token payload locally for authentication and token refresh.  For applications where there may distribution of applications and file storage is not easily shared, the `get_token_callback` and `get_token_callback` methods can be utilized to store the payload on something like Redis, MongoDB, or Postgres.</li>
     <li>Parameter capture_callback - If set to True then Schwabdev will use a webserver with a self-signed cert to capture the callback url (no copy/pasting urls during auth) after you have signed in your account. You must have a free port in your callback url such as "https://127.0.0.1:7777", then Schwabdev will listen on port 7777 and capture the callback. You may get a warning "net::ERR_CERT_AUTHORITY_INVALID" since it is a self-signed certificate but this is not an issue since it is a local server, just click "Advanced" &rarr; "Proceed to ..." to send the code to Schwabdev (usually only warns the first time).</li>
     <li>Parameter use_session - Set to true by default, this will use a requests session for api calls which is much more efficient. If set to false then Schwabdev will create a new session for each api call.</li>
     <li>Parameter call_on_notify - Set this to a function which will be called when the user needs to be notified (e.g. for input). This function will be called with two arguments: 1. "message" a string that describes the reason for the notification, 2. "importance" an int where 0 is the most important and higher numbers are less important. The usage case is for something like a Twilio number to send you a text when reauth is needed.</li>

@@ -20,7 +20,7 @@ from .tokens import Tokens
 
 class Client:
 
-    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_file="tokens.json", timeout=10, capture_callback=False, use_session=True, call_on_notify=None):
+    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_file="tokens.json", get_token_callback=None, set_token_callback=None, timeout=10, capture_callback=False, use_session=True, call_on_notify=None):
         """
         Initialize a client to access the Schwab API.
 
@@ -29,6 +29,8 @@ class Client:
             app_secret (str): App secret credential.
             callback_url (str): URL for callback.
             tokens_file (str): Path to tokens file.
+            get_token_callback (function | None): Function for getting token, override for file storage
+            set_token_callback (function | None): Function for setting token, override for file storage
             timeout (int): Request timeout in seconds - how long to wait for a response.
             capture_callback (bool): Use a webserver with self-signed cert to capture callback with code (no copy/pasting urls during auth).
             use_session (bool): Use a requests session for requests instead of creating a new session for each request.
@@ -43,7 +45,7 @@ class Client:
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self._session = requests.Session() if use_session else requests  # session to use in requests
-        self.tokens = Tokens(self, app_key, app_secret, callback_url, tokens_file, capture_callback, call_on_notify)
+        self.tokens = Tokens(self, app_key, app_secret, callback_url, tokens_file, get_token_callback, set_token_callback, capture_callback, call_on_notify)
         self.stream = Stream(self)                                          # init the streaming object
 
         # Spawns a thread to check the tokens and updates if necessary, also updates the session
@@ -55,7 +57,7 @@ class Client:
 
         threading.Thread(target=checker, daemon=True).start()
 
-        self.logger .info("Client Initialization Complete")
+        self.logger.info("Client Initialization Complete")
 
 
     def _params_parser(self, params: dict):
