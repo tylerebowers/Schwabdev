@@ -94,7 +94,7 @@ class Tokens:
         if not tokens_file:
             raise ValueError("[Schwabdev] tokens_file cannot be None.")
 
-        if len(app_key) != 32 or len(app_secret) != 16:
+        if len(app_key) not in (32, 48) or len(app_secret) not in (16, 64):
             raise ValueError("[Schwabdev] App key or app secret invalid length.")
         if not callback_url.startswith("https"):
             raise ValueError("[Schwabdev] callback_url must be https.")

@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '2.5.0' # Also update version in api.py
+VERSION = '2.5.1' # Also update version in api.py
 DESCRIPTION = 'An easy and lightweight wrapper for using the Charles Schwab API.'
 with open('README.md', 'r') as f:
     LONG_DESCRIPTION = f.read()
