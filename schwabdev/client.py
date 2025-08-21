@@ -41,7 +41,7 @@ class Client:
         if timeout <= 0:
             raise Exception("Timeout must be greater than 0 and is recommended to be 5 seconds or more.")
 
-        self.version = "Schwabdev 2.5.0"                                    # version of the client
+        self.version = "Schwabdev 2.5.1"                                    # version of the client
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self._session = requests.Session() if use_session else requests  # session to use in requests

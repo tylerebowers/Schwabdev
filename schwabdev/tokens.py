@@ -118,7 +118,8 @@ class Tokens:
                 raise ValueError("[Schwabdev] tokens_file or get_token_callback and set_token_callback must be provided.")
         elif tokens_file.endswith("/"):
             raise Exception("[Schwabdev] Tokens file cannot be path.")
-        if len(app_key) != 32 or len(app_secret) != 16:
+
+        if len(app_key) not in (32, 48) or len(app_secret) not in (16, 64):
             raise ValueError("[Schwabdev] App key or app secret invalid length.")
         if not callback_url.startswith("https"):
             raise ValueError("[Schwabdev] callback_url must be https.")

@@ -1,6 +1,8 @@
 .idea/
 __pycache__/
 *.env
+dist/
+schwabdev.egg-info/
 tokens.json
 build/
 *.egg-info
