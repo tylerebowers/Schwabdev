@@ -542,6 +542,25 @@ class Client:
                             params=self._params_parser({'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}),
                             timeout=self.timeout)
 
+    def instrument_list(self, symbols : list[str] | str, projection: str) -> requests.Response:
+        """
+        Get instruments for a list of symbols
+
+        Args:
+            symbol (list[str] | str): list of symbols strings (e.g. "AMD,INTC" or ["AMD", "INTC"])
+            projection (str): projection ("symbol-search"|"symbol-regex"|"desc-search"|"desc-regex"|"search"|"fundamental")
+
+        Returns:
+            request.Response: Instruments
+        """
+        return self._session.get(f'{self._base_api_url}/marketdata/v1/instruments',
+                            headers={'Authorization': f'Bearer {self.tokens.access_token}'},
+                            params=self._params_parser(
+                                {'symbol': self._format_list(symbols),
+                                 'projection': projection}),
+                            timeout=self.timeout)
+    
+
     def instruments(self, symbol: str, projection: str) -> requests.Response:
         """
         Get instruments for a list of symbols
