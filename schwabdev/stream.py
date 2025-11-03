@@ -61,6 +61,9 @@ class Stream:
 
         # start the stream
         start_time = datetime.datetime.now(datetime.timezone.utc)
+        is_async_receiver = False
+        if asyncio.iscoroutinefunction(receiver_func):
+            is_async_receiver = True
         while True:
             try:
                 start_time = datetime.datetime.now(datetime.timezone.utc)
@@ -75,7 +78,10 @@ class Stream:
                                                                    "SchwabClientChannel": self._streamer_info.get("schwabClientChannel"),
                                                                    "SchwabClientFunctionId": self._streamer_info.get("schwabClientFunctionId")})
                     await self._websocket.send(json.dumps(login_payload))
-                    receiver_func(await self._websocket.recv(), **kwargs)
+                    if is_async_receiver:
+                        await receiver_func(await self._websocket.recv(), **kwargs)
+                    else:
+                        receiver_func(await self._websocket.recv(), **kwargs)
                     self.active = True
 
                     # send subscriptions (that are queued or previously sent)
@@ -89,7 +95,10 @@ class Stream:
                         if reqs:
                             self._client.logger.debug(f"Sending subscriptions: {reqs}")
                             await self._websocket.send(json.dumps({"requests": reqs}))
-                            receiver_func(await self._websocket.recv(), **kwargs)
+                            if is_async_receiver:
+                                await receiver_func(await self._websocket.recv(), **kwargs)
+                            else:
+                                receiver_func(await self._websocket.recv(), **kwargs)
 
                     # reset backoff time
                     self.backoff_time = 2.0
@@ -102,7 +111,10 @@ class Stream:
                     """
                     # main listener loop
                     while True:
-                        receiver_func(await self._websocket.recv(), **kwargs)
+                        if is_async_receiver:
+                            await receiver_func(await self._websocket.recv(), **kwargs)
+                        else:
+                            receiver_func(await self._websocket.recv(), **kwargs)
 
             except websockets.exceptions.ConnectionClosedOK as e: # "received 1000 (OK); then sent 1000 (OK)"
                 self.active = False
