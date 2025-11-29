@@ -12,7 +12,7 @@ from typing import Any
 
 import requests
 
-from schwabdev.enums import TimeFormat
+from .enums import TimeFormat
 
 from .stream import Stream
 from .tokens import Tokens
