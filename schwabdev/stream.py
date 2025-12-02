@@ -27,6 +27,7 @@ class Stream:
             client (Client): Client object needed to get streamer info
         """
         self._websocket = None                                  # the websocket
+        self._event_loop = None                                 # the asyncio loop
         self._streamer_info = None                              # streamer info from api call
         self._request_id = 0                                    # a counter for the request id
         self.active = False                                     # whether the stream is active
@@ -66,6 +67,7 @@ class Stream:
             is_async_receiver = True
         while True:
             try:
+                self._event_loop = asyncio.get_running_loop()
                 start_time = datetime.datetime.now(datetime.timezone.utc)
                 self._client.logger.info("Connecting to streaming server...")
                 async with websockets.connect(self._streamer_info.get('streamerSocketUrl'), ping_timeout=ping_timeout) as self._websocket:
@@ -247,7 +249,7 @@ class Stream:
             requests (list | dict): list of requests or a single request
         """
         # send the request using the async function
-        asyncio.run(self.send_async(requests))
+        asyncio.run_coroutine_threadsafe(self.send_async(requests), self._event_loop)
 
 
     async def send_async(self, requests: list | dict):
