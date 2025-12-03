@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,12 +8,12 @@
     <link rel="stylesheet" href="lib/index.css">
     <script>
         const url = new URL(window.location);
-		function new_iframe_source(new_src) {
-			document.getElementById("content_iframe").src=new_src;
+        function new_iframe_source(new_src) {
+            document.getElementById("content_iframe").src = new_src;
             url.searchParams.set('source', new_src);
             window.history.pushState({}, null, url);
-		}
-	</script>
+        }
+    </script>
 </head>
 
 <body>
@@ -33,6 +34,7 @@
                 <ul>
                     <li onclick="new_iframe_source('pages/examples.html')">Examples</li>
                     <li onclick="new_iframe_source('pages/client.html')">Client</li>
+                    <li onclick="new_iframe_source('pages/async-client.html')">AsyncClient</li>
                     <li onclick="new_iframe_source('pages/api.html')">API Calls</li>
                     <li onclick="new_iframe_source('pages/stream.html')">Streaming</li>
                     <li onclick="new_iframe_source('pages/orders.html')">Orders</li>
@@ -42,13 +44,15 @@
                 <ul>
                     <li onclick="new_iframe_source('pages/troubleshooting.html')">Troubleshooting</li>
                     <li onclick="new_iframe_source('pages/changelog.html')">Changelog</li>
-                    <li onclick="new_iframe_source('pages/pdfs/Schwab_Trader_API_Streamer_Guide.pdf')">Streamer Guide</li>
+                    <li onclick="new_iframe_source('pages/pdfs/Schwab_Trader_API_Streamer_Guide.pdf')">Streamer Guide
+                    </li>
                 </ul>
             </li>
             <li>Links
                 <ul>
                     <li><a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord</a></li>
-                    <li><a target="_blank" href="https://youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8">Youtube</a></li>
+                    <li><a target="_blank"
+                            href="https://youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8">Youtube</a></li>
                     <li><a target="_blank" href="https://github.com/tylerebowers/Schwabdev">Github</a></li>
                     <li><a target="_blank" href="https://pypi.org/project/schwabdev/">PyPI</a></li>
                 </ul>
@@ -61,8 +65,9 @@
     </div>
 </body>
 <script>
-    if (url.searchParams.has('source')){
+    if (url.searchParams.has('source')) {
         new_iframe_source(url.searchParams.get('source'));
     }
 </script>
+
 </html>

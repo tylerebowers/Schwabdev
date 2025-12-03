@@ -14,7 +14,7 @@ from typing import Any
 import requests
 import aiohttp
 
-from schwabdev.enums import TimeFormat
+from .enums import TimeFormat
 
 from .stream import Stream
 from .tokens import Tokens
@@ -592,6 +592,7 @@ class Client(BaseClient):
         return self._session.get(f'{self._base_api_url}/marketdata/v1/instruments/{cusip_id}',
                             headers={'Authorization': f'Bearer {self.tokens.access_token}'},
                             timeout=self.timeout)
+
 
 class AsyncClient(BaseClient):
 
