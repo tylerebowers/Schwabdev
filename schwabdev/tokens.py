@@ -1,23 +1,20 @@
 """
 This file contains a class to manage tokens
-Coded by Tyler Bowers
 Github: https://github.com/tylerebowers/Schwab-API-Python
 """
 import base64
 import datetime
 import http.server
-import json
 import logging
 import os
 import ssl
 import webbrowser
-from typing import Callable
-
+import sqlite3
 import requests
 
 
 class Tokens:
-    def __init__(self, client, app_key: str, app_secret: str, callback_url: str, tokens_file: str="tokens.json", capture_callback=False, call_on_notify=None):
+    def __init__(self,app_key: str, app_secret: str, callback_url: str, logger: logging.Logger, tokens_db: str="~/.schwabdev/tokens.db", capture_callback=False, call_on_auth=None):
         """
         Initialize a tokens manager
 
@@ -28,82 +25,187 @@ class Tokens:
             callback_url (str): Url for callback
             tokens_file (str): Path to tokens file
             capture_callback (bool): Use a webserver with self-signed cert to callback
-            call_on_notify (function | None): Function to call when user needs to be notified (e.g. for input)
+            call_on_auth (function | None): Function to call for custom auth flow
         """
-        self._validate_input(app_key, app_secret, callback_url, tokens_file, call_on_notify)
-
-        self._client = client                               # client object
-        self._app_key = app_key                             # app key credential
-        self._app_secret = app_secret                       # app secret credential
-        self._callback_url = callback_url                   # callback url to use
-
-        self.access_token = None                            # access token from auth
-        self.refresh_token = None                           # refresh token from auth
-        self.id_token = None                                # id token from auth
-        self._access_token_issued = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)  # datetime of access token issue
-        self._refresh_token_issued = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc) # datetime of refresh token issue
-        self._access_token_timeout = 1800                   # in seconds (from schwab)
-        self._refresh_token_timeout = 7 * 24 * 60 * 60      # in seconds (from schwab)
-        self._tokens_file = tokens_file                     # path to tokens file
-
-        self._capture_callback = capture_callback               # use a webserver with self-signed cert to callback
-        self.call_on_notify = call_on_notify                    # function to call when user needs to be notified (e.g. for input)
-
-        try:
-            with open(self._tokens_file, 'r') as f: # Load tokens if the file exists.
-                d = json.load(f)
-                token_dictionary = d.get("token_dictionary")
-                self.access_token = token_dictionary.get("access_token")
-                self.refresh_token = token_dictionary.get("refresh_token")
-                self.id_token = token_dictionary.get("id_token")
-                self._access_token_issued = datetime.datetime.fromisoformat(d.get("access_token_issued")).replace(tzinfo=datetime.timezone.utc)
-                self._refresh_token_issued = datetime.datetime.fromisoformat(d.get("refresh_token_issued")).replace(tzinfo=datetime.timezone.utc)
-
-                self.update_tokens()  # check if tokens need to be updated and update if needed
-                at_delta = self._access_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._access_token_issued).total_seconds()
-                rt_delta = self._refresh_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._refresh_token_issued).total_seconds()
-                self._client.logger.info(f"Access token expires in {'-' if at_delta < 0 else ''}{int(abs(at_delta) / 3600):02}H:{int((abs(at_delta) % 3600) / 60):02}M:{int((abs(at_delta) % 60)):02}S")
-                self._client.logger.info(f"Refresh token expires in {'-' if rt_delta < 0 else ''}{int(abs(rt_delta) / 3600):02}H:{int((abs(rt_delta) % 3600) / 60):02}M:{int((abs(rt_delta) % 60)):02}S")
-
-        except Exception as e:
-            self._client.logger.error(e)
-            self._client.logger.warning(f"Token file does not exist or invalid formatting, creating \"{str(tokens_file)}\"")
-            # Tokens must be updated.
-            self.update_refresh_token()
-
-    @staticmethod
-    def _validate_input(app_key: str, app_secret: str, callback_url: str, tokens_file: str, call_on_notify: Callable) -> None:
-        """
-        Validates initialization parameters.
-
-        Args:
-            app_key (str): App key credentials.
-            app_secret (str): App secret credentials.
-            callback_url (str): URL for callback.
-            tokens_file (str): Path to the tokens file.
-
-        Raises:
-            ValueError: If any validation checks fail.
-        """
+        #parameter validation
         if not app_key:
             raise ValueError("[Schwabdev] app_key cannot be None.")
         if not app_secret:
             raise ValueError("[Schwabdev] app_secret cannot be None.")
         if not callback_url:
             raise ValueError("[Schwabdev] callback_url cannot be None.")
-        if not tokens_file:
+        if not tokens_db:
             raise ValueError("[Schwabdev] tokens_file cannot be None.")
-
         if len(app_key) not in (32, 48) or len(app_secret) not in (16, 64):
             raise ValueError("[Schwabdev] App key or app secret invalid length.")
         if not callback_url.startswith("https"):
             raise ValueError("[Schwabdev] callback_url must be https.")
         if callback_url.endswith("/"):
             raise Exception("[Schwabdev] callback_url cannot be path (ends with \"/\").")
-        if tokens_file.endswith("/"):
+        if tokens_db.endswith("/"):
             raise Exception("[Schwabdev] Tokens file cannot be path.")
-        if call_on_notify is not None and not callable(call_on_notify):
+        if call_on_auth is not None and not callable(call_on_auth):
             raise ValueError("[Schwabdev] call_on_notify must be a callable function.")
+        
+        #set public variables
+        self.access_token = None                            # access token from auth
+        self.refresh_token = None                           # refresh token from auth
+        self.id_token = None                                # id token from auth
+        self.call_on_auth = call_on_auth                    # function to call for custom auth
+
+        #set private variables
+        self._app_key = app_key                             # app key credential
+        self._app_secret = app_secret                       # app secret credential
+        self._callback_url = callback_url                   # callback url to use
+        self._access_token_issued = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)  # datetime of access token issue
+        self._refresh_token_issued = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc) # datetime of refresh token issue
+        self._access_token_timeout = 30 * 60                # in seconds (30 min from schwab)
+        self._refresh_token_timeout = 7 * 24 * 60 * 60      # in seconds (7 days from schwab)
+        self._logger = logger                               # logger
+        self._capture_callback = capture_callback           # use a webserver with self-signed cert to callback
+
+        #init token database
+        tokens_db = os.path.expanduser(tokens_db)
+        os.makedirs(os.path.dirname(tokens_db), exist_ok=True)
+        self._conn = sqlite3.connect(tokens_db, check_same_thread=False)
+        self._cur = self._conn.cursor()
+        self._cur.execute("""
+        CREATE TABLE IF NOT EXISTS tokens (
+            access_token_issued TEXT NOT NULL,
+            refresh_token_issued TEXT NOT NULL,
+            access_token TEXT NOT NULL,
+            refresh_token TEXT NOT NULL,
+            id_token TEXT NOT NULL,
+            expires_in INTEGER,
+            token_type TEXT,
+            scope TEXT
+        );
+        """)
+        self._conn.commit()
+
+        if self._load_tokens_from_db():
+            self.update_tokens()
+            at_delta = datetime.timedelta(seconds=self._access_token_timeout) - (datetime.datetime.now(datetime.timezone.utc) - self._access_token_issued)
+            rt_delta = datetime.timedelta(seconds=self._refresh_token_timeout) - (datetime.datetime.now(datetime.timezone.utc) - self._refresh_token_issued)
+            self._logger.info(f"Access token {"has been expired for: " if at_delta  < datetime.timedelta(0) else 'expires in '}{str(at_delta)[:-7]}")
+            self._logger.info(f"Refresh token {"has been expired for: " if rt_delta  < datetime.timedelta(0) else 'expires in '}{str(rt_delta)[:-7]}")
+        else:
+            self._logger.warning("[Schwabdev] No tokens found in sqlite DB, starting authorization flow.")
+            self.update_tokens(force_refresh_token=True)
+
+    def _close(self):
+        try:
+            self._conn.close()
+        except Exception:
+            pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        self._close()
+
+    def __del__(self):
+        self._close()
+
+    def _load_tokens_from_db(self) -> bool:
+        """
+        Load tokens from sqlite database into memory.
+
+        Returns:
+            bool: True if tokens were loaded, False if no row exists.
+        """
+        row = self._cur.execute(
+            """
+            SELECT
+                access_token_issued,
+                refresh_token_issued,
+                access_token,
+                refresh_token,
+                id_token,
+                expires_in,
+                token_type,
+                scope
+            FROM tokens
+            LIMIT 1
+            """
+        ).fetchone()
+
+        if not row:
+            return False
+
+        (at_issued_str,
+         rt_issued_str,
+         access_token,
+         refresh_token,
+         id_token,
+         expires_in,
+         token_type,
+         scope) = row
+        
+        self._access_token_issued = datetime.datetime.fromisoformat(at_issued_str).replace(tzinfo=datetime.timezone.utc)
+        self._refresh_token_issued = datetime.datetime.fromisoformat(rt_issued_str).replace(tzinfo=datetime.timezone.utc)
+
+        self.access_token = access_token
+        self.refresh_token = refresh_token
+        self.id_token = id_token
+        #self._expires_in = expires_in
+        #self._token_type = token_type
+        #self._scope = scope
+
+        return True
+    
+    def _set_tokens(self, at_issued: datetime.datetime, rt_issued: datetime.datetime, token_dictionary: dict):
+        """
+        Persist tokens to sqlite and set in-memory variables.
+
+        Args:
+            at_issued (datetime.datetime): access token issued datetime
+            rt_issued (datetime.datetime): refresh token issued datetime
+            token_dictionary (dict): token dictionary from Schwab OAuth
+        """
+        self.access_token = token_dictionary.get("access_token")
+        self.refresh_token = token_dictionary.get("refresh_token")
+        self.id_token = token_dictionary.get("id_token", "")
+        self._access_token_issued = at_issued
+        self._refresh_token_issued = rt_issued
+
+        expires_in = token_dictionary.get("expires_in", 1800)
+        token_type = token_dictionary.get("token_type", "Bearer")
+        scope = token_dictionary.get("scope", "api")
+
+        try:
+            # Only ever keep one row; simplest is delete + insert
+            self._cur.execute("DELETE FROM tokens")
+            self._cur.execute(
+                """
+                INSERT INTO tokens (
+                    access_token_issued,
+                    refresh_token_issued,
+                    access_token,
+                    refresh_token,
+                    id_token,
+                    expires_in,
+                    token_type,
+                    scope
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    at_issued.isoformat(),
+                    rt_issued.isoformat(),
+                    self.access_token,
+                    self.refresh_token,
+                    self.id_token,
+                    expires_in,
+                    token_type,
+                    scope,
+                ),
+            )
+            self._conn.commit()
+        except Exception as e:
+            self._logger.error(e)
+            self._logger.error("[Schwabdev] Could not write tokens to sqlite database")
+
 
     def _post_oauth_token(self, grant_type: str, code: str):
         """
@@ -129,33 +231,6 @@ class Tokens:
             raise Exception("Invalid grant type; options are 'authorization_code' or 'refresh_token'")
         return requests.post('https://api.schwabapi.com/v1/oauth/token', headers=headers, data=data)
 
-    def _set_tokens(self, at_issued: datetime.datetime, rt_issued: datetime.datetime, token_dictionary: dict):
-        """
-        Writes token file and sets variables
-
-        Args:
-            at_issued (datetime.pyi): access token issued
-            rt_issued (datetime.pyi): refresh token issued
-            token_dictionary (dict): token dictionary
-
-        Notes:
-            Writes to tokens and expiration times to self._tokens_file
-        """
-        self.access_token = token_dictionary.get("access_token")
-        self.refresh_token = token_dictionary.get("refresh_token")
-        self.id_token = token_dictionary.get("id_token")
-        self._access_token_issued = at_issued
-        self._refresh_token_issued = rt_issued
-        try:
-            with open(self._tokens_file, 'w') as f:
-                to_write = {"access_token_issued": at_issued.isoformat(),
-                            "refresh_token_issued": rt_issued.isoformat(),
-                            "token_dictionary": token_dictionary}
-                json.dump(to_write, f, ensure_ascii=False, indent=4)
-        except Exception as e:
-            self._client.logger.error(e)
-            self._client.logger.error("Could not write tokens file")
-
 
     def update_tokens(self, force_access_token=False, force_refresh_token=False):
         """
@@ -168,30 +243,21 @@ class Tokens:
         Returns:
             bool: True if tokens were updated and False otherwise
         """
-        def call_notifier(message, importance=0):
-            if callable(self.call_on_notify):
-                try:
-                    self.call_on_notify(message=message, importance=importance)
-                except Exception as e:
-                    self._client.logger.error(e)
+        now = datetime.datetime.now(datetime.timezone.utc)
+        rt_delta = datetime.timedelta(seconds=self._refresh_token_timeout) - (now - self._refresh_token_issued)
+        at_delta = datetime.timedelta(seconds=self._access_token_timeout) - (now - self._access_token_issued)
 
-        # refresh token notification
-        rt_delta = self._refresh_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._refresh_token_issued).total_seconds()
-        at_delta = self._access_token_timeout - (datetime.datetime.now(datetime.timezone.utc) - self._access_token_issued).total_seconds()
-        if 30 <= rt_delta <= 43300 and rt_delta % 900 <= 30:  # call every hour
-            print(f"The refresh token will expire soon! ({'-' if rt_delta < 0 else ''}{int(abs(rt_delta) / 3600):02}H:{int((abs(rt_delta) % 3600) / 60):02}M:{int((abs(rt_delta) % 60)):02}S remaining)")
-            if rt_delta < 21700 and rt_delta % 3600 <= 30: call_notifier(message=f"Refresh token expires in less than {int(abs(rt_delta) / 3600):01} hours", importance=int(abs(rt_delta) / 3600))
-
+        refresh_threshold = datetime.timedelta(seconds=1830)  # 30.5 minutes
+        access_threshold = datetime.timedelta(seconds=61)     # 61 seconds
 
         # check if we need to update refresh (and access) token
-        if (rt_delta < 1800) or force_refresh_token:
-            self._client.logger.warning("The refresh token has expired!")
-            call_notifier(message="Input required for refresh token", importance=0)
+        if (rt_delta < refresh_threshold) or force_refresh_token:
+            self._logger.warning("The refresh token has expired!")
             self.update_refresh_token()
             return True
         # check if we need to update access token
-        elif (at_delta < 61) or force_access_token:
-            self._client.logger.info("The access token has expired, updating automatically.")
+        elif (at_delta < access_threshold) or force_access_token:
+            self._logger.debug("The access token has expired, updating...")
             self.update_access_token()
             return True
         else:
@@ -205,16 +271,41 @@ class Tokens:
         """
         "refresh" the access token using the refresh token
         """
-        response = self._post_oauth_token('refresh_token', self.refresh_token)
-        if response.ok:
-            # get and update to the new access token
-            at_issued = datetime.datetime.now(datetime.timezone.utc)
-            self._set_tokens(at_issued, self._refresh_token_issued, response.json())
-            # show user that we have updated the access token
-            self._client.logger.info(f"Access token updated: {self._access_token_issued}")
-        else:
-            self._client.logger.error(response.text)
-            self._client.logger.error(f"Could not get new access token; refresh_token likely invalid.")
+        try:
+            self._cur.execute("BEGIN EXCLUSIVE") # Start an explicit transaction that blocks other readers/writers.
+        except sqlite3.Error as e:
+            self._logger.error(e)
+            self._logger.error("[Schwabdev] Could not start EXCLUSIVE transaction for access token update")
+            return
+        
+        committed = False
+
+        try:
+            last_known_at_issued = self._access_token_issued
+            self._load_tokens_from_db()
+            if self._access_token_issued > last_known_at_issued:
+                self._logger.info(f"Access token updated elsewhere at {self._access_token_issued}.")
+                self._conn.rollback()  # release EXCLUSIVE lock
+            else:
+                response = self._post_oauth_token('refresh_token', self.refresh_token)
+                if not response.ok:
+                    self._logger.error(response.text)
+                    self._logger.error("Could not get new access token; refresh_token likely invalid.")
+                    self._conn.rollback()  # release lock, no write performed
+                    return
+                self._set_tokens(datetime.datetime.now(datetime.timezone.utc), self._refresh_token_issued, response.json())
+                committed = True
+                self._logger.info(f"Access token updated at {self._access_token_issued}")
+
+        except Exception as e:
+            self._logger.error(e)
+            self._logger.error("[Schwabdev] Could not update access token")
+            if not committed:
+                try:
+                    self._conn.rollback()
+                except sqlite3.Error:
+                    pass
+
 
     """
         Refresh Token functions:
@@ -270,35 +361,7 @@ class Tokens:
                                       encryption_algorithm=serialization.NoEncryption()))
         with open(cert_filepath, "wb") as f:
             f.write(builder.public_bytes(serialization.Encoding.PEM))
-        self._client.logger.info(f"Certificate generated and saved to {key_filepath} and {cert_filepath}")
-
-
-
-    def _update_refresh_token_from_code(self, url_or_code):
-        """
-        Get new access and refresh tokens using callback url or authorization code.
-
-        Args:
-            url_or_code (str): callback url (full url) or authorization code (the code=... in url)
-        """
-        if url_or_code.startswith("https://"):
-            code = f"{url_or_code[url_or_code.index('code=') + 5:url_or_code.index('%40')]}@"
-            # session = responseURL[responseURL.index("session=")+8:]
-        else:
-            code = url_or_code
-        # get new access and refresh tokens
-        now = datetime.datetime.now(datetime.timezone.utc)
-        response = self._post_oauth_token('authorization_code', code)
-        if response.ok:
-            # update token file and variables
-            self._set_tokens(now, now, response.json())
-            self._client.logger.info("Refresh and Access tokens updated")
-        else:
-            self._client.logger.error(response.text)
-            self._client.logger.error("Could not get new refresh and access tokens, check these:\n"
-                               "1. App status is \"Ready For Use\".\n"
-                               "2. App key and app secret are valid.\n"
-                               "3. You pasted the whole url within 30 seconds. (it has a quick expiration)")
+        self._logger.info(f"Certificate generated and saved to {key_filepath} and {cert_filepath}")
 
     def _launch_capture_server(self, url_base, url_port):
 
@@ -344,37 +407,99 @@ class Tokens:
         httpd.server_close()
         return shared.code
 
+    def get_auth_url(self):
+        return f"https://auth.schwab.com/oauth2/authorize?client_id={self._app_key}&redirect_uri={self._callback_url}&response_type=code"
+
+    def update_refresh_token_from_code(self, url_or_code: str) -> None:
+        """
+        Get new access and refresh tokens using callback URL or authorization code,
+        under an EXCLUSIVE sqlite transaction.
+        """
+        try:
+            self._cur.execute("BEGIN EXCLUSIVE")
+        except sqlite3.Error as e:
+            self._logger.error(e)
+            self._logger.error("[Schwabdev] Could not start EXCLUSIVE transaction for refresh token update")
+            return
+
+        committed = False
+        try:
+            last_known_rt_issued = self._refresh_token_issued
+            self._load_tokens_from_db()
+
+            # If refresh token was already updated by someone else, bail
+            if self._refresh_token_issued > last_known_rt_issued:
+                self._logger.info("Refresh token updated elsewhere.")
+                self._conn.rollback()
+                return
+
+            if url_or_code.startswith("https://"):
+                try:
+                    code = f"{url_or_code[url_or_code.index('code=') + 5:url_or_code.index('%40')]}@"
+                except ValueError:
+                    self._logger.error("Could not parse authorization code from URL.")
+                    self._conn.rollback()
+                    return
+            else:
+                code = url_or_code
+
+            now = datetime.datetime.now(datetime.timezone.utc)
+            response = self._post_oauth_token('authorization_code', code)
+            if not response.ok:
+                self._logger.error(response.text)
+                self._logger.error(
+                    "Could not get new refresh and access tokens, check these:\n"
+                    "1. App status is \"Ready For Use\".\n"
+                    "2. App key and app secret are valid.\n"
+                    "3. You pasted the whole url within 30 seconds. (it has a quick expiration)\n"
+                    "4. https://tylerebowers.github.io/Schwabdev/?source=pages%2Ftroubleshooting.html"
+                )
+                self._conn.rollback()
+                return
+
+            self._set_tokens(now, now, response.json())
+            committed = True
+            self._logger.info("Refresh and Access tokens updated")
+
+        except Exception as e:
+            self._logger.error(e)
+            self._logger.error("[Schwabdev] Could not update refresh token")
+            if not committed:
+                try:
+                    self._conn.rollback()
+                except sqlite3.Error:
+                    pass
+
     def update_refresh_token(self):
         """
         Get new access and refresh tokens using authorization code.
         """
 
-        # get and open the link that the user will authorize with.
-        auth_url = f'https://api.schwabapi.com/v1/oauth/authorize?client_id={self._app_key}&redirect_uri={self._callback_url}'
-        print(f"[Schwabdev] Open to authenticate: {auth_url}")
+        auth_url = self.get_auth_url()
 
-        # try to open the link
-        try:
-            webbrowser.open(auth_url)
-        except Exception as e:
-            self._client.logger.error(e)
-            self._client.logger.warning("Could not open browser for authorization (open the link manually)")
-
-        # parse the callback url
-        url_split = self._callback_url.split("://")[-1].split(":")
-        url_base = url_split[0]
-        url_port = url_split[-1] # this may or may not have the port
-
-        if self._capture_callback and not url_port.isdigit(): # if there is a port then capture the callback url
-            self._client.logger.error("Could not find port in callback url, so you will have to copy/paste the url.")
-            self._capture_callback = False
-
-        if self._capture_callback:
-            self._update_refresh_token_from_code(self._launch_capture_server(url_base, int(url_port)))
+        if self.call_on_auth is not None and callable(self.call_on_auth):
+            self.update_refresh_token_from_code(self.call_on_auth(auth_url))
         else:
-            response_url = input("[Schwabdev] After authorizing, paste the address bar url here: ")
-            code = f"{response_url[response_url.index('code=') + 5:response_url.index('%40')]}@"
-            if code is not None:
-                self._update_refresh_token_from_code(code)
+            print(f"[Schwabdev] Open to authenticate: {auth_url}")
+            try:
+                webbrowser.open(auth_url)
+            except Exception as e:
+                self._logger.error(e)
+                self._logger.warning("Could not open browser for authorization (open the link manually)")
+
+            # parse the callback url
+            url_split = self._callback_url.split("://")[-1].split(":")
+            url_base = url_split[0]
+            url_port = url_split[-1]  # this may or may not have the port
+
+            if self._capture_callback and not url_port.isdigit():  # if there is a port then capture the callback url
+                self._logger.error("Could not find port in callback url, so you will have to copy/paste the url.")
+                self._capture_callback = False
+            elif self._capture_callback:
+                # This returns the full callback URL; helper will parse the code
+                url_or_code = self._launch_capture_server(url_base, int(url_port))
             else:
-                self._client.logger.error("Could not get new refresh token without code.")
+                response_url = input("[Schwabdev] After authorizing, paste the address bar url here: ")
+                url_or_code = response_url  # helper will handle URL vs raw code
+
+            self.update_refresh_token_from_code(url_or_code)

@@ -1,2 +1,2 @@
-from .client import Client, AsyncClient
+from .client import Client, ClientAsync
 # from .stream import Stream
