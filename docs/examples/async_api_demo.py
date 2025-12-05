@@ -8,17 +8,6 @@ from dotenv import load_dotenv
 
 import schwabdev
 
-
-print("Welcome to Schwabdev (async demo), The Unofficial Schwab API Python Wrapper!")
-print("Documentation: https://tylerebowers.github.io/Schwabdev/")
-
-# place your app key and app secret in the .env file
-load_dotenv()  # load environment variables from .env file
-
-# set logging level
-logging.basicConfig(level=logging.INFO)
-
-
 async def main():
     # create async client (uses your ClientAsync)
     async with schwabdev.ClientAsync(
@@ -188,4 +177,13 @@ async def main():
 
 
 if __name__ == "__main__":
+    print("Welcome to Schwabdev (async demo), The Unofficial Schwab API Python Wrapper!")
+    print("Documentation: https://tylerebowers.github.io/Schwabdev/")
+
+    # place your app key and app secret in the .env file
+    load_dotenv()  # load environment variables from .env file
+
+    # set logging level
+    logging.basicConfig(level=logging.INFO)
+
     asyncio.run(main())

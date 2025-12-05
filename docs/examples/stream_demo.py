@@ -79,6 +79,7 @@ def main():
     # stop the stream after 60 seconds (since this is a demo)
     time.sleep(10)
     streamer.stop()
+    time.sleep(2)  
     # if you don't want to clear the subscriptions, set clear_subscriptions=False
     # streamer.stop(clear_subscriptions=False)
     # if True, the next time you start the stream it will resubscribe to the previous subscriptions
