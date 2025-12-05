@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.INFO)
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 
 print("\nGet account number and hashes for linked accounts")
-linked_accounts = client.account_linked().json()
+linked_accounts = client.linked_accounts().json()
 print(linked_accounts)
 account_hash = linked_accounts[0].get('hashValue') # this will get the first linked account
 sleep(3)
@@ -48,14 +48,14 @@ order = {"orderType": "LIMIT",
             "orderLegCollection": [
                 {"instruction": "BUY",
                 "quantity": 1,
-                "instrument": {"symbol": "AMD",
+                "instrument": {"symbol": "INTC",
                                 "assetType": "EQUITY"
                                 }
                 }
             ]
         }
 
-# Uncomment to enable order placing/details/cancelling demo
+# Uncomment below to enable order placing/details/cancelling demo
 """ 
 resp = client.place_order(account_hash, order)
 print(f"\nPlace an order status: {resp}")

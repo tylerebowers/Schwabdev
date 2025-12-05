@@ -53,9 +53,9 @@ class ClientBase:
 
 
 
-    def _params_parser(self, params: dict):
+    def _parse_params(self, params: dict):
         """
-        Removes None (null) values
+        Removes None (null) values.
 
         Args:
             params (dict): params to remove None values from
@@ -65,7 +65,7 @@ class ClientBase:
 
         Example:
             params = {'a': 1, 'b': None}
-            client._params_parser(params)
+            client._parse_params(params)
             {'a': 1}
         """
         for key in list(params.keys()):
@@ -169,7 +169,7 @@ class Client(ClientBase):
     Accounts and Trading Production
     """
 
-    def account_linked(self) -> requests.Response:
+    def linked_accounts(self) -> requests.Response:
         """
         Account numbers in plain text cannot be used outside of headers or request/response bodies.
         As the first step consumers must invoke this service to retrieve the list of plain text/encrypted value pairs, and use encrypted account values for all subsequent calls for any accountNumber request.
@@ -190,7 +190,7 @@ class Client(ClientBase):
             request.Response: details for all linked accounts
         """
         return self._request('GET', '/trader/v1/accounts/', 
-                             params=self._params_parser({'fields': fields}))
+                             params=self._parse_params({'fields': fields}))
 
     def account_details(self, accountHash: str, fields: str | None = None) -> requests.Response:
         """
@@ -204,7 +204,7 @@ class Client(ClientBase):
             request.Response: details for one linked account
         """
         return self._request('GET', f'/trader/v1/accounts/{accountHash}', 
-                             params=self._params_parser({'fields': fields}))
+                             params=self._parse_params({'fields': fields}))
 
     def account_orders(self, accountHash: str, fromEnteredTime: datetime.datetime | str, toEnteredTime: datetime.datetime | str, maxResults: int | None = None, status: str | None = None) -> requests.Response:
         """
@@ -221,7 +221,7 @@ class Client(ClientBase):
             request.Response: orders for one linked account
         """
         return self._request("GET", f'/trader/v1/accounts/{accountHash}/orders', 
-                             params=self._params_parser({'fromEnteredTime': self._time_convert(fromEnteredTime, TimeFormat.ISO_8601), 
+                             params=self._parse_params({'fromEnteredTime': self._time_convert(fromEnteredTime, TimeFormat.ISO_8601), 
                                                          'toEnteredTime': self._time_convert(toEnteredTime, TimeFormat.ISO_8601), 
                                                          'maxResults': maxResults, 
                                                          'status': status}))
@@ -298,7 +298,7 @@ class Client(ClientBase):
         """
         return self._request("GET", '/trader/v1/orders', 
                              headers={"Accept": "application/json"},
-                             params=self._params_parser({'fromEnteredTime': self._time_convert(fromEnteredTime, TimeFormat.ISO_8601), 
+                             params=self._parse_params({'fromEnteredTime': self._time_convert(fromEnteredTime, TimeFormat.ISO_8601), 
                                                          'toEnteredTime': self._time_convert(toEnteredTime, TimeFormat.ISO_8601), 
                                                          'maxResults': maxResults, 
                                                          'status': status}))
@@ -329,7 +329,7 @@ class Client(ClientBase):
             request.Response: list of transactions for a specific account
         """
         return self._request("GET", f'/trader/v1/accounts/{accountHash}/transactions',
-                             params=self._params_parser({'startDate': self._time_convert(startDate, TimeFormat.ISO_8601), 
+                             params=self._parse_params({'startDate': self._time_convert(startDate, TimeFormat.ISO_8601), 
                                                          'endDate': self._time_convert(endDate, TimeFormat.ISO_8601), 
                                                          'types': types,
                                                          'symbol': symbol}))
@@ -373,7 +373,7 @@ class Client(ClientBase):
             request.Response: list of quotes
         """
         return self._request("GET", '/marketdata/v1/quotes',
-                             params=self._params_parser({'symbols': self._format_list(symbols),
+                             params=self._parse_params({'symbols': self._format_list(symbols),
                                                          'fields': fields,
                                                          'indicative': indicative}))
 
@@ -389,7 +389,7 @@ class Client(ClientBase):
             request.Response: quote for a single symbol
         """
         return self._request("GET", f'/marketdata/v1/{urllib.parse.quote(symbol_id,safe="")}/quotes', 
-                             params=self._params_parser({'fields': fields}))
+                             params=self._parse_params({'fields': fields}))
 
     def option_chains(self, symbol: str, contractType: str | None = None, strikeCount: Any = None, includeUnderlyingQuote: bool | None = None, strategy: str | None = None,
                interval: Any = None, strike: Any = None, range: str | None = None, fromDate: datetime.datetime | str | None = None, toDate: datetime.datetime | str | None = None, volatility: Any = None, underlyingPrice: Any = None,
@@ -426,7 +426,7 @@ class Client(ClientBase):
             request.Response: option chain
         """
         return self._request("GET", '/marketdata/v1/chains',
-                            params=self._params_parser(
+                            params=self._parse_params(
                                 {'symbol': symbol,
                                  'contractType': contractType,
                                  'strikeCount': strikeCount,
@@ -456,7 +456,7 @@ class Client(ClientBase):
             request.Response: Option expiration chain
         """
         return self._request("GET", '/marketdata/v1/expirationchain', 
-                             params=self._params_parser({'symbol': symbol}))
+                             params=self._parse_params({'symbol': symbol}))
 
     def price_history(self, symbol: str, periodType: str | None = None, period: str | None = None, frequencyType: str | None = None, frequency: Any = None, startDate: datetime.datetime | str | None = None,
                       endDate: Any = None, needExtendedHoursData: bool | None = None, needPreviousClose: bool | None = None) -> requests.Response:
@@ -478,7 +478,7 @@ class Client(ClientBase):
             request.Response: Dictionary containing candle history
         """
         return self._request("GET", '/marketdata/v1/pricehistory',
-                             params=self._params_parser({'symbol': symbol,
+                             params=self._parse_params({'symbol': symbol,
                                                          'periodType': periodType,
                                                          'period': period,
                                                          'frequencyType': frequencyType,
@@ -506,7 +506,7 @@ class Client(ClientBase):
         """
         return self._request("GET", f'/marketdata/v1/movers/{symbol}', 
                              headers={"accept": "application/json"}, 
-                             params=self._params_parser({'sort': sort, 'frequency': frequency}))
+                             params=self._parse_params({'sort': sort, 'frequency': frequency}))
 
     def market_hours(self, symbols: list[str], date: datetime.datetime | str | None = None) -> requests.Response:
         """
@@ -520,7 +520,7 @@ class Client(ClientBase):
             request.Response: Market hours
         """
         return self._request("GET", '/marketdata/v1/markets', 
-                             params=self._params_parser({'markets': self._format_list(symbols), 
+                             params=self._parse_params({'markets': self._format_list(symbols), 
                                                          'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}))
 
     def market_hour(self, market_id: str, date: datetime.datetime | str | None = None) -> requests.Response:
@@ -535,7 +535,7 @@ class Client(ClientBase):
             request.Response: Market hours
         """
         return self._request("GET", f'/marketdata/v1/markets/{market_id}', 
-                             params=self._params_parser({'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}))
+                             params=self._parse_params({'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}))
 
     def instruments(self, symbol: str, projection: str) -> requests.Response:
         """
@@ -566,19 +566,21 @@ class Client(ClientBase):
 
 class ClientAsync(ClientBase):
 
-    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, capture_callback=False, call_on_auth=None):
+    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, parsed:bool = False, capture_callback=False, call_on_auth=None):
         super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, capture_callback, call_on_auth)
+        self._parsed = parsed
+        self._session = self._get_session()                                
 
-        self._session = aiohttp.ClientSession()
-        self._session.headers.update({'Authorization': f'Bearer {self.tokens.access_token}'})                                       
+    def _get_session(self) -> aiohttp.ClientSession:
+        return aiohttp.ClientSession(base_url=self._base_api_url,
+                                     headers={'Authorization': f'Bearer {self.tokens.access_token}'}, 
+                                     timeout=aiohttp.ClientTimeout(total=self.timeout))
 
     async def checker(self):
         while True:
             if self.tokens.update_tokens():
                 self._session.close()
-                self._session = aiohttp.ClientSession() #make a new session if the access token was updated
-                self._session
-                self._session.headers.update({'Authorization': f'Bearer {self.tokens.access_token}'})
+                self._session = self._get_session()
             await asyncio.sleep(30)
 
     async def __aenter__(self):
@@ -592,13 +594,25 @@ class ClientAsync(ClientBase):
         retval = await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
         await self._session.close()
         return retval
-
+    
+    async def _parse_response(self, response: aiohttp.ClientResponse, parsed: bool = None) -> aiohttp.ClientResponse | dict:
+        if (parsed is None and self._parsed) or (parsed is True):
+            content_type = response.headers.get("Content-Type")
+            if content_type == "application/json":
+                return await response.json()
+            else: # assume "text/html" | "text/plain" | etc.
+                return await response.text()
+        else:
+            return response
+            
+    def _handle_aiohttp_bool(self, value: bool) -> str:
+        return "true" if value else "false"
 
     """
     Accounts and Trading Production
     """
 
-    async def account_linked(self) -> aiohttp.ClientResponse:
+    async def linked_accounts(self, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Account numbers in plain text cannot be used outside of headers or request/response bodies.
         As the first step consumers must invoke this service to retrieve the list of plain text/encrypted value pairs, and use encrypted account values for all subsequent calls for any accountNumber request.
@@ -606,9 +620,12 @@ class ClientAsync(ClientBase):
         Return:
             aiohttp.ClientResponse: All linked account numbers and hashes
         """
-        return await self._session.get(f'{self._base_api_url}/trader/v1/accounts/accountNumbers', timeout=self.timeout)
+        return await self._parse_response(
+            await self._session.get('/trader/v1/accounts/accountNumbers'),
+            parsed,
+        )
 
-    async def account_details_all(self, fields: str = None) -> aiohttp.ClientResponse:
+    async def account_details_all(self, fields: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         All the linked account information for the user logged in. The balances on these accounts are displayed by default however the positions on these accounts will be displayed based on the "positions" flag.
 
@@ -618,12 +635,15 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: details for all linked accounts
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/accounts/',
-                            params=self._params_parser({'fields': fields}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                '/trader/v1/accounts/',
+                params=self._parse_params({'fields': fields}),
+            ),
+            parsed,
+        )
         
-    async def account_details(self, accountHash: str, fields: str = None) -> aiohttp.ClientResponse:
+    async def account_details(self, accountHash: str, fields: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Specific account information with balances and positions. The balance information on these accounts is displayed by default but Positions will be returned based on the "positions" flag.
 
@@ -634,15 +654,18 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: details for one linked account
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/accounts/{accountHash}',
-                            params=self._params_parser({'fields': fields}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/trader/v1/accounts/{accountHash}',
+                params=self._parse_params({'fields': fields}),
+            ),
+            parsed,
+        )
 
     async def account_orders(self, accountHash: str, 
                              fromEnteredTime: datetime.datetime | str, 
                              toEnteredTime: datetime.datetime | str, 
-                             maxResults: int = None, status: str = None) -> aiohttp.ClientResponse:
+                             maxResults: int = None, status: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         All orders for a specific account. Orders retrieved can be filtered based on input parameters below. Maximum date range is 1 year.
 
@@ -656,17 +679,23 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: orders for one linked account
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/orders',
-                            headers={"Accept": "application/json"},
-                            params=self._params_parser(
-                                {'maxResults': maxResults,
-                                 'fromEnteredTime': self._time_convert(fromEnteredTime, "8601"),
-                                 'toEnteredTime': self._time_convert(toEnteredTime, "8601"),
-                                 'status': status}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/trader/v1/accounts/{accountHash}/orders',
+                headers={"Accept": "application/json"},
+                params=self._parse_params(
+                    {
+                        'maxResults': maxResults,
+                        'fromEnteredTime': self._time_convert(fromEnteredTime, "8601"),
+                        'toEnteredTime': self._time_convert(toEnteredTime, "8601"),
+                        'status': status,
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    async def order_place(self, accountHash: str, order: dict) -> aiohttp.ClientResponse:
+    async def place_order(self, accountHash: str, order: dict) -> aiohttp.ClientResponse:
         """
         Place an order for a specific account.
 
@@ -677,14 +706,16 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: order number in response header (if immediately filled then order number not returned)
         """
-        async with self._session.post(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/orders',
-                             headers={"Accept": "application/json",
-                                      "Content-Type": "application/json"},
-                             json=order,
-                             timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.post(
+                f'/trader/v1/accounts/{accountHash}/orders',
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                json=order,
+            ),
+            False, # must be raw to get headers
+        )
 
-    async def order_details(self, accountHash: str, orderId: int | str) -> aiohttp.ClientResponse:
+    async def order_details(self, accountHash: str, orderId: int | str, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get a specific order by its ID, for a specific account
 
@@ -695,11 +726,15 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: order details
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/orders/{orderId}',
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/trader/v1/accounts/{accountHash}/orders/{orderId}',
+            ),
+            parsed,
+        )
 
-    async def order_cancel(self, accountHash: str, orderId: int | str) -> aiohttp.ClientResponse:
+
+    async def cancel_order(self, accountHash: str, orderId: int | str, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Cancel a specific order by its ID, for a specific account
 
@@ -710,11 +745,13 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: response code
         """
-        async with self._session.delete(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/orders/{orderId}',
-                               timeout=self.timeout) as resp:
-            return await resp
-
-    async def order_replace(self, accountHash: str, orderId: int | str, order: dict) -> aiohttp.ClientResponse:
+        return await self._parse_response(
+            await self._session.delete(
+                f'/trader/v1/accounts/{accountHash}/orders/{orderId}',
+            ),
+            parsed,
+        )
+    async def replace_order(self, accountHash: str, orderId: int | str, order: dict) -> aiohttp.ClientResponse:
         """
         Replace an existing order for an account. The existing order will be replaced by the new order. Once replaced, the old order will be canceled and a new order will be created.
 
@@ -726,16 +763,18 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: response code
         """
-        async with self._session.put(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/orders/{orderId}',
-                            headers={"Accept": "application/json",
-                                     "Content-Type": "application/json"},
-                            json=order,
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.put(
+                f'/trader/v1/accounts/{accountHash}/orders/{orderId}',
+                headers={"Accept": "application/json", "Content-Type": "application/json"},
+                json=order,
+            ),
+            False, # must be raw to get headers
+        )
 
     async def account_orders_all(self, fromEnteredTime: datetime.datetime | str, 
                                  toEnteredTime: datetime.datetime | str, 
-                                 maxResults: int = None, status: str = None) -> aiohttp.ClientResponse:
+                                 maxResults: int = None, status: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get all orders for all accounts
 
@@ -748,27 +787,37 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: all orders
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/orders',
-                            headers={"Accept": "application/json"},
-                            params=self._params_parser(
-                                {'maxResults': maxResults,
-                                 'fromEnteredTime': self._time_convert(fromEnteredTime, "8601"),
-                                 'toEnteredTime': self._time_convert(toEnteredTime, "8601"),
-                                 'status': status}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                '/trader/v1/orders',
+                headers={"Accept": "application/json"},
+                params=self._parse_params(
+                    {
+                        'maxResults': maxResults,
+                        'fromEnteredTime': self._time_convert(fromEnteredTime, "8601"),
+                        'toEnteredTime': self._time_convert(toEnteredTime, "8601"),
+                        'status': status,
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    """
-    async def order_preview(self, accountHash: str, orderObject: dict) -> aiohttp.ClientResponse:
-        #(NOT) COMING SOON (waiting on Schwab)
-        async with self._session.post(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/previewOrder',
-                             headers={'Authorization': f'Bearer {self.tokens.access_token}',
-                                      "Content-Type": "application.json"}, data=orderObject) as resp:
-            return await resp
-    """
+
+    async def preview_order(self, accountHash: str, orderObject: dict, parsed: bool = None) -> aiohttp.ClientResponse:
+        return await self._parse_response(
+            await self._session.post(
+                f'/trader/v1/accounts/{accountHash}/previewOrder',
+                headers={'Content-Type': 'application/json'},
+                json=orderObject,
+            ),            
+            parsed,
+        )
+        
+
 
     async def transactions(self, accountHash: str, startDate: datetime.datetime | str, 
-                           endDate: datetime.datetime | str, types: str, symbol: str = None) -> aiohttp.ClientResponse:
+                           endDate: datetime.datetime | str, types: str, symbol: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         All transactions for a specific account. Maximum number of transactions in response is 3000. Maximum date range is 1 year.
 
@@ -782,16 +831,22 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: list of transactions for a specific account
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/transactions',
-                            params=self._params_parser(
-                                {'startDate': self._time_convert(startDate, "8601"),
-                                 'endDate': self._time_convert(endDate, "8601"),
-                                 'symbol': symbol,
-                                 'types': types}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/trader/v1/accounts/{accountHash}/transactions',
+                params=self._parse_params(
+                    {
+                        'startDate': self._time_convert(startDate, "8601"),
+                        'endDate': self._time_convert(endDate, "8601"),
+                        'symbol': symbol,
+                        'types': types,
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    async def transaction_details(self, accountHash: str, transactionId: str | int) -> aiohttp.ClientResponse:
+    async def transaction_details(self, accountHash: str, transactionId: str | int, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get specific transaction information for a specific account
 
@@ -802,26 +857,31 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: transaction details of transaction id using accountHash
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/accounts/{accountHash}/transactions/{transactionId}',
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/trader/v1/accounts/{accountHash}/transactions/{transactionId}',
+            ),
+            parsed,
+        )
 
-    async def preferences(self) -> aiohttp.ClientResponse:
+    async def preferences(self, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get user preference information for the logged in user.
 
         Returns:
             aiohttp.ClientResponse: User preferences and streaming info
         """
-        async with self._session.get(f'{self._base_api_url}/trader/v1/userPreference',
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get('/trader/v1/userPreference'),
+            parsed,
+        )
+
 
     """
     Market Data
     """
 
-    async def quotes(self, symbols : list[str] | str, fields: str = None, indicative: bool = False) -> aiohttp.ClientResponse:
+    async def quotes(self, symbols : list[str] | str, fields: str = None, indicative: bool = False, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get quotes for a list of tickers
 
@@ -833,15 +893,21 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: list of quotes
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/quotes',
-                            params=self._params_parser(
-                                {'symbols': self._format_list(symbols),
-                                 'fields': fields,
-                                 'indicative': indicative}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                '/marketdata/v1/quotes',
+                params=self._parse_params(
+                    {
+                        'symbols': self._format_list(symbols),
+                        'fields': fields,
+                        'indicative': self._handle_aiohttp_bool(indicative),
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    async def quote(self, symbol_id: str, fields: str = None) -> aiohttp.ClientResponse:
+    async def quote(self, symbol_id: str, fields: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get quote for a single symbol
 
@@ -852,14 +918,17 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: quote for a single symbol
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/{urllib.parse.quote(symbol_id,safe="")}/quotes',
-                            params=self._params_parser({'fields': fields}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/marketdata/v1/{urllib.parse.quote(symbol_id, safe="")}/quotes',
+                params=self._parse_params({'fields': fields}),
+            ),
+            parsed,
+        )
 
     async def option_chains(self, symbol: str, contractType: str = None, strikeCount: any = None, includeUnderlyingQuote: bool = None, strategy: str = None,
                interval: any = None, strike: any = None, range: str = None, fromDate: datetime.datetime | str = None, toDate: datetime.datetime | str = None, volatility: any = None, underlyingPrice: any = None,
-               interestRate: any = None, daysToExpiration: any = None, expMonth: str = None, optionType: str = None, entitlement: str = None) -> aiohttp.ClientResponse:
+               interestRate: any = None, daysToExpiration: any = None, expMonth: str = None, optionType: str = None, entitlement: str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get Option Chain including information on options contracts associated with each expiration for a ticker.
 
@@ -891,29 +960,36 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: option chain
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/chains',
-                            params=self._params_parser(
-                                {'symbol': symbol,
-                                 'contractType': contractType,
-                                 'strikeCount': strikeCount,
-                                 'includeUnderlyingQuote': includeUnderlyingQuote,
-                                 'strategy': strategy,
-                                 'interval': interval,
-                                 'strike': strike,
-                                 'range': range,
-                                 'fromDate': self._time_convert(fromDate, "YYYY-MM-DD"),
-                                 'toDate': self._time_convert(toDate, "YYYY-MM-DD"),
-                                 'volatility': volatility,
-                                 'underlyingPrice': underlyingPrice,
-                                 'interestRate': interestRate,
-                                 'daysToExpiration': daysToExpiration,
-                                 'expMonth': expMonth,
-                                 'optionType': optionType,
-                                 'entitlement': entitlement}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                '/marketdata/v1/chains',
+                params=self._parse_params(
+                    {
+                        'symbol': symbol,
+                        'contractType': contractType,
+                        'strikeCount': strikeCount,
+                        'includeUnderlyingQuote': self._handle_aiohttp_bool(includeUnderlyingQuote),
+                        'strategy': strategy,
+                        'interval': interval,
+                        'strike': strike,
+                        'range': range,
+                        'fromDate': self._time_convert(fromDate, "YYYY-MM-DD"),
+                        'toDate': self._time_convert(toDate, "YYYY-MM-DD"),
+                        'volatility': volatility,
+                        'underlyingPrice': underlyingPrice,
+                        'interestRate': interestRate,
+                        'daysToExpiration': daysToExpiration,
+                        'expMonth': expMonth,
+                        'optionType': optionType,
+                        'entitlement': entitlement,
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    async def option_expiration_chain(self, symbol: str) -> aiohttp.ClientResponse:
+
+    async def option_expiration_chain(self, symbol: str, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get an option expiration chain for a ticker
 
@@ -923,13 +999,16 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: Option expiration chain
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/expirationchain',
-                            params=self._params_parser({'symbol': symbol}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                '/marketdata/v1/expirationchain',
+                params=self._parse_params({'symbol': symbol}),
+            ),
+            parsed,
+        )
         
     async def price_history(self, symbol: str, periodType: str = None, period: any = None, frequencyType: str = None, frequency: any = None, startDate: datetime.datetime | str = None,
-                        endDate: any = None, needExtendedHoursData: bool = None, needPreviousClose: bool = None) -> aiohttp.ClientResponse:
+                        endDate: any = None, needExtendedHoursData: bool = None, needPreviousClose: bool = None, parsed: bool = None) -> aiohttp.ClientResponse:
             """
             Get price history for a ticker
 
@@ -947,60 +1026,75 @@ class ClientAsync(ClientBase):
             Returns:
                 aiohttp.ClientResponse: Dictionary containing candle history
             """
-            async with self._session.get(f'{self._base_api_url}/marketdata/v1/pricehistory',
-                                params=self._params_parser({'symbol': symbol,
-                                                            'periodType': periodType,
-                                                            'period': period,
-                                                            'frequencyType': frequencyType,
-                                                            'frequency': frequency,
-                                                            'startDate': self._time_convert(startDate, 'epoch_ms'),
-                                                            'endDate': self._time_convert(endDate, 'epoch_ms'),
-                                                            'needExtendedHoursData': needExtendedHoursData,
-                                                            'needPreviousClose': needPreviousClose}),
-                                timeout=self.timeout) as resp:
-                return await resp
+            return await self._parse_response(
+            await self._session.get(
+                '/marketdata/v1/pricehistory',
+                params=self._parse_params(
+                    {
+                        'symbol': symbol,
+                        'periodType': periodType,
+                        'period': period,
+                        'frequencyType': frequencyType,
+                        'frequency': frequency,
+                        'startDate': self._time_convert(startDate, 'epoch_ms'),
+                        'endDate': self._time_convert(endDate, 'epoch_ms'),
+                        'needExtendedHoursData': self._handle_aiohttp_bool(needExtendedHoursData),
+                        'needPreviousClose': self._handle_aiohttp_bool(needPreviousClose),
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    async def movers(self, symbol: str, sort: str = None, frequency: any = None) -> aiohttp.ClientResponse:
-            """
-            Get movers in a specific index and direction
+    async def movers(self, symbol: str, sort: str = None, frequency: any = None, parsed: bool = None) -> aiohttp.ClientResponse:
+        """
+        Get movers in a specific index and direction
 
-            Args:
-                symbol (str): symbol ("$DJI"|"$COMPX"|"$SPX"|"NYSE"|"NASDAQ"|"OTCBB"|"INDEX_ALL"|"EQUITY_ALL"|"OPTION_ALL"|"OPTION_PUT"|"OPTION_CALL")
-                sort (str): sort ("VOLUME"|"TRADES"|"PERCENT_CHANGE_UP"|"PERCENT_CHANGE_DOWN")
-                frequency (int): frequency (0|1|5|10|30|60)
+        Args:
+            symbol (str): symbol ("$DJI"|"$COMPX"|"$SPX"|"NYSE"|"NASDAQ"|"OTCBB"|"INDEX_ALL"|"EQUITY_ALL"|"OPTION_ALL"|"OPTION_PUT"|"OPTION_CALL")
+            sort (str): sort ("VOLUME"|"TRADES"|"PERCENT_CHANGE_UP"|"PERCENT_CHANGE_DOWN")
+            frequency (int): frequency (0|1|5|10|30|60)
 
-            Notes:
-                Must be called within market hours (there aren't really movers outside of market hours)
+        Notes:
+            Must be called within market hours (there aren't really movers outside of market hours)
 
-            Returns:
-                aiohttp.ClientResponse: Movers
-            """
-            async with self._session.get(f'{self._base_api_url}/marketdata/v1/movers/{symbol}',
-                                headers={"accept": "application/json"},
-                                params=self._params_parser({'sort': sort,
-                                                            'frequency': frequency}),
-                                timeout=self.timeout) as resp:
-                return await resp
+        Returns:
+            aiohttp.ClientResponse: Movers
+        """
+        return await self._parse_response(
+            await self._session.get(
+                f'/marketdata/v1/movers/{symbol}',
+                headers={"accept": "application/json"},
+                params=self._parse_params({'sort': sort, 'frequency': frequency}),
+            ),
+            parsed,
+        )
 
-    async def market_hours(self, symbols: list[str], date: datetime.datetime | str = None) -> aiohttp.ClientResponse:
-            """
-            Get Market Hours for dates in the future across different markets.
+    async def market_hours(self, symbols: list[str], date: datetime.datetime | str = None, parsed: bool = None) -> aiohttp.ClientResponse:
+        """
+        Get Market Hours for dates in the future across different markets.
 
-            Args:
-                symbols (list[str]): list of market symbols ("equity", "option", "bond", "future", "forex")
-                date (datetime.pyi | str): Date
+        Args:
+            symbols (list[str]): list of market symbols ("equity", "option", "bond", "future", "forex")
+            date (datetime.pyi | str): Date
 
-            Returns:
-                aiohttp.ClientResponse: Market hours
-            """
-            async with self._session.get(f'{self._base_api_url}/marketdata/v1/markets',
-                                params=self._params_parser(
-                                    {'markets': symbols, #self._format_list(symbols),
-                                    'date': self._time_convert(date, 'YYYY-MM-DD')}),
-                                timeout=self.timeout) as resp:
-                return await resp
+        Returns:
+            aiohttp.ClientResponse: Market hours
+        """
+        return await self._parse_response(
+            await self._session.get(
+                '/marketdata/v1/markets',
+                params=self._parse_params(
+                    {
+                        'markets': symbols,
+                        'date': self._time_convert(date, 'YYYY-MM-DD'),
+                    }
+                ),
+            ),
+            parsed,
+        )
 
-    async def market_hour(self, market_id: str, date: datetime.datetime | str = None) -> aiohttp.ClientResponse:
+    async def market_hour(self, market_id: str, date: datetime.datetime | str = None, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get Market Hours for dates in the future for a single market.
 
@@ -1011,12 +1105,15 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: Market hours
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/markets/{market_id}',
-                            params=self._params_parser({'date': self._time_convert(date, 'YYYY-MM-DD')}),
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/marketdata/v1/markets/{market_id}',
+                params=self._parse_params({'date': self._time_convert(date, 'YYYY-MM-DD')}),
+            ),
+            parsed,
+        )
 
-    async def instruments(self, symbol: str, projection: str) -> aiohttp.ClientResponse:
+    async def instruments(self, symbol: str, projection: str, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get instruments for a list of symbols
 
@@ -1027,13 +1124,15 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: Instruments
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/instruments',
-                            params={'symbol': symbol,
-                                    'projection': projection},
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                '/marketdata/v1/instruments',
+                params={'symbol': symbol, 'projection': projection},
+            ),
+            parsed,
+        )
 
-    async def instrument_cusip(self, cusip_id: str | int) -> aiohttp.ClientResponse:
+    async def instrument_cusip(self, cusip_id: str | int, parsed: bool = None) -> aiohttp.ClientResponse:
         """
         Get instrument for a single cusip
 
@@ -1043,6 +1142,9 @@ class ClientAsync(ClientBase):
         Returns:
             aiohttp.ClientResponse: Instrument
         """
-        async with self._session.get(f'{self._base_api_url}/marketdata/v1/instruments/{cusip_id}',
-                            timeout=self.timeout) as resp:
-            return await resp
+        return await self._parse_response(
+            await self._session.get(
+                f'/marketdata/v1/instruments/{cusip_id}',
+            ),
+            parsed,
+        )

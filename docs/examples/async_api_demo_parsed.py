@@ -32,26 +32,23 @@ async def main():
             await asyncio.sleep(3)
 
         print("\nGet account number and hashes for linked accounts")
-        linked_accounts = await (await client.linked_accounts()).json()
+        linked_accounts = await client.linked_accounts(parsed=True)
         print(linked_accounts)
         account_hash = linked_accounts[0].get("hashValue")  # first linked account
         await pause()
 
         print("\nGet details for all linked accounts")
-        resp = await client.account_details_all()
-        print(await resp.json())
+        print(await client.account_details_all(parsed=True))
         await pause()
 
         print("\nGet specific account positions (uses default account, can be changed)")
-        resp = await client.account_details(account_hash, fields="positions")
-        print(await resp.json())
+        print(await client.account_details(account_hash, fields="positions", parsed=True))
         await pause()
 
         print("\nGet orders for a linked account")
         now = datetime.datetime.now(datetime.timezone.utc)
         thirty_days_ago = now - datetime.timedelta(days=30)
-        resp = await client.account_orders(account_hash, thirty_days_ago, now)
-        print(await resp.json())
+        print(await client.account_orders(account_hash, thirty_days_ago, now, parsed=True))
         await pause()
 
         order = {
@@ -82,8 +79,8 @@ async def main():
         await pause()
 
         print("\nGet specific order details")
-        resp = await client.order_details(account_hash, order_id)
-        print(await resp.json())
+        print(await client.order_details(account_hash, order_id, parsed=True))
+        
         await pause()
 
         print("\nCancel a specific order")
@@ -100,90 +97,79 @@ async def main():
         print("\nGet up to 3000 orders for all accounts for the past 30 days")
         now = datetime.datetime.now(datetime.timezone.utc)
         thirty_days_ago = now - datetime.timedelta(days=30)
-        resp = await client.account_orders_all(thirty_days_ago, now)
-        print(await resp.json())
+        print(await client.account_orders_all(thirty_days_ago, now, parsed=True))
+        
         await pause()
 
         print("\nPreview an order")
-        resp = await client.preview_order(account_hash, order)
-        print(await resp.json())
+        print(await client.preview_order(account_hash, order, parsed=True))
+        
         await pause()
 
         print("\nGet all transactions for an account")
         now = datetime.datetime.now(datetime.timezone.utc)
         thirty_days_ago = now - datetime.timedelta(days=30)
-        resp = await client.transactions(
+        print(await client.transactions(
             account_hash,
             thirty_days_ago,
             now,
             "TRADE",
-        )
-        print(await resp.json())
+            parsed=True,
+        ))
         await pause()
 
         print("\nGet details for a specific transaction")
-        # resp = await client.transaction_details(account_hash, transactionId)
-        # print(await resp.json())
+        # print(await client.transaction_details(account_hash, transactionId)
         print("No demo implemented")
         await pause()
 
         print("\nGet user preferences for an account")
-        resp = await client.preferences()
-        print(await resp.json())
+        print(await client.preferences(parsed=True))
         await pause()
 
         print("\nGet a list of quotes")
-        resp = await client.quotes(["AAPL", "AMD"])
-        print(await resp.json())
+        print(await client.quotes(["AAPL", "AMD"], parsed=True))
         await pause()
 
         print("\nGet a single quote")
-        resp = await client.quote("INTC")
-        print(await resp.json())
-        # resp = await client.quote("SPXW  241111P06000000")  # example of an expired contract
-        # print(await resp.json())
+        print(await client.quote("INTC", parsed=True))
+        
+        # print(await client.quote("SPXW  241111P06000000")  # example of an expired contract
+        # 
         await pause()
 
         print("\nGet an option chain")
         print("Demo disabled to prevent flooding terminal.")
-        # resp = await client.option_chains("AAPL", contractType="CALL", range="OTM")
-        # print(await resp.json())
+        # print(await client.option_chains("AAPL", contractType="CALL", range="OTM")
         await pause()
 
         print("\nGet an option expiration chain")
-        resp = await client.option_expiration_chain("AAPL")
-        print(await resp.json())
+        print(await client.option_expiration_chain("AAPL", parsed=True))
         await pause()
 
         print("\nGet price history for a symbol")
-        resp = await client.price_history("AAPL", "year")
-        print(await resp.json())
+        print(await client.price_history("AAPL", "year", parsed=True))
         await pause()
 
         print("\nGet movers for an index")
-        resp = await client.movers("$DJI")
-        print(await resp.json())
+        print(await client.movers("$DJI", parsed=True))
         await pause()
 
         print("\nGet marketHours for symbols")
-        resp = await client.market_hours(["equity", "option"])
-        print(await resp.json())
-        # resp = await client.market_hours(["equity", "option"])  # already using list form
+        print(await client.market_hours(["equity", "option"], parsed=True))
+        # print(await client.market_hours(["equity", "option"])  # already using list form
         await pause()
 
         print("\nGet marketHours for a market")
-        resp = await client.market_hour("equity")
-        print(await resp.json())
+        print(await client.market_hour("equity", parsed=True))
         await pause()
 
         print("\nGet instruments for a symbol")
-        resp = await client.instruments("AAPL", "fundamental")
-        print(await resp.json())
+        print(await client.instruments("AAPL", "fundamental", parsed=True))
         await pause()
 
         print("\nGet instruments for a cusip")
-        resp = await client.instrument_cusip("037833100")  # 037833100 = AAPL
-        print(await resp.json())
+        print(await client.instrument_cusip("037833100", parsed=True))  # 037833100 = AAPL
         await pause()
 
 

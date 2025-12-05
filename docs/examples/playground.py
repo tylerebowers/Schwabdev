@@ -1,14 +1,19 @@
 """
-This file functions as a "terminal emulator".
+!!! Run this file with `python -i playground.py` !!!
 It allows you to enter python code to test the api without restarting the whole program.
 """
 
 import logging
+import sys
+import subprocess
 import os
-
 from dotenv import load_dotenv
-
 import schwabdev
+
+if not sys.flags.interactive:
+    print("Restarting script in interactive mode...")
+    subprocess.Popen([sys.executable, '-i', sys.argv[0]])
+    sys.exit(0)
 
 print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
 print("Documentation: https://tylerebowers.github.io/Schwabdev/")
@@ -25,13 +30,3 @@ logging.basicConfig(level=logging.INFO)
 
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 streamer = client.stream
-
-# a "terminal emulator" to play with the API
-print("\nTerminal emulator - enter python code to execute.")
-while True:
-    try:
-        entered = input(">")
-        exec(entered.lstrip(">")) # remove leading ">" just in case user copy-pasted it.
-    except Exception as error:
-        print(error)
-
