@@ -9,15 +9,14 @@ import asyncio
 import urllib.parse
 from typing import Any
 import threading
-
 import requests
+
 try:
     import aiohttp
 except ImportError:
     aiohttp = None
 
 from .enums import TimeFormat
-
 from .stream import Stream
 from .tokens import Tokens
 
@@ -49,7 +48,7 @@ class ClientBase:
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, capture_callback, call_on_auth)
-        self.stream = Stream(self)                                          # init the streaming object
+        self.stream = Stream(self.tokens, self._get_streamer_info, self.logger)                                          # init the streaming object
 
 
 
@@ -119,6 +118,14 @@ class ClientBase:
             return ",".join(l)
         else:
             return l
+    
+    def _get_streamer_info(self):
+        response = requests.request("GET", f'{self._base_api_url}/trader/v1/userPreference', headers={'Authorization': f'Bearer {self.tokens.access_token}'})
+        if response.ok:
+            return response.json().get('streamerInfo', None)[0]
+        else:
+            self._client.logger.error("Could not get streamerInfo")
+            return
 
 class Client(ClientBase):
 
@@ -537,7 +544,7 @@ class Client(ClientBase):
         return self._request("GET", f'/marketdata/v1/markets/{market_id}', 
                              params=self._parse_params({'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}))
 
-    def instruments(self, symbol: str, projection: str) -> requests.Response:
+    def instruments(self, symbols: str, projection: str) -> requests.Response:
         """
         Get instruments for a list of symbols
 
@@ -549,7 +556,7 @@ class Client(ClientBase):
             request.Response: Instruments
         """
         return self._request("GET", '/marketdata/v1/instruments', 
-                             params={'symbol': symbol, 'projection': projection})
+                             params={'symbol': self._format_list(symbols), 'projection': projection})
 
     def instrument_cusip(self, cusip_id: str | int) -> requests.Response:
         """
@@ -563,10 +570,11 @@ class Client(ClientBase):
         """
         return self._request("GET", f'/marketdata/v1/instruments/{cusip_id}')
 
-
 class ClientAsync(ClientBase):
 
     def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, parsed:bool = False, capture_callback=False, call_on_auth=None):
+        if aiohttp is None:
+            raise ImportError("aiohttp is required to use ClientAsync")
         super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, capture_callback, call_on_auth)
         self._parsed = parsed
         self._session = self._get_session()                                
@@ -579,7 +587,7 @@ class ClientAsync(ClientBase):
     async def checker(self):
         while True:
             if self.tokens.update_tokens():
-                self._session.close()
+                await self._session.close()
                 self._session = self._get_session()
             await asyncio.sleep(30)
 
@@ -597,8 +605,8 @@ class ClientAsync(ClientBase):
     
     async def _parse_response(self, response: aiohttp.ClientResponse, parsed: bool = None) -> aiohttp.ClientResponse | dict:
         if (parsed is None and self._parsed) or (parsed is True):
-            content_type = response.headers.get("Content-Type")
-            if content_type == "application/json":
+            content_type = response.headers.get("Content-Type", "").lower()
+            if content_type.startswith("application/json"):
                 return await response.json()
             else: # assume "text/html" | "text/plain" | etc.
                 return await response.text()
@@ -606,6 +614,7 @@ class ClientAsync(ClientBase):
             return response
             
     def _handle_aiohttp_bool(self, value: bool) -> str:
+        if value is None: return None
         return "true" if value else "false"
 
     """

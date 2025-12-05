@@ -11,9 +11,8 @@ from dotenv import load_dotenv
 import schwabdev
 
 if not sys.flags.interactive:
-    print("Restarting script in interactive mode...")
-    subprocess.Popen([sys.executable, '-i', sys.argv[0]])
-    sys.exit(0)
+    print("This file is intended to be run in interactive mode, with \"python -i async_playground.py\"\n"*3)
+    sys.exit(1)
 
 print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
 print("Documentation: https://tylerebowers.github.io/Schwabdev/")
@@ -30,3 +29,4 @@ logging.basicConfig(level=logging.INFO)
 
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 streamer = client.stream
+print("Client and Streamer created as 'client' and 'stream' variables, use quit() to exit.")

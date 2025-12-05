@@ -4,7 +4,7 @@ This file contains examples for stream requests.
 
 import logging
 import os
-
+import time
 from dotenv import load_dotenv
 
 import schwabdev
@@ -36,7 +36,6 @@ def main():
 
     # start steamer with default response handler (print):
     # streamer.start()
-
 
     # You can stream up to 500 keys.
     # By default all shortcut requests (below) will be "ADD" commands meaning the list of symbols will be added/appended
@@ -78,8 +77,7 @@ def main():
 
 
     # stop the stream after 60 seconds (since this is a demo)
-    import time
-    time.sleep(60)
+    time.sleep(10)
     streamer.stop()
     # if you don't want to clear the subscriptions, set clear_subscriptions=False
     # streamer.stop(clear_subscriptions=False)
