@@ -21,12 +21,13 @@ print("Documentation: https://tylerebowers.github.io/Schwabdev/")
 load_dotenv()  # load environment variables from .env file
 
 # warn user if they have not added their keys to the .env
-if len(os.getenv('app_key')) != 32 or len(os.getenv('app_secret')) != 16:
+if not len(os.getenv('app_key')) > 0 or not len(os.getenv('app_secret')) > 0:
     raise Exception("Add you app key and app secret to the .env file.")
 
 # set logging level
 logging.basicConfig(level=logging.INFO)
 
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
+#account_hash = client.linked_accounts().json()[0].get('hashValue')
 streamer = client.stream
 print("Client and Streamer created as 'client' and 'stream' variables, use quit() to exit.")

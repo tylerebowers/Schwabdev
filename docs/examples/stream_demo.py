@@ -14,10 +14,6 @@ def main():
     # place your app key and app secret in the .env file
     load_dotenv()  # load environment variables from .env file
 
-    # warn user if they have not added their keys to the .env
-    if len(os.getenv('app_key')) != 32 or len(os.getenv('app_secret')) != 16:
-        raise Exception("Add you app key and app secret to the .env file.")
-
     # set logging level
     logging.basicConfig(level=logging.INFO)
 
@@ -30,7 +26,7 @@ def main():
     # example of using your own response handler, prints to main terminal.
     # the first parameter is used by the stream, additional parameters are passed to the handler
     def my_handler(message):
-        print("test_handler:" + message)
+        print("test_handler: " + message)
     streamer.start(my_handler)
 
 
@@ -77,9 +73,8 @@ def main():
 
 
     # stop the stream after 60 seconds (since this is a demo)
-    time.sleep(10)
+    time.sleep(30)
     streamer.stop()
-    time.sleep(2)  
     # if you don't want to clear the subscriptions, set clear_subscriptions=False
     # streamer.stop(clear_subscriptions=False)
     # if True, the next time you start the stream it will resubscribe to the previous subscriptions

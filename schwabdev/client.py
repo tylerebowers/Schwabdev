@@ -49,7 +49,7 @@ class ClientBase:
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, capture_callback, call_on_auth)
         self.stream = Stream(self.tokens, self._get_streamer_info, self.logger)                                          # init the streaming object
-
+        self.tokens.update_tokens()                                               # ensure tokens are up to date on init
 
 
     def _parse_params(self, params: dict):
@@ -152,7 +152,6 @@ class Client(ClientBase):
         if self.tokens.update_tokens():
             with self._session_lock:
                 self._session.headers['Authorization'] = f'Bearer {self.tokens.access_token}'
-
         with self._session_lock:
             return self._session.request(method, f'{self._base_api_url}{path}', timeout=self.timeout, **kwargs)
 
@@ -577,7 +576,7 @@ class ClientAsync(ClientBase):
             raise ImportError("aiohttp is required to use ClientAsync")
         super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, capture_callback, call_on_auth)
         self._parsed = parsed
-        self._session = self._get_session()                                
+        self._session = self._get_session()                              
 
     def _get_session(self) -> aiohttp.ClientSession:
         return aiohttp.ClientSession(base_url=self._base_api_url,
