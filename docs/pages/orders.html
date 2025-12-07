@@ -8,7 +8,385 @@
     <link rel="stylesheet" href="../lib/code.css">
 </head>
 <body>
+<h1>Placing Orders</h1>
+<p>After making a client object (e.g. <code>client = schwabdev.Client(...)</code>) you can place orders using the <code>client.order_place(...)</code> method.</p>
+<h3>Notes</h3>
+<ul>
+<li>Orders are currently only supported for equities and options.</li>
+<li>There is a limit of <strong>120 orders per minute</strong> and <strong>4000 orders per day</strong>.</li>
+</ul>
+<hr />
+<h3><code>client.order_place(account_hash, order)</code></h3>
+<p>Places an order on the specified account.</p>
+<ul>
+<li><code>account_hash (str)</code>: Account hash to place the order on.</li>
+<li><code>order (dict)</code>: Order dict to place. Examples are shown below and in the Schwab documentation.</li>
+</ul>
+<p>Returns a <code>requests.Response</code> object.</p>
+<p><strong>Note</strong></p>
+<p>Get the order ID by checking the headers:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">order_id</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+</code></pre></div>
 
+<p><em>If the order is immediately filled, the ID might not be returned.</em></p>
+<hr />
+<h3><code>client.order_details(account_hash, order_id)</code></h3>
+<p>Gets details for a specific order.</p>
+<ul>
+<li><code>account_hash (str)</code>: Account hash the order was placed on.</li>
+<li><code>order_id (int)</code>: Order ID to get details for.</li>
+</ul>
+<p>Returns a <code>requests.Response</code> whose JSON body contains order details.</p>
+<hr />
+<h3><code>client.order_cancel(account_hash, order_id)</code></h3>
+<p>Cancels a specific order.</p>
+<ul>
+<li><code>account_hash (str)</code>: Account hash the order was placed on.</li>
+<li><code>order_id (int)</code>: Order ID to cancel.</li>
+</ul>
+<p>Returns a <code>requests.Response</code> that is empty if successful.</p>
+<hr />
+<h3><code>client.order_replace(account_hash, orderID, order)</code></h3>
+<p>Replaces a specific order.</p>
+<ul>
+<li><code>account_hash (str)</code>: Account hash the order was placed on.</li>
+<li><code>orderID (int)</code>: Order ID to replace.</li>
+<li><code>order (dict)</code>: Order dict to replace <code>orderID</code> with.</li>
+</ul>
+<p>Returns a <code>requests.Response</code> that is empty if successful.</p>
+<hr />
+<h2>Order Examples</h2>
+<p><em>Please adjust for your usage.</em></p>
+<h3>Buy 10 shares of AMD at market price</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;MARKET&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;AMD&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Buy 4 shares of INTC at limit price $10.00</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;10.00&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;INTC&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Sell 3 options</h3>
+<p><em>Symbol format:</em> Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3 = 8 chars)</p>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;GOOD_TILL_CANCEL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complexOrderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;AAPL  240517P00190000&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Buy 3 options</h3>
+<p><em>Symbol format:</em> Underlying Symbol (6 chars including spaces) + Expiration (YYMMDD, 6 chars) + Call/Put (1 char) + Strike Price (5+3 = 8 chars)</p>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;GOOD_TILL_CANCEL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;complexOrderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;AAPL  240517P00190000&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Buy limited vertical put spread</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;NET_DEBIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;0.10&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZ   240315P00045000&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZ   240315P00043000&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Conditional Order: If 10 shares XYZ filled, then sell 10 shares ABC</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;34.97&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;TRIGGER&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZ&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;childOrderStrategies&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;42.03&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+                    <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;ABC&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Conditional Order (OCO): If 2 shares XYZ filled, then cancel sell 2 shares ABC</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;OCO&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;childOrderStrategies&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;45.97&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZ&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;STOP_LIMIT&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="s2">&quot;37.00&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;stopPrice&quot;</span><span class="p">:</span> <span class="s2">&quot;37.03&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+                    <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                        <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;ABC&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+                    <span class="p">},</span>
+                <span class="p">}</span>
+            <span class="p">],</span>
+        <span class="p">},</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Conditional Order: If 5 shares XYZ filled, then sell 5 shares ABC and 5 shares IJK</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;TRIGGER&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="mf">14.97</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZ&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;childOrderStrategies&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;OCO&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;childOrderStrategies&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;GOOD_TILL_CANCEL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;LIMIT&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="mf">15.27</span><span class="p">,</span>
+                    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;ABC&quot;</span><span class="p">,</span>
+                            <span class="p">},</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                <span class="p">},</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;GOOD_TILL_CANCEL&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;STOP&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;stopPrice&quot;</span><span class="p">:</span> <span class="mf">11.27</span><span class="p">,</span>
+                    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+                            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+                                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;IJK&quot;</span><span class="p">,</span>
+                            <span class="p">},</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                <span class="p">},</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Sell Trailing Stop: 10 shares XYZ with a trailing stop offset of 10</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;complexOrderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;NONE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;TRAILING_STOP&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stopPriceLinkBasis&quot;</span><span class="p">:</span> <span class="s2">&quot;BID&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stopPriceLinkType&quot;</span><span class="p">:</span> <span class="s2">&quot;VALUE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;stopPriceOffset&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="s2">&quot;XYZ&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<hr />
+<h3>Iron Condor</h3>
+<div class="codehilite"><pre><span></span><code><span class="n">order</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;orderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;SINGLE&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;orderType&quot;</span><span class="p">:</span> <span class="s2">&quot;NET_CREDIT&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;price&quot;</span><span class="p">:</span> <span class="n">price</span><span class="p">,</span>
+    <span class="s2">&quot;orderLegCollection&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="n">quantity</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">short_call_symbol</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="n">quantity</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">long_call_symbol</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;SELL_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="n">quantity</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">short_put_symbol</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;instruction&quot;</span><span class="p">:</span> <span class="s2">&quot;BUY_TO_OPEN&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;quantity&quot;</span><span class="p">:</span> <span class="n">quantity</span><span class="p">,</span>
+            <span class="s2">&quot;instrument&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;assetType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;symbol&quot;</span><span class="p">:</span> <span class="n">long_put_symbol</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">},</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;complexOrderStrategyType&quot;</span><span class="p">:</span> <span class="s2">&quot;CUSTOM&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;DAY&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;session&quot;</span><span class="p">:</span> <span class="s2">&quot;NORMAL&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</code></pre></div>
 </body>
 </html>
     
