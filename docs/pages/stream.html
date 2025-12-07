@@ -85,71 +85,157 @@
 <h2>Streamable assets</h2>
 <p><strong>Notes:</strong></p>
 <ul>
-<li>
-<p><code>"0"</code> must always be included in the fields.</p>
-</li>
-<li>
-<p>The list of fields and their definitions can be found in the streamer guide PDF.</p>
-</li>
-<li>
-<p>The maximum number of keys that can be subscribed to at once is <strong>500</strong>.</p>
-</li>
-<li>
-<p>Shortcut function commands can be changed by setting the <code>command</code> parameter, e.g. <code>command="ADD"</code>.
-  The default is the <code>"ADD"</code> command, except for <code>account_activity</code> which defaults to <code>"SUBS"</code>.</p>
-</li>
-</ul>
-<p>Each command is explained below:</p>
-<ul>
+<li><code>"0"</code> must always be included in the fields.</li>
+<li>The list of fields and their definitions can be found in the streamer guide PDF.</li>
+<li>The maximum number of keys that can be subscribed to at once is <strong>500</strong>.</li>
+<li>Shortcut function commands can be changed by setting the <code>command</code> parameter, e.g. <code>command="ADD"</code>. The default is the <code>"ADD"</code> command, except for <code>account_activity</code> which defaults to <code>"SUBS"</code>.</li>
+<li>Each command is explained below:<ul>
 <li><code>"ADD"</code> → the list of symbols will be added/appended to current subscriptions for a particular service.</li>
 <li><code>"SUBS"</code> → overwrites <strong>all</strong> current subscriptions (in a particular service) with the list of symbols passed in.</li>
 <li><code>"UNSUBS"</code> → removes the list of symbols from current subscriptions for a particular service.</li>
-<li>
-<p><code>"VIEW"</code> → change the list of subscribed fields for the passed-in symbols.
-    <em>Might not be functional on Schwab’s end.</em></p>
-</li>
-<li>
-<p>These shortcuts all send the same thing:</p>
-</li>
+<li><code>"VIEW"</code> → change the list of subscribed fields for the passed-in symbols.
+<em>Might not be functional on Schwab’s end.</em></li>
 </ul>
-<p>```python
-  streamer.basic_request(
-      "LEVELONE_EQUITIES",
-      "ADD",
-      parameters={"keys": "AMD,INTC", "fields": "0,1,2,3,4"},
-  )</p>
-<p>streamer.level_one_equities("AMD,INTC", "0,1,2,3,4", command="ADD")</p>
-<p>streamer.level_one_equities(["AMD", "INTC"], "0,1,2,3,4")</p>
-<p>streamer.level_one_equities("AMD,INTC", ["0", "1", "2", "3", "4"])</p>
-<p>streamer.level_one_equities("AMD,INTC", "0,1,2,3,4")
-  ```</p>
+</li>
+<li>These shortcuts all send the same thing:</li>
+</ul>
+<div class="codehilite"><pre><span></span><code><span class="n">streamer</span><span class="o">.</span><span class="n">basic_request</span><span class="p">(</span>
+    <span class="s2">&quot;LEVELONE_EQUITIES&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ADD&quot;</span><span class="p">,</span>
+    <span class="n">parameters</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;keys&quot;</span><span class="p">:</span> <span class="s2">&quot;AMD,INTC&quot;</span><span class="p">,</span> <span class="s2">&quot;fields&quot;</span><span class="p">:</span> <span class="s2">&quot;0,1,2,3,4&quot;</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="n">streamer</span><span class="o">.</span><span class="n">level_one_equities</span><span class="p">(</span><span class="s2">&quot;AMD,INTC&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="s2">&quot;ADD&quot;</span><span class="p">)</span>
+<span class="n">streamer</span><span class="o">.</span><span class="n">level_one_equities</span><span class="p">([</span><span class="s2">&quot;AMD&quot;</span><span class="p">,</span> <span class="s2">&quot;INTC&quot;</span><span class="p">],</span> <span class="s2">&quot;0,1,2,3,4&quot;</span><span class="p">)</span>
+<span class="n">streamer</span><span class="o">.</span><span class="n">level_one_equities</span><span class="p">(</span><span class="s2">&quot;AMD,INTC&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;2&quot;</span><span class="p">,</span> <span class="s2">&quot;3&quot;</span><span class="p">,</span> <span class="s2">&quot;4&quot;</span><span class="p">])</span>
+<span class="n">streamer</span><span class="o">.</span><span class="n">level_one_equities</span><span class="p">(</span><span class="s2">&quot;AMD,INTC&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4&quot;</span><span class="p">)</span>
+</code></pre></div>
+
 <ul>
 <li>
 <p>Different products have different methods of sending data:</p>
-</li>
-<li>
-<p><code>LEVELONE_EQUITIES</code>, <code>LEVELONE_OPTIONS</code>, <code>LEVELONE_FUTURES</code>, <code>LEVELONE_FUTURES_OPTIONS</code>, and <code>LEVELONE_FOREX</code> all stream <strong>changes</strong>, meaning that the data you receive overwrites the previous fields.
-    Example:</p>
 <ul>
+<li><code>LEVELONE_EQUITIES</code>, <code>LEVELONE_OPTIONS</code>, <code>LEVELONE_FUTURES</code>, <code>LEVELONE_FUTURES_OPTIONS</code>, and <code>LEVELONE_FOREX</code> all stream <strong>changes</strong>, meaning that the data you receive overwrites the previous fields. Example:<ul>
 <li>First you receive: <code>{"1": 20, "2": 25, "3": 997}</code></li>
 <li>Then you receive: <code>{"2": 28}</code></li>
 <li>The current data will be: <code>{"1": 20, "2": 28, "3": 997}</code></li>
 </ul>
 </li>
-<li>
-<p><code>NYSE_BOOK</code>, <code>NASDAQ_BOOK</code>, <code>OPTIONS_BOOK</code>, <code>SCREENER_EQUITY</code>, and <code>SCREENER_OPTION</code> all stream <strong>whole</strong> data, meaning all fields.</p>
-</li>
-<li>
-<p><code>CHART_EQUITY</code>, <code>CHART_FUTURES</code>, and <code>ACCT_ACTIVITY</code> stream <strong>all-sequence</strong> data, meaning you are given a sequence number for each response.</p>
+<li><code>NYSE_BOOK</code>, <code>NASDAQ_BOOK</code>, <code>OPTIONS_BOOK</code>, <code>SCREENER_EQUITY</code>, and <code>SCREENER_OPTION</code> all stream <strong>whole</strong> data, meaning all fields.</li>
+<li><code>CHART_EQUITY</code>, <code>CHART_FUTURES</code>, and <code>ACCT_ACTIVITY</code> stream <strong>all-sequence</strong> data, meaning you are given a sequence number for each response.</li>
+</ul>
 </li>
 </ul>
 <p>Listed below are the shortcut functions for all streamable assets.</p>
 <hr />
 <h3>Level one equities</h3>
-<blockquote>
-<p><code>streamer.send(streamer.level_one_equities(keys, fields))</code>
-Key examples: <code>"AMD"</code>, <code>"INTC"</code>, <code>"$SPX"</code></p>
-</blockquote>
+<p><code>streamer.send(streamer.level_one_equities(keys, fields))</code></p>
+<ul>
+<li>Key examples: <code>"AMD"</code>, <code>"INTC"</code>, <code>"$SPX"</code></li>
+</ul>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">streamer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">streamer</span><span class="o">.</span><span class="n">level_one_equities</span><span class="p">(</span><span class="s2">&quot;AMD,INTC&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4,5,6,7,8&quot;</span><span class="p">))</span>
+<span class="p">{</span>
+  <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;LEVELONE_EQUITIES&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">1765081984668</span><span class="p">,</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;SUBS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mf">217.86</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">217.95</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">217.93</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+          <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;7&quot;</span><span class="p">:</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;8&quot;</span><span class="p">:</span> <span class="mi">33292396</span><span class="p">,</span>
+          <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;AMD&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;delayed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+          <span class="s2">&quot;assetMainType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;assetSubType&quot;</span><span class="p">:</span> <span class="s2">&quot;COE&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;cusip&quot;</span><span class="p">:</span> <span class="s2">&quot;007903107&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mf">41.43</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">41.44</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">41.44</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">400</span><span class="p">,</span>
+          <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="s2">&quot;P&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;7&quot;</span><span class="p">:</span> <span class="s2">&quot;U&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;8&quot;</span><span class="p">:</span> <span class="mi">103042015</span><span class="p">,</span>
+          <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;INTC&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;delayed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+          <span class="s2">&quot;assetMainType&quot;</span><span class="p">:</span> <span class="s2">&quot;EQUITY&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;assetSubType&quot;</span><span class="p">:</span> <span class="s2">&quot;COE&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;cusip&quot;</span><span class="p">:</span> <span class="s2">&quot;458140100&quot;</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+0: "Symbol"<br>
+1: "Bid Price"<br>
+2: "Ask Price"<br>
+3: "Last Price"<br>
+4: "Bid Size"<br>
+5: "Ask Size"<br>
+6: "Ask ID"<br>
+7: "Bid ID"<br>
+8: "Total Volume"<br>
+9: "Last Size"<br>
+10: "High Price"<br>
+11: "Low Price"<br>
+12: "Close Price"<br>
+13: "Exchange ID"<br>
+14: "Marginable"<br>
+15: "Description"<br>
+16: "Last ID"<br>
+17: "Open Price"<br>
+18: "Net Change"<br>
+19: "52 Week High"<br>
+20: "52 Week Low"<br>
+21: "PE Ratio"<br>
+22: "Annual Dividend Amount"<br>
+23: "Dividend Yield"<br>
+24: "NAV"<br>
+25: "Exchange Name"<br>
+26: "Dividend Date"<br>
+27: "Regular Market Quote"<br>
+28: "Regular Market Trade"<br>
+29: "Regular Market Last Price"<br>
+30: "Regular Market Last Size"<br>
+31: "Regular Market Net Change"<br>
+32: "Security Status"<br>
+33: "Mark Price"<br>
+34: "Quote Time in Long"<br>
+35: "Trade Time in Long"<br>
+36: "Regular Market Trade Time in Long"<br>
+37: "Bid Time"<br>
+38: "Ask Time"<br>
+39: "Ask MIC ID"<br>
+40: "Bid MIC ID"<br>
+41: "Last MIC ID"<br>
+42: "Net Percent Change"<br>
+43: "Regular Market Percent Change"<br>
+44: "Mark Price Net Change"<br>
+45: "Mark Price Percent Change"<br>
+46: "Hard to Borrow Quantity"<br>
+47: "Hard To Borrow Rate"<br>
+48: "Hard to Borrow"<br>
+49: "shortable"<br>
+50: "Post-Market Net Change"<br>
+51: "Post-Market Percent Change"<br>
+</details>
 <hr />
 <h3>Level one options</h3>
 <blockquote>
@@ -159,6 +245,97 @@ Key examples: <code>"AAPL  240517P00190000"</code>, <code>"AAPL  251219C00200000
 <code>Underlying Symbol (6 chars including spaces)</code> + <code>Expiration (6 chars)</code> + <code>Call/Put (1 char)</code> + <code>Strike Price (5+3 = 8 chars)</code>
 Expiration is in <code>YYMMDD</code> format.</p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">streamer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">streamer</span><span class="o">.</span><span class="n">level_one_options</span><span class="p">(</span><span class="s2">&quot;SPXW  251208C06880000&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4,5,6,7,8&quot;</span><span class="p">))</span>
+<span class="p">{</span>
+  <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;LEVELONE_OPTIONS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">1765082498588</span><span class="p">,</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;SUBS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="s2">&quot;SPXW 12/08/2025 6880.00 C&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">10.2</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">10.6</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mf">10.6</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mf">28.9</span><span class="p">,</span>
+          <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="mf">6.9</span><span class="p">,</span>
+          <span class="s2">&quot;7&quot;</span><span class="p">:</span> <span class="mf">9.15</span><span class="p">,</span>
+          <span class="s2">&quot;8&quot;</span><span class="p">:</span> <span class="mi">7961</span><span class="p">,</span>
+          <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;SPXW  251208C06880000&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;delayed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+          <span class="s2">&quot;assetMainType&quot;</span><span class="p">:</span> <span class="s2">&quot;OPTION&quot;</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+0: "Symbol"<br>
+1: "Description"<br>
+2: "Bid Price"<br>
+3: "Ask Price"<br>
+4: "Last Price"<br>
+5: "High Price"<br>
+6: "Low Price"<br>
+7: "Close Price"<br>
+8: "Total Volume"<br>
+9: "Open Interest"<br>
+10: "Volatility"<br>
+11: "Money Intrinsic Value"<br>
+12: "Expiration Year"<br>
+13: "Multiplier"<br>
+14: "Digits"<br>
+15: "Open Price"<br>
+16: "Bid Size"<br>
+17: "Ask Size"<br>
+18: "Last Size"<br>
+19: "Net Change"<br>
+20: "Strike Price"<br>
+21: "Contract Type"<br>
+22: "Underlying"<br>
+23: "Expiration Month"<br>
+24: "Deliverables"<br>
+25: "Time Value"<br>
+26: "Expiration Day"<br>
+27: "Days to Expiration"<br>
+28: "Delta"<br>
+29: "Gamma"<br>
+30: "Theta"<br>
+31: "Vega"<br>
+32: "Rho"<br>
+33: "Security Status"<br>
+34: "Theoretical Option Value"<br>
+35: "Underlying Price"<br>
+36: "UV Expiration Type"<br>
+37: "Mark Price"<br>
+38: "Quote Time in Long"<br>
+39: "Trade Time in Long"<br>
+40: "Exchange"<br>
+41: "Exchange Name"<br>
+42: "Last Trading Day"<br>
+43: "Settlement Type"<br>
+44: "Net Percent Change"<br>
+45: "Mark Price Net Change"<br>
+46: "Mark Price Percent Change"<br>
+47: "Implied Yield"<br>
+48: "isPennyPilot"<br>
+49: "Option Root"<br>
+50: "52 Week High"<br>
+51: "52 Week Low"<br>
+52: "Indicative Ask Price"<br>
+53: "Indicative Bid Price"<br>
+54: "Indicative Quote Time"<br>
+55: "Exercise Type"<br>
+</details>
 <hr />
 <h3>Level one futures</h3>
 <blockquote>
@@ -170,6 +347,80 @@ Month code is 1 character:
 <code>F: Jan, G: Feb, H: Mar, J: Apr, K: May, M: Jun, N: Jul, Q: Aug, U: Sep, V: Oct, X: Nov, Z: Dec</code>
 Year code is 2 characters (i.e. 2024 → <code>24</code>).</p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">streamer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">streamer</span><span class="o">.</span><span class="n">level_one_futures</span><span class="p">(</span><span class="s2">&quot;/ES&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4,5,6&quot;</span><span class="p">))</span>
+<span class="p">{</span>
+  <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;LEVELONE_FUTURES&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">1765083430060</span><span class="p">,</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;SUBS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mf">6879.25</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">6879.75</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">6879.5</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+          <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="s2">&quot;?&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;/ES&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;delayed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+          <span class="s2">&quot;assetMainType&quot;</span><span class="p">:</span> <span class="s2">&quot;FUTURE&quot;</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+0: "Symbol"<br>
+1: "Bid Price"<br>
+2: "Ask Price"<br>
+3: "Last Price"<br>
+4: "Bid Size"<br>
+5: "Ask Size"<br>
+6: "Bid ID"<br>
+7: "Ask ID"<br>
+8: "Total Volume"<br>
+9: "Last Size"<br>
+10: "Quote Time "<br>
+11: "Trade Time "<br>
+12: "High Price"<br>
+13: "Low Price"<br>
+14: "Close Price"<br>
+15: "Exchange ID"<br>
+16: "Description"<br>
+17: "Last ID"<br>
+18: "Open Price"<br>
+19: "Net Change"<br>
+20: "Future Percent Change"<br>
+21: "Exchange Name"<br>
+22: "Security Status"<br>
+23: "Open Interest"<br>
+24: "Mark"<br>
+25: "Tick"<br>
+26: "Tick Amount"<br>
+27: "Product"<br>
+28: "Future Price Format"<br>
+29: "Future Trading Hours"<br>
+30: "Future Is Tradable"<br>
+31: "Future Multiplier"<br>
+32: "Future Is Active"<br>
+33: "Future Settlement Price"<br>
+34: "Future Active Symbol"<br>
+35: "Future Expiration Date"<br>
+36: "Expiration Style"<br>
+37: "Ask Time"<br>
+38: "Bid Time"<br>
+39: "Quoted In Session"<br>
+40: "Settlement Date"<br>
+</details>
 <hr />
 <h3>Level one futures options</h3>
 <blockquote>
@@ -180,24 +431,156 @@ Key examples: <code>"./OZCZ23C565"</code></p>
 Month code is 1 character (same mapping as futures).
 Year code is 2 characters (i.e. 2024 → <code>24</code>).</p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">streamer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">streamer</span><span class="o">.</span><span class="n">level_one_futures_options</span><span class="p">(</span><span class="s2">&quot;./OGG26C4240&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4,5&quot;</span><span class="p">))</span>
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+0: "Symbol"<br>
+1: "Bid Price"<br>
+2: "Ask Price"<br>
+3: "Last Price"<br>
+4: "Bid Size"<br>
+5: "Ask Size"<br>
+6: "Bid ID"<br>
+7: "Ask ID"<br>
+8: "Total Volume"<br>
+9: "Last Size"<br>
+10: "Quote Time"<br>
+11: "Trade Time"<br>
+12: "High Price"<br>
+13: "Low Price"<br>
+14: "Close Price"<br>
+15: "Last ID"<br>
+16: "Description"<br>
+17: "Open Price"<br>
+18: "Open Interest"<br>
+19: "Mark"<br>
+20: "Tick"<br>
+21: "Tick Amount"<br>
+22: "Future Multiplier"<br>
+23: "Future Settlement Price"<br>
+24: "Underlying Symbol"<br>
+25: "Strike Price"<br>
+26: "Future Expiration Date"<br>
+27: "Expiration Style"<br>
+28: "Contract Type"<br>
+29: "Security Status"<br>
+30: "Exchange"<br>
+31: "Exchange Name"<br>
+</details>
 <hr />
 <h3>Level one forex</h3>
 <blockquote>
 <p><code>streamer.send(streamer.level_one_forex(keys, fields))</code>
 Key examples: <code>"EUR/USD"</code>, <code>"GBP/USD"</code>, <code>"EUR/JPY"</code>, <code>"EUR/GBP"</code></p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">streamer</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">streamer</span><span class="o">.</span><span class="n">level_one_forex</span><span class="p">(</span><span class="s2">&quot;EUR/USD&quot;</span><span class="p">,</span> <span class="s2">&quot;0,1,2,3,4,5,6,7,8&quot;</span><span class="p">))</span>
+<span class="p">{</span>
+  <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;service&quot;</span><span class="p">:</span> <span class="s2">&quot;LEVELONE_FOREX&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;timestamp&quot;</span><span class="p">:</span> <span class="mi">1765084326675</span><span class="p">,</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;SUBS&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+          <span class="s2">&quot;1&quot;</span><span class="p">:</span> <span class="mf">1.1643</span><span class="p">,</span>
+          <span class="s2">&quot;2&quot;</span><span class="p">:</span> <span class="mf">1.16443</span><span class="p">,</span>
+          <span class="s2">&quot;3&quot;</span><span class="p">:</span> <span class="mf">1.164365</span><span class="p">,</span>
+          <span class="s2">&quot;4&quot;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+          <span class="s2">&quot;5&quot;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+          <span class="s2">&quot;6&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+          <span class="s2">&quot;7&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+          <span class="s2">&quot;8&quot;</span><span class="p">:</span> <span class="mi">1764971942013</span><span class="p">,</span>
+          <span class="s2">&quot;key&quot;</span><span class="p">:</span> <span class="s2">&quot;EUR/USD&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;delayed&quot;</span><span class="p">:</span> <span class="n">false</span><span class="p">,</span>
+          <span class="s2">&quot;assetMainType&quot;</span><span class="p">:</span> <span class="s2">&quot;FOREX&quot;</span>
+        <span class="p">}</span>
+      <span class="p">]</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+0: "Symbol"<br>
+1: "Bid Price"<br>
+2: "Ask Price"<br>
+3: "Last Price"<br>
+4: "Bid Size"<br>
+5: "Ask Size"<br>
+6: "Total Volume"<br>
+7: "Last Size"<br>
+8: "Quote Time"<br>
+9: "Trade Time"<br>
+10: "High Price"<br>
+11: "Low Price"<br>
+12: "Close Price"<br>
+13: "Exchange"<br>
+14: "Description"<br>
+15: "Open Price"<br>
+16: "Net Change"<br>
+17: "Percent Change"<br>
+18: "Exchange Name"<br>
+19: "Digits"<br>
+20: "Security Status"<br>
+21: "Tick"<br>
+22: "Tick Amount"<br>
+23: "Product"<br>
+24: "Trading Hours"<br>
+25: "Is Tradable"<br>
+26: "Market Maker"<br>
+27: "52 Week High"<br>
+28: "52 Week Low"<br>
+29: "Mark"<br>
+</details>
 <hr />
 <h3>NYSE book orders</h3>
 <blockquote>
 <p><code>streamer.send(streamer.nyse_book(keys, fields))</code>
 Key examples: <code>"F"</code>, <code>"NIO"</code>, <code>"ACU"</code></p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>NASDAQ book orders</h3>
 <blockquote>
 <p><code>streamer.send(streamer.nasdaq_book(keys, fields))</code>
 Key examples: <code>"AMD"</code>, <code>"INTC"</code></p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>Options book orders</h3>
 <blockquote>
@@ -208,12 +591,36 @@ Same as level one options:
 <code>Underlying Symbol (6 chars including spaces)</code> + <code>Expiration (6 chars)</code> + <code>Call/Put (1 char)</code> + <code>Strike Price (5+3 = 8 chars)</code>
 Expiration is in <code>YYMMDD</code> format.</p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>Chart equity</h3>
 <blockquote>
 <p><code>streamer.send(streamer.chart_equity(keys, fields))</code>
 Key examples: <code>"AMD"</code>, <code>"INTC"</code></p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>Chart futures</h3>
 <blockquote>
@@ -224,6 +631,18 @@ Key examples: <code>"/ESF24"</code>, <code>"/GCG24"</code></p>
 Month code is 1 character (same mapping as futures).
 Year code is 2 characters (i.e. 2024 → <code>24</code>).</p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>Screener equity</h3>
 <blockquote>
@@ -238,6 +657,18 @@ Key examples: <code>"$DJI_PERCENT_CHANGE_UP_60"</code>, <code>"NASDAQ_VOLUME_30"
 <p><strong>Frequency:</strong>
 <code>0</code> (all day), <code>1</code>, <code>5</code>, <code>10</code>, <code>30</code>, <code>60</code></p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>Screener options</h3>
 <blockquote>
@@ -252,6 +683,18 @@ Key examples: <code>"OPTION_PUT_PERCENT_CHANGE_UP_60"</code>, <code>"OPTION_CALL
 <p><strong>Frequency:</strong>
 <code>0</code> (all day), <code>1</code>, <code>5</code>, <code>10</code>, <code>30</code>, <code>60</code></p>
 </blockquote>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> 
+</code></pre></div>
+
+
+</details>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
 <hr />
 <h3>Account activity</h3>
 <blockquote>
@@ -272,6 +715,18 @@ Only <code>"SUBS"</code> (default) and <code>"UNSUBS"</code> are supported for <
 <li><strong>OrderMonitorCompleted</strong> – The monitoring process for the order has concluded.</li>
 <li><strong>OrderMonitorUpdated</strong> – The monitor tracking the order status is updated.</li>
 </ul>
+<details><summary><u>Key Translations</u></summary>
+Schwabdev has a translator for fields, see above.<br>  
+
+</details>
+<details><summary><u>Data Example</u></summary>
+
+
+<div class="codehilite"><pre><span></span><code><span class="c1"># No example</span>
+</code></pre></div>
+
+
+</details>
 </body>
 </html>
     

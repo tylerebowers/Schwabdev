@@ -1,10 +1,10 @@
 """
 These fields are available to stream through the Schwab Streamer.
 This dict is meant for use in translating the numerical fields to a human-readable name.
-Access as translate[service][field]
+Access as field_maps[service][field]
 """
 
-translate = {
+field_maps = {
     "LEVELONE_EQUITIES": ["Symbol", "Bid Price", "Ask Price", "Last Price", "Bid Size", "Ask Size", "Ask ID", "Bid ID",
                           "Total Volume", "Last Size", "High Price", "Low Price", "Close Price", "Exchange ID",
                           "Marginable", "Description", "Last ID", "Open Price", "Net Change", "52 Week High",

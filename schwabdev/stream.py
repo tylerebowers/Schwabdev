@@ -14,6 +14,7 @@ import time
 import zoneinfo
 import websockets
 import websockets.exceptions
+from .stream_fields import field_maps
 
 
 class Stream:
@@ -578,6 +579,39 @@ class Stream:
         """
         return self.basic_request("ACCT_ACTIVITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
     
+def translate(response) -> list[str]:
+    """
+    Translate field numbers to field names
 
+    Args:
+        fields (list[str | int]): list of field numbers
+    Returns:
+        list[str]: list of field names
+    """
+    return "TODO"
     
+def translate_single(service: str, field: str|int) -> str:
+    """
+    Translate field number to field name
 
+    Args:
+        field (str|int): field number
+    Returns:
+        str: field name
+    """
+    mapping = field_maps.get(service.upper(), None)
+    if mapping is None:
+        return str(field)
+    try:
+        if isinstance(mapping, dict):
+            return mapping.get(field, str(field))
+        elif isinstance(mapping, list):
+            index = int(field)
+            if 0 <= index < len(mapping):
+                return mapping[index]
+            else:
+                return str(field)
+        else:
+            return str(field)
+    except Exception:
+        return str(field)
