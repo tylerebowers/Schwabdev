@@ -1,0 +1,6 @@
+### Developer Notes
+The schwabdev folder contains code for main operations:   
+ - `__init__.py` linker to client class.
+ - `client.py` contains functions relating to api calls and requests.
+ - `tokens.py` contains functions relating to token management.
+ - `stream.py` contains functions for streaming data from websockets.

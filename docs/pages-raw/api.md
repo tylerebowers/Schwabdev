@@ -13,6 +13,8 @@ After making a client object i.e. `client = schwabdev.Client(...)` we are free t
 
 ## API Calls
 
+---
+
 ### `client.linked_accounts()`
 Returns a `requests.Response` whose JSON body is a list of dicts containing account numbers and hashes. The hash (`hashValue`) is used in other API calls to specify which account to operate on.
 <details open><summary><u>Example</u></summary>
@@ -258,6 +260,7 @@ If the parameter `fields="positions"` is set then each account will have a `posi
 ---
 ### `client.account_orders(accountHash, fromEnteredTime, toEnteredTime, maxResults=None, status=None)`
 Returns a `requests.Response` whose JSON body is a list of order dicts for the given account within the specified time range, optionally filtered by status.
+
 * `account_hash (str)`: Account hash to get orders for.
 * `from_entered_time (datetime | str)`: Start of the date range. Use a `datetime` object or a string in the format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
 * `to_entered_time (datetime | str)`: End of the date range. Use a `datetime` object or a string in the format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
@@ -303,6 +306,7 @@ Returns a `requests.Response` whose JSON body is a list of order dicts for the g
 ---
 ### `client.place_order(account_hash, order)`
 Places an order for the account specified by account_hash. Returns Order ID in the headers (`order_id = resp.headers.get('location', '/').split('/')[-1]`), unless the order was instantly filled.
+
 * `account_hash (str)`: Account hash to place the order on.
 * `order (dict)`: Order payload. See `orders.md` and the Schwab documentation for examples.
 
@@ -332,6 +336,7 @@ order_id = resp.headers.get('location', '/').split('/')[-1]
 ---
 ### `client.order_details(account_hash, order_id)`
 Returns a `requests.Response` whose JSON body is a dict containing details for a specific order.
+
 * `account_hash (str)`: Account hash that the order was placed on.
 * `order_id (int)`: Order ID to get details for.
 <details><summary><u>Example</u></summary>
@@ -399,6 +404,7 @@ Returns a `requests.Response` whose JSON body is a dict containing details for a
 ---
 ### `client.cancel_order(account_hash, order_id)`
 Cancels a specific order and returns a `requests.Response`. The response is typically empty if successful, check the code to know for sure.
+
 * `account_hash (str)`: Account hash that the order was placed on.
 * `order_id (int)`: Order ID to cancel.
 
@@ -413,6 +419,7 @@ Cancels a specific order and returns a `requests.Response`. The response is typi
 ---
 ### `client.order_replace(account_hash, orderID, order)`
 Replaces an existing order with a new order definition. Returns a `requests.Response`, check the code to know if successful.
+
 * `account_hash (str)`: Account hash that the original order was placed on.
 * `order_id (int)`: Order ID to replace.
 * `order (dict)`: New order payload to replace the existing order with.
@@ -427,6 +434,7 @@ Replaces an existing order with a new order definition. Returns a `requests.Resp
 ---
 ### `client.account_orders_all(fromEnteredTime, toEnteredTime, maxResults=None, status=None)`
 Returns a `requests.Response` whose JSON body is a list of order dicts for **all linked accounts** within the specified time range, optionally filtered by status.
+
 * `from_entered_time (datetime | str)`: Start of the date range. Use a `datetime` object or a string in the format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
 * `to_entered_time (datetime | str)`: End of the date range. Use a `datetime` object or a string in the format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
 * `max_results (int | None)`: Maximum number of orders to return (default `3000`).
@@ -471,6 +479,7 @@ Returns a `requests.Response` whose JSON body is a list of order dicts for **all
 ---
 ### `client.order_preview(account_hash, orderObject)`
 Returns a `requests.Response` representing a preview of the order.
+
 * `account_hash (str)`: Account hash to preview the order on.
 * `order_obj (dict)`: Order payload to preview. See `orders.md` and the Schwab documentation for examples.
 
@@ -594,6 +603,7 @@ Returns a `requests.Response` representing a preview of the order.
 ---
 ### `client.transactions(accountHash, startDate, endDate, types, symbol=None)`
 Returns a `requests.Response` whose JSON body is a list of transaction dicts for the given account.
+
 * `account_hash (str)`: Account hash to get transactions from.
 * `start_date (datetime | str)`: Start date; use a `datetime` object or a string in the format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
 * `end_date (datetime | str)`: End date; use a `datetime` object or a string in the format `yyyy-MM-dd'T'HH:mm:ss.SSSZ`.
@@ -665,6 +675,7 @@ Returns a `requests.Response` whose JSON body is a list of transaction dicts for
 ---
 ### `client.transaction_details(account_hash, transactionId)`
 Returns a `requests.Response` whose JSON body contains details for a specific transaction.
+
 * `account_hash (str)`: Account hash to get the transaction from.
 * `transaction_id (str)`: Transaction ID to get details of.
 
@@ -700,6 +711,7 @@ Returns a `requests.Response` whose JSON body contains user preferences for acco
 ---
 ### `client.quotes(symbols=None, fields=None, indicative=False)`
 Returns a `requests.Response` whose JSON body is a dict of quote data keyed by symbol.
+
 * `symbols (list | str | None)`: Symbols to get quotes for, e.g. `["AAPL", "AMD"]` or `"AAPL,AMD"`.
 * `fields (str | None)`: Fields to request. One of `"all"` (default), `"quote"`, `"fundamental"`.
 * `indicative (bool)`: If `True`, return indicative quotes instead of tradable quotes (default `False`).
@@ -856,6 +868,7 @@ Returns a `requests.Response` whose JSON body is a dict of quote data keyed by s
 ---
 ### `client.quote(symbol_id, fields=None)`
 Returns a `requests.Response` whose JSON body is a dict containing quote data for a single symbol.
+
 * `symbol_id (str)`: Symbol to quote, e.g. `"AAPL"` (for futures, use `client.quotes(...)`).
 * `fields (str | None)`: Fields to request. One of `"all"` (default), `"quote"`, `"fundamental"`.
 
@@ -944,6 +957,7 @@ Returns a `requests.Response` whose JSON body is a dict containing quote data fo
 ---
 ### `client.option_chains(symbol, contractType=None, strikeCount=None, includeUnderlyingQuote=None, strategy=None, interval=None, strike=None, range=None, fromDate=None, toDate=None, volatility=None, underlyingPrice=None,interestRate=None, daysToExpiration=None, expMonth=None, optionType=None, entitlement=None)`
 Returns a `requests.Response` whose JSON body contains option chain data for the requested symbol.
+
 * `symbol (str)`: Underlying symbol, e.g. `"AAPL"` or `"$SPX"`.
 * `contractType (str | None)`: `"ALL"`, `"CALL"`, `"PUT"`.
 * `strikeCount (int | None)`: Number of strikes to return.
@@ -1240,6 +1254,7 @@ Returns a `requests.Response` whose JSON body contains option chain data for the
 ---
 ### `client.option_expiration_chain(symbol)`
 Returns a `requests.Response` whose JSON body is a list of option expiration entries for the given symbol.
+
 * `symbol (str)`: Symbol to get expiration chain for, e.g. `"AAPL"`.
 <details><summary><u>Example</u></summary>
 
@@ -1350,22 +1365,19 @@ Returns a `requests.Response` whose JSON body contains historical price data for
 * `symbol (str)`: Symbol to get price history for, e.g. `"AAPL"`.
 * `periodType (str | None)`: One of `"day"`, `"month"`, `"year"`, `"ytd"`.
 * `period (int | None)`:
-
-  * For `"day"`: `1, 2, 3, 4, 5, 10`
-  * For `"month"`: `1, 2, 3, 6`
-  * For `"year"`: `1, 2, 3, 5, 10, 15, 20`
-  * For `"ytd"`: `1`
+    * For periodType `"day"`: `1, 2, 3, 4, 5, 10`
+    * For `"month"`: `1, 2, 3, 6`
+    * For `"year"`: `1, 2, 3, 5, 10, 15, 20`
+    * For `"ytd"`: `1`
     Default is `1` (except `"day"` → default `10`).
 * `frequencyType (str | None)`:
-
-  * For `"day"`: `"minute"`
-  * For `"month"`: `"daily"`, `"weekly"`
-  * For `"year"` / `"ytd"`: `"daily"`, `"weekly"`, `"monthly"`
-    Default is the largest possible for the `periodType`.
+    * For periodType `"day"`: `"minute"`
+    * For `"month"`: `"daily"`, `"weekly"`
+    * For `"year"` / `"ytd"`: `"daily"`, `"weekly"`, `"monthly"`
+    * Default is the largest possible per `periodType`.
 * `frequency (int | None)`:
-
-  * If `"minute"`: `1, 5, 10, 15, 30`
-  * If `"daily"`, `"weekly"`, `"monthly"`: `1`
+    * For frequencyType `"minute"`: `1, 5, 10, 15, 30`
+    * For `"daily"`, `"weekly"`, `"monthly"`: `1`
 * `startDate (datetime | int | None)`: Start date as `datetime` or UNIX epoch.
 * `endDate (datetime | int | None)`: End date as `datetime` or UNIX epoch.
 * `needExtendedHoursData (bool | None)`: Include extended hours candles if `True`.
@@ -1483,6 +1495,7 @@ Returns a `requests.Response` whose JSON body contains historical price data for
 ---
 ### `client.movers(symbol, sort=None, frequency=None)`
 Returns a `requests.Response` whose JSON body is a list of movers for an index or universe.
+
 * `symbol (str)`: Index or screener symbol. Options include: `"$DJI"`, `"$COMPX"`, `"$SPX"`, `"NYSE"`, `"NASDAQ"`, `"OTCBB"`, `"INDEX_ALL"`, `"EQUITY_ALL"`, `"OPTION_ALL"`, `"OPTION_PUT"`, `"OPTION_CALL"`.
 * `sort (str | None)`: Sort key. One of `"VOLUME"`, `"TRADES"`, `"PERCENT_CHANGE_UP"`, `"PERCENT_CHANGE_DOWN"`.
 * `frequency (int | None)`: Frequency bucket. One of `0` (default), `1`, `5`, `10`, `30`, `60`.
@@ -1610,6 +1623,7 @@ Returns a `requests.Response` whose JSON body is a list of movers for an index o
 ---
 ### `client.market_hours(symbols, date=None)`
 Returns a `requests.Response` whose JSON body contains market hours for one or more product types.
+
 * `symbols (list | str)`: Product(s) to get market hours for. Options include `"equity"`, `"option"`, `"bond"`, `"future"`, `"forex"`.
 * `date (datetime | str | None)`: Date to query. Use a `datetime` or a string `yyyy-MM-dd`. Defaults to today.
 <details><summary><u>Example</u></summary>
@@ -1686,6 +1700,7 @@ Returns a `requests.Response` whose JSON body contains market hours for one or m
 ---
 ### `client.market_hour(market_id, date=None)`
 Returns a `requests.Response` whose JSON body contains market hours for a single market type.
+
 * `market_id (str)`: Market ID to get hours for. Options include `"equity"`, `"option"`, `"bond"`, `"future"`, `"forex"`.
 * `date (datetime | str | None)`: Date to query. Use a `datetime` or a string `yyyy-MM-dd`. Defaults to today.
 <details><summary><u>Example</u></summary>
@@ -1730,6 +1745,7 @@ Returns a `requests.Response` whose JSON body contains market hours for a single
 ---
 ### `client.instruments(symbol, projection)`
 Returns a `requests.Response` whose JSON body is a dict of instruments matching the query.
+
 * `symbol (str)`: Symbol or search string, e.g. `"AAPL"`.
 * `projection (str)`: Projection mode. One of `"symbol-search"`, `"symbol-regex"`, `"desc-search"`, `"desc-regex"`, `"search"`, `"fundamental"`.
 <details><summary><u>Return Example</u></summary>
@@ -1811,6 +1827,7 @@ Returns a `requests.Response` whose JSON body is a dict of instruments matching 
 ---
 ### `client.instrument_cusip(cusip_id)`
 Returns a `requests.Response` whose JSON body is a list of instruments that match the given CUSIP.
+
 * `cusip_id (str)`: CUSIP to look up, e.g. `"037833100"`.
 <details><summary><u>Return Example</u></summary>
 

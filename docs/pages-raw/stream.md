@@ -1,6 +1,6 @@
 # Using the Streamer
 
-Examples can be found in `examples/stream_demo.py`; there is also a streamer guide for more details.
+Examples can be found in [`docs/examples/stream_demo.py`](https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/stream_demo.py); there is also a streamer guide for more details.
 
 To first use the streamer, initialize the client as normal (`client = schwabdev.Client(...)`). The initialization of the client object also initializes a streamer which can be accessed via `client.stream`.
 
@@ -30,13 +30,18 @@ By default the stream starts as a daemon thread, meaning that if the main thread
 In typical applications you will want to use a separate response handler that parses received data from the stream. The default method just prints to the terminal.
 
 ```python
+data = []
 def my_handler(message):
-    print("TEST" + message)
+    data.append("TEST" + message)
 
 streamer.start(my_handler)
+
+while True:
+    if data:
+        print(data.pop(0))
 ```
 
-In the above example, the `my_handler(...)` function is called whenever a response is received from the stream, and prints `"TEST"` prefixed to the response.
+In the above example, the `my_handler(...)` function is called whenever a response is received from the stream. It appends the response to a list `data` with `"TEST"` prefixed.
 
 It is important to code this function such that it is not too taxing on the system as you don’t want the response handler to fall behind the streamer.
 
@@ -48,17 +53,14 @@ You can also pass in variables (`args` and/or `kwargs`) into the `start` functio
 
 If you want to start the streamer automatically when the market opens, then instead of `streamer.start()` use the call `streamer.start_auto(...)`.
 
-The default values will start & stop the streamer during normal market hours (9:30am–4:00pm). Starting the stream automatically will preserve the previous subscriptions.
+The default values will start & stop the streamer during normal market hours (9:30am–4:00pm EST). Starting the stream automatically will preserve the previous subscriptions.
 
-> **Syntax**
-> `streamer.start_auto(receiver=print, start_time=datetime.time(9, 29, 0), stop_time=datetime.time(16, 0, 0), on_days=(0,1,2,3,4), now_timezone=zoneinfo.ZoneInfo("America/New_York"), daemon=True)`
->
-> **Params:**
->
-> * `start_time (datetime.time)`: When to start the streamer
-> * `stop_time (datetime.time)`: When to stop the streamer
-> * `on_days (list | tuple)`: Which days to start and stop the streamer. The default (Mon–Fri) is `on_days=(0,1,2,3,4)`.
-> * `now_timezone (zoneinfo.ZoneInfo)`: Custom timezone, default is `"America/New_York"` (Eastern Time)
+`streamer.start_auto(receiver=print, start_time=datetime.time(9, 29, 0), stop_time=datetime.time(16, 0, 0), on_days=(0,1,2,3,4), now_timezone=zoneinfo.ZoneInfo("America/New_York"), daemon=True)`
+
+* `start_time (datetime.time)`: When to start the streamer
+* `stop_time (datetime.time)`: When to stop the streamer
+* `on_days (list | tuple)`: Which days to start and stop the streamer. The default (Mon–Fri) is `on_days=(0,1,2,3,4)`.
+* `now_timezone (zoneinfo.ZoneInfo)`: Custom timezone, default is `"America/New_York"` (Eastern Time)
 
 ---
 

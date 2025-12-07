@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>changelog</title>
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/code.css">
+</head>
+<body>
+<h2>Version 2.5.1</h2>
+<ul>
+<li>Compatibility fix for new key and secret lengths.</li>
+</ul>
+<h2>Version 2.5.0</h2>
+<ul>
+<li>Added parameter <code>call_on_notify</code> which calls a function before the refresh token is about to expire</li>
+<li>Added parameter <code>capture_callback</code> (set to <code>True</code> to host a webserver to capture the callback — callback URL needs a port)</li>
+<li>Moved all code to Google Docstrings</li>
+<li>New documentation</li>
+<li>Improved refresh logic</li>
+<li>Now only one logger across modules</li>
+<li>Added parameter <code>use_session</code> (default <code>True</code>) to use a session to send requests and refresh the session for each new access token</li>
+<li>Increased request timeout to 10s and increased streamer pong timeout to 30s</li>
+</ul>
+<h2>Version 2.4.4</h2>
+<ul>
+<li>Better <code>stream.start_auto</code></li>
+<li>More efficient sending of queued stream requests</li>
+</ul>
+<h2>Version 2.4.2</h2>
+<ul>
+<li>Fixed 2.4.1 (yanked) issue in <code>client.quote(...)</code></li>
+</ul>
+<h2>Version 2.4.0</h2>
+<ul>
+<li>Improved stream stability</li>
+<li>Added automatic capture of auth URL (off by default)</li>
+<li>Changed from prints to <code>logging</code> module</li>
+<li>Better automatic stream starter</li>
+</ul>
+<h2>Version 2.3.0</h2>
+<ul>
+<li>Token management rework</li>
+<li>Datetime conversion bugfix</li>
+</ul>
+<h2>Version 2.2.6</h2>
+<ul>
+<li>Python 3.11 compatibility hotfix</li>
+</ul>
+<h2>Version 2.2.5</h2>
+<ul>
+<li>Changed streaming daemon mode</li>
+<li>Improved type hinting</li>
+<li>Fixed issue in <code>stream.start_auto</code></li>
+<li>Better “time remaining” prints</li>
+</ul>
+<h2>Version 2.2.3</h2>
+<ul>
+<li>Added async stream sending function <code>send_async</code></li>
+<li>Changed streamer datetime implementation</li>
+<li>Better print messages</li>
+</ul>
+<h2>Version 2.2.2</h2>
+<ul>
+<li>Improved datetime usage</li>
+<li>Improved stream crash handling</li>
+<li>Better var type enforcement</li>
+<li>Changed <code>tokens.json</code> file format</li>
+</ul>
+<h2>Version 2.2.1</h2>
+<ul>
+<li>Better error messages</li>
+<li>Bugfixes</li>
+<li>Renamed <code>screener_option</code> to <code>screener_options</code> in streamer</li>
+</ul>
+<h2>Version 2.2.0</h2>
+<ul>
+<li>Streaming recovery will resend subscriptions if the stream crashes (toggleable)</li>
+<li>Better initialization error messages</li>
+<li>Removed color printing for compatibility</li>
+<li>Context menu docs for streamer</li>
+</ul>
+<h2>Version 2.1.1</h2>
+<ul>
+<li>Args/kwargs can now be passed to the <code>response_handler</code> during stream start</li>
+</ul>
+<h2>Version 2.1.0</h2>
+<ul>
+<li>Inline documentation for all user-facing functions</li>
+</ul>
+<h2>Version 2.0.2</h2>
+<ul>
+<li>Added adjustable timeout parameter for requests</li>
+<li>Increased default timeout</li>
+</ul>
+<h2>Version 2.0.1</h2>
+<ul>
+<li>Added streamer</li>
+</ul>
+<h2>Version 1.9.0</h2>
+<ul>
+<li>Changed to color prints</li>
+<li>Preparation for streamer</li>
+</ul>
+<h2>Version 1.0.0</h2>
+<ul>
+<li>Initial release</li>
+<li>Support for all API calls</li>
+<li>Automatic token refresh</li>
+</ul>
+</body>
+</html>
+    

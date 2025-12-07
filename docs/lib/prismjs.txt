@@ -1,3 +1,0 @@
-Theme: vsc-dark-plus
-Plugins:
-    - Normalize whitespace

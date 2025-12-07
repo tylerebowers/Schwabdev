@@ -1,0 +1,64 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>troubleshooting</title>
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/code.css">
+</head>
+<body>
+<h2>Common Issues</h2>
+<blockquote>
+<p><strong>Problem:</strong> unauthorized error
+<code>{'errors': [{'id': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'status': 401, 'title': 'Unauthorized', 'detail': 'Client not authorized'}]}</code>
+<strong>Cause:</strong> You do not have access to both APIs and are attempting to access one that you have not added to your app.
+<strong>Fix:</strong> Add both APIs <strong>"Accounts and Trading Production"</strong> and <strong>"Market Data Production"</strong> to your app.
+<strong>Cause:</strong> The access token is expired; sometimes Schwab invalidates tokens when they make backend changes.
+<strong>Fix:</strong> Manually update the access token by changing the date in <code>tokens.json</code> or update both tokens by calling <code>client.tokens.update_tokens(force=True)</code>.</p>
+<p><strong>Problem:</strong> Trying to sign into account and get error message:
+<code>"We are unable to complete your request. Please contact customer service for further assistance."</code>
+<strong>Problem:</strong>
+<code>"Whitelabel Error Page This application has no configured error view, so you are seeing this as a fallback." (status=500)</code>
+<strong>Fix:</strong> Your app is <strong>"Approved - Pending"</strong>, you must wait for status <strong>"Ready for Use"</strong>.
+<strong>Note:</strong> Or you <em>could</em> have an account type that is not supported by the Schwab API.</p>
+<p><strong>Problem:</strong> <code>SSL: CERTIFICATE_VERIFY_FAILED - self-signed certificate in certificate chain</code> error when connecting to streaming server
+<strong>Fix:</strong> For macOS you must run the Python certificates installer:
+<code>open /Applications/Python\ 3.12/Install\ Certificates.command</code></p>
+<p><strong>Problem:</strong> Issues with option contracts in API calls or streaming
+<strong>Fix:</strong> You are likely not following the format for option contracts.
+<strong>Option contract format:</strong>
+<code>Symbol (6 characters including spaces) | Expiration (6 characters) | Call/Put (1 character) | Strike Price (5+3=8 characters)</code></p>
+<p><strong>Problem:</strong>
+<code>{"error":"unsupported_token_type","error_description":"400 Bad Request: \"{\"error_description\":\"Exception while authenticating refresh token..."</code>
+<strong>Problem:</strong> <code>"Could not get new access token (1 of 3)."</code> (or x of 3 etc.)
+<strong>Cause:</strong> Your refresh token is invalid (maybe you created a new refresh token on a different machine).
+<strong>Fix:</strong> Manually update the refresh token by changing the date in <code>tokens.json</code> or by calling <code>client.tokens.update_tokens(force=True)</code>.</p>
+<p><strong>Problem:</strong> <code>"can't register atexit after shutdown"</code>
+<strong>Cause:</strong> The main thread dies before the stream thread starts.
+<strong>Fix:</strong> Add a delay after starting or sending a request — something to let the stream thread start up before the main thread closes.</p>
+<p><strong>Problem:</strong> API calls throwing errors despite access token and refresh token being valid / not expired.
+<strong>Fix:</strong> Manually update refresh / access tokens by calling <code>client.tokens.update_tokens(force=True)</code>; you can also delete the <code>tokens.json</code> file.</p>
+<p><strong>Problem:</strong> Streaming <code>ACCT_ACTIVITY</code> yields no responses.
+<strong>Fix:</strong> This is a known issue on Schwab's end.</p>
+<p><strong>Problem:</strong> After signing in, you get an <strong>"Access Denied"</strong> web page.
+<strong>Fix:</strong> Your callback URL is likely incorrect due to a trailing slash <code>/</code> at the end.</p>
+<p><strong>Problem:</strong> App Registration Error
+<strong>Fix:</strong> Email Schwab: <code>traderapi@schwab.com</code></p>
+<p><strong>Problem:</strong> Issue in streaming with websockets –
+<code>"Unsupported extension: name = permessage-deflate, params = []"</code>
+<strong>Cause:</strong> You are using a proxy that is blocking streaming or your DNS is not correctly resolving.
+<strong>Fix:</strong> Change DNS servers (Google’s are known-working) or change/bypass the proxy.</p>
+<p><strong>Problem:</strong>
+<code>{'fault': {'faultstring': 'Body buffer overflow', 'detail': {'errorcode': 'protocol.http.TooBigBody'}}}</code>
+<strong>Cause:</strong> The call that you made exceeds the amount of data that can be returned.
+<strong>Example:</strong> The call <code>print(client.option_chains("$SPX").json())</code> returns too much data and will exceed the buffer size.
+<strong>Fix:</strong> Add additional parameters to limit the amount of data returned.</p>
+<p><strong>Problem:</strong> Refresh token expiring in 7 days is too short.
+<strong>Fix:</strong> <em>I know.</em> 😅</p>
+</blockquote>
+<hr />
+<p>For issues not shown here, please ask in the <a href="https://discord.gg/m7SSjr9rs9">Discord</a> server.</p>
+</body>
+</html>
+    

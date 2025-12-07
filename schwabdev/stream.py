@@ -33,7 +33,7 @@ class Stream:
         self._streamer_info = None                      # streamer info from api call
         self._request_id = 0                            # a counter for the request id
         self.active = False                             # whether the stream is active
-        self._should_stop = True                       # main stream loop
+        self._should_stop = True                        # main stream loop
         self._thread = None                             # the thread that runs the stream
         self.subscriptions = {}                         # a dictionary of subscriptions
         self._backoff_time = 2.0                        # default backoff time (time to wait before retrying)
@@ -45,6 +45,13 @@ class Stream:
     
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
+
+    async def __aenter__(self):
+        await self.start_async()
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.stop_async()
 
     def __del__(self):
         self.stop()
@@ -88,9 +95,9 @@ class Stream:
                                                                    "SchwabClientChannel": self._streamer_info.get("schwabClientChannel"),
                                                                    "SchwabClientFunctionId": self._streamer_info.get("schwabClientFunctionId")})
                     await self._websocket.send(json.dumps(login_payload))
-                    self.active = True
                     self._event_loop = asyncio.get_running_loop()
-                    
+                    self.active = True
+                
                     await call_receiver(await self._websocket.recv(), **kwargs)  # receive login response
 
                     # send subscriptions (that are queued or previously sent)
@@ -135,7 +142,6 @@ class Stream:
                 self._logger.error(e)
                 self._logger.warning(f"Stream connection lost to server, reconnecting...")
                 await self._wait_for_backoff()
-
 
     async def _wait_for_backoff(self):
         """
@@ -211,10 +217,41 @@ class Stream:
 
         if self._event_loop is None:
             self._logger.info("Stream event loop not initialized yet; request queued.")
-        elif self.active:
-            asyncio.run_coroutine_threadsafe(self._websocket.send(json.dumps({"requests": requests})), self._event_loop)
-        else:
+        elif not self.active:
             self._logger.info("Stream is not active, request queued.")
+        else:
+            asyncio.run_coroutine_threadsafe(self._websocket.send(json.dumps({"requests": requests})), self._event_loop)
+
+    async def send_async(self, requests: list | dict):
+        """
+        Send a request to the stream
+
+        Args:
+            request (list | dict): list of requests or a single request
+        """
+        if not isinstance(requests, list):
+            requests = [requests]
+
+        for req in requests:
+            self._record_request(req)
+
+        payload = json.dumps({"requests": requests})
+
+        if self._event_loop is None:
+            self._logger.info("Stream event loop not initialized yet; request queued.")
+        elif not self.active:
+            self._logger.info("Stream is not active, request queued.")
+        else:
+            try:
+                current_loop = asyncio.get_running_loop()
+            except RuntimeError:
+                asyncio.run_coroutine_threadsafe(self._websocket.send(), self._event_loop)
+                return
+
+            if current_loop is self._event_loop:
+                await self._websocket.send(payload)
+            else:
+                await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(self._websocket.send(payload), self._event_loop))
 
 
     def stop(self, clear_subscriptions: bool = True):

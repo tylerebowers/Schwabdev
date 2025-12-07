@@ -50,17 +50,8 @@ client = schwabdev.ClientAsync(
 ```
 
 The parameters are the same as the synchronous client with the addition of:
-* `parsed (bool)`: If set to `True` then all API responses will be returned as parsed JSON objects (dictionaries/lists). This can be overridden on a per-call basis by passing `parsed=True` or `parsed=False` to the API call. Several API calls related to Orders are not parsed by default since they cannot be. The aim of autoparsing is to reduce the amount of code needed for the user.
----
 
-### Notes
-* In order to use all API calls you must have both API sections added to your app: **Accounts and Trading Production** and **Market Data Production**.
-* If you are storing your code in a GitHub repo then use [dotenv](https://pypi.org/project/python-dotenv/) to store your keys, especially if you are using a git repo.
-With a GitHub repo you can include `*.env` and `tokens.json` in the `.gitignore` file to stop your credentials from getting committed.
-* Schwabdev uses the `logging` module to log/print information, warnings and errors. You can change the level of logging by setting
-  `logging.basicConfig(level=logging.XXXX)`
-  where `XXXX` is the level of logging you want such as `INFO` or `WARNING`.
-* There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).
+* `parsed (bool)`: If set to `True` then all API responses will be returned as parsed JSON objects (dictionaries/lists). This can be overridden on a per-call basis by passing `parsed=True` or `parsed=False` to the API call. Several API calls related to Orders are not parsed by default since they cannot be. The aim of autoparsing is to reduce the amount of code needed for the user.
 
 ---
 
@@ -78,5 +69,16 @@ client.tokens.update_tokens(force_refresh_token=True)
 ```
 
 Otherwise, the client will start the process 30 minutes before the refresh token will expire.
+
+---
+
+### Notes
+* In order to use all API calls you must have both API sections added to your app: **Accounts and Trading Production** and **Market Data Production**.
+* If you are storing your code in a GitHub repo then use [dotenv](https://pypi.org/project/python-dotenv/) to store your keys, especially if you are using a git repo.
+With a GitHub repo you can include `*.env` in the `.gitignore` file to stop your credentials from getting committed.
+* Schwabdev uses the `logging` module to log/print information, warnings and errors. You can change the level of logging by setting
+  `logging.basicConfig(level=logging.XXXX)`
+  where `XXXX` is the level of logging you want such as `INFO` or `WARNING`.
+* There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).
 
 

@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>client</title>
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/code.css">
+</head>
+<body>
+<h1>Using the Client</h1>
+<p>The client is the main class of Schwabdev and where you access all parts of the Schwab API. </p>
+<p>Making a client is as simple as:</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">schwabdev</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">app_key</span><span class="p">,</span> <span class="n">app_secret</span><span class="p">)</span>
+</code></pre></div>
+
+<p>And from here on <code>client</code> can be used to make API calls. All calls can be found in the "API Calls" documentation tab and are also are outlined in <code>/docs/examples/api_demo.py</code>. Now let’s look at all of the parameters that can be passed to the client constructor:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span>
+    <span class="n">app_key</span><span class="p">,</span>
+    <span class="n">app_secret</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="s2">&quot;https://127.0.0.1&quot;</span><span class="p">,</span>
+    <span class="n">tokens_db</span><span class="o">=</span><span class="s2">&quot;~/.schwabdev/tokens.db&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">capture_callback</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">call_for_auth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<ul>
+<li><code>app_key (str)</code>: App key credential (e.g. <code>"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"</code>).</li>
+<li><code>app_secret (str)</code>: App secret credential (e.g. <code>"xxxxxxxxxxxxxxxx"</code>).</li>
+<li><code>callback_url (str)</code>: URL for callback (e.g. <code>"https://127.0.0.1"</code>).</li>
+<li><code>tokens_db (str)</code>: Path to tokens database (e.g. <code>"~/.schwabdev/tokens.db"</code>).</li>
+<li><code>timeout (int)</code>: Request timeout in seconds (how long to wait for a response).</li>
+<li><code>capture_callback (bool)</code>: If set to <code>True</code> then Schwabdev will use a webserver with a self-signed cert to capture the callback URL (no copy/pasting URLs during auth) after you have signed in your account. You must have a free port in your callback URL such as <code>https://127.0.0.1:7777</code>, then Schwabdev will listen on port <code>7777</code> and capture the callback. You may get a warning <code>net::ERR_CERT_AUTHORITY_INVALID</code> since it is a self-signed certificate but this is not an issue since it is a local server. Just click “Advanced” → “Proceed to ...” to send the code to Schwabdev (usually only warns the first time).</li>
+<li><code>call_for_auth (function | None)</code>: Function to call for authentication, the function is called with one argument: the URL to visit for authentication, it is expected to return the full callback URL or code from the callback URL after the user has signed in. </li>
+</ul>
+<hr />
+<p>Schwabdev also has an Asyncronous client that can be used with <code>asyncio</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">ClientAsync</span><span class="p">(</span>
+    <span class="n">app_key</span><span class="p">,</span>
+    <span class="n">app_secret</span><span class="p">,</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="s2">&quot;https://127.0.0.1&quot;</span><span class="p">,</span>
+    <span class="n">tokens_db</span><span class="o">=</span><span class="s2">&quot;~/.schwabdev/tokens.db&quot;</span><span class="p">,</span>
+    <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">capture_callback</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">call_for_auth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+
+<p>The parameters are the same as the synchronous client with the addition of:</p>
+<ul>
+<li><code>parsed (bool)</code>: If set to <code>True</code> then all API responses will be returned as parsed JSON objects (dictionaries/lists). This can be overridden on a per-call basis by passing <code>parsed=True</code> or <code>parsed=False</code> to the API call. Several API calls related to Orders are not parsed by default since they cannot be. The aim of autoparsing is to reduce the amount of code needed for the user.</li>
+</ul>
+<hr />
+<p>The Schwab API uses two tokens to use the API:</p>
+<ul>
+<li><strong>Refresh token</strong> – valid for 7 days, used to “refresh” the access token.</li>
+<li><strong>Access token</strong> – valid for 30 minutes, used in all API calls.</li>
+</ul>
+<p>If you want to access the access or refresh tokens you can call <code>client.tokens.access_token</code> or <code>client.tokens.refresh_token</code>. </p>
+<p>The access token can be easily updated/refreshed assuming that the refresh token is valid. Getting a new refresh token, however, requires user input. It is recommended to force-update the refresh token during weekends so it is valid during the week. To force-update the refresh token (this can be run concurrently on a separate script), make this call:</p>
+<div class="codehilite"><pre><span></span><code><span class="n">client</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">update_tokens</span><span class="p">(</span><span class="n">force_refresh_token</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+
+<p>Otherwise, the client will start the process 30 minutes before the refresh token will expire.</p>
+<hr />
+<h3>Notes</h3>
+<ul>
+<li>In order to use all API calls you must have both API sections added to your app: <strong>Accounts and Trading Production</strong> and <strong>Market Data Production</strong>.</li>
+<li>If you are storing your code in a GitHub repo then use <a href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys, especially if you are using a git repo.
+With a GitHub repo you can include <code>*.env</code> in the <code>.gitignore</code> file to stop your credentials from getting committed.</li>
+<li>Schwabdev uses the <code>logging</code> module to log/print information, warnings and errors. You can change the level of logging by setting
+  <code>logging.basicConfig(level=logging.XXXX)</code>
+  where <code>XXXX</code> is the level of logging you want such as <code>INFO</code> or <code>WARNING</code>.</li>
+<li>There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).</li>
+</ul>
+</body>
+</html>
+    

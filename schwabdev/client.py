@@ -583,7 +583,7 @@ class ClientAsync(ClientBase):
                                      headers={'Authorization': f'Bearer {self.tokens.access_token}'}, 
                                      timeout=aiohttp.ClientTimeout(total=self.timeout))
 
-    async def checker(self):
+    async def _checker(self):
         while True:
             if self.tokens.update_tokens():
                 await self._session.close()
@@ -593,13 +593,13 @@ class ClientAsync(ClientBase):
     async def __aenter__(self):
         self._task_group = asyncio.TaskGroup()
         await self._task_group.__aenter__()
-        self._checker_task = self._task_group.create_task(self.checker()) # Start the token checker in the background
+        self._checker_task = self._task_group.create_task(self._checker()) # Start the token checker in the background
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         self._checker_task.cancel()
+        await asyncio.shield(self._session.close())
         retval = await self._task_group.__aexit__(exc_type, exc_val, exc_tb)
-        await self._session.close()
         return retval
     
     async def _parse_response(self, response: aiohttp.ClientResponse, parsed: bool = None) -> aiohttp.ClientResponse | dict:
