@@ -20,8 +20,7 @@ async def main():
     
     async with schwabdev.ClientAsync(os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")) as client:
         streamer = client.stream
-        #streamer.start(response_handler) # start async in another thread
-        streamer.start(response_handler) # start async in current event loop
+        streamer.start(response_handler)
         async with asyncio.TaskGroup() as tg:
             for t in tickers:
                 tg.create_task(streamer.send_async(streamer.level_one_equities(t, fields="0,1,2,3,4,5,6,7,8,9")))
@@ -36,6 +35,5 @@ async def main():
                 break
             await asyncio.sleep(0.1)
             
-
 if __name__ == "__main__":
     asyncio.run(main())

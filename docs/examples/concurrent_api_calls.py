@@ -12,9 +12,7 @@ async def main():
     
     async with schwabdev.ClientAsync(os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")) as client:
         async with asyncio.TaskGroup() as tg:
-            results = [tg.create_task(
-                (await client.quotes(t)).json()
-                ) for t in tickers]
+            results = [tg.create_task((await client.quotes(t)).json()) for t in tickers]
 
         print([result.result() for result in results])
 

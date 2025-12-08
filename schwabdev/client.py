@@ -48,7 +48,6 @@ class ClientBase:
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, capture_callback, call_on_auth)
-        self.stream = Stream(self.tokens, self._get_streamer_info, self.logger)                                          # init the streaming object
         self.tokens.update_tokens()                                               # ensure tokens are up to date on init
 
 

@@ -5,7 +5,6 @@ Github: https://github.com/tylerebowers/Schwab-API-Python
 """
 
 import asyncio
-import atexit
 import datetime
 import json
 import logging
@@ -17,7 +16,7 @@ import websockets.exceptions
 from .stream_fields import field_maps
 
 
-class Stream:
+class StreamBase:
 
     def __init__(self, tokens, get_streamer_info, logger: logging.Logger):
         """
@@ -29,33 +28,19 @@ class Stream:
         self._tokens = tokens                           # tokens object
         self._get_streamer_info = get_streamer_info     # function to get streamer info
         self._logger = logger                           # logger
+
         self._websocket = None                          # the websocket
         self._event_loop = None                         # the asyncio loop
-        self._streamer_info = None                      # streamer info from api call
-        self._request_id = 0                            # a counter for the request id
-        self.active = False                             # whether the stream is active
-        self._should_stop = True                        # main stream loop
         self._thread = None                             # the thread that runs the stream
-        self.subscriptions = {}                         # a dictionary of subscriptions
+        self._should_stop = True                        # main stream loop
         self._backoff_time = 2.0                        # default backoff time (time to wait before retrying)
 
-        atexit.register(self.stop)
+        self._streamer_info = None                      # streamer info from api call
+        self._request_id = 0                            # a counter for the request id
+        
+        self.active = False                             # whether the stream is active
+        self.subscriptions = {}                         # a dictionary of subscriptions
 
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exc_type, exc_value, traceback):
-        self.stop()
-
-    async def __aenter__(self):
-        await self.start_async()
-        return self
-
-    async def __aexit__(self, exc_type, exc, tb):
-        await self.stop_async()
-
-    def __del__(self):
-        self.stop()
 
     async def _start_streamer(self, receiver_func=print, ping_timeout: int = 30, **kwargs):
         """
@@ -66,7 +51,7 @@ class Stream:
             ping_timeout (int, optional): how long to wait for pongs from the server. Defaults to 30.
             **kwargs: keyword arguments to pass to receiver_func
         """
-        # start the stream
+        self._event_loop = asyncio.get_running_loop()
         start_time = datetime.datetime.now(datetime.timezone.utc)
         is_async_receiver = True if asyncio.iscoroutinefunction(receiver_func) else False
         async def call_receiver(response, **kwargs):
@@ -96,7 +81,6 @@ class Stream:
                                                                    "SchwabClientChannel": self._streamer_info.get("schwabClientChannel"),
                                                                    "SchwabClientFunctionId": self._streamer_info.get("schwabClientFunctionId")})
                     await self._websocket.send(json.dumps(login_payload))
-                    self._event_loop = asyncio.get_running_loop()
                     self.active = True
                 
                     await call_receiver(await self._websocket.recv(), **kwargs)  # receive login response
@@ -124,10 +108,19 @@ class Stream:
                     else:
                         while self.active:
                             receiver_func(await self._websocket.recv(), **kwargs)
+                
+                self._websocket = None
+                self.active = False
+                if self._should_stop:
+                    break
 
             except websockets.exceptions.ConnectionClosedOK as e: # "received 1000 (OK); then sent 1000 (OK)"
                 self.active = False
                 self._logger.info("Stream connection closed.")
+                break
+            except websockets.exceptions.ConnectionClosed as e:
+                self.active = False
+                self._logger.info(f"Stream connection closed. (Without close frame)") # sent 1000 (OK); no close frame received
                 break
             except websockets.exceptions.ConnectionClosedError as e: # lost internet connection
                 self.active = False
@@ -152,127 +145,6 @@ class Stream:
         # exponential backoff and cap at 128s
         self._backoff_time = min(self._backoff_time * 2, 256)
 
-    def start(self, receiver=print, daemon: bool = True, ping_interval: int = 20, **kwargs):
-        """
-        Start the stream
-
-        Args:
-            receiver (function, optional): function to call when data is received. Defaults to print.
-            daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
-            ping_interval (int, optional): interval in seconds to send pings to the streamer. Defaults to 20.
-        """
-        if not self.active:
-            def _start_async():
-                asyncio.run(self._start_streamer(receiver, ping_interval, **kwargs))
-
-            self._thread = threading.Thread(target=_start_async, daemon=daemon)
-            self._thread.start()
-        else:
-            self._logger.warning("Stream already active.")
-
-    def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = [0,1,2,3,4],
-                   now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
-        """
-        Start the stream automatically at market open and close, will NOT erase subscriptions
-
-        Args:
-            receiver (function, optional): function to call when data is received. Defaults to print.
-            start_time (datetime.time, optional): time to start the stream. Defaults to 9:30 (for EST).
-            stop_time (datetime.time, optional): time to stop the stream. Defaults to 4:00 (for EST).
-            on_days (list[int], optional): day(s) to start the stream default: (0,1,2,3,4) = Mon-Fri, (0 = Monday, ..., 6 = Sunday). Defaults to (0,1,2,3,4).
-            now_timezone (zoneinfo.ZoneInfo, optional): timezone to use for now. Defaults to ZoneInfo("America/New_York").
-            daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
-        """
-        def checker():
-
-            while True:
-                now = datetime.datetime.now(now_timezone)
-                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
-                if in_hours and not self.active:
-                    if len(self.subscriptions) == 0:
-                        self._logger.warning("No subscriptions, starting stream anyways.")
-                    self.start(receiver=receiver, daemon=daemon, **kwargs)
-                elif not in_hours and self.active:
-                    self._logger.info("Stopping Stream.")
-                    self.stop(clear_subscriptions=False)
-                time.sleep(30)
-
-        threading.Thread(target=checker, daemon=daemon).start()
-
-        if not start_time <= datetime.datetime.now(now_timezone).time() <= stop_time:
-            self._logger.info("Stream was started outside of active hours and will launch when in hours.")
-
-    def send(self, requests: list | dict):
-        """
-        Send a request to the stream
-
-        Args:
-            requests (list | dict): list of requests or a single request
-        """
-        if not isinstance(requests, list):
-            requests = [requests]
-
-        for request in requests:
-            self._record_request(request)
-
-        if self._event_loop is None:
-            self._logger.info("Stream event loop not initialized yet; request queued.")
-        elif not self.active:
-            self._logger.info("Stream is not active, request queued.")
-        else:
-            asyncio.run_coroutine_threadsafe(self._websocket.send(json.dumps({"requests": requests})), self._event_loop)
-
-    async def send_async(self, requests: list | dict):
-        """
-        Send a request to the stream
-
-        Args:
-            request (list | dict): list of requests or a single request
-        """
-        if not isinstance(requests, list):
-            requests = [requests]
-
-        for req in requests:
-            self._record_request(req)
-
-        payload = json.dumps({"requests": requests})
-
-        if self._event_loop is None:
-            self._logger.info("Stream event loop not initialized yet; request queued.")
-        elif not self.active:
-            self._logger.info("Stream is not active, request queued.")
-        else:
-            try:
-                current_loop = asyncio.get_running_loop()
-            except RuntimeError:
-                asyncio.run_coroutine_threadsafe(self._websocket.send(), self._event_loop)
-                return
-
-            if current_loop is self._event_loop:
-                await self._websocket.send(payload)
-            else:
-                await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(self._websocket.send(payload), self._event_loop))
-
-
-    def stop(self, clear_subscriptions: bool = True):
-        """
-        Stop the stream
-
-        Args:
-            clear_subscriptions (bool, optional): clear records. Defaults to True.
-        """
-        self._should_stop = True
-        if clear_subscriptions:
-            self.subscriptions = {}
-        try:
-            if self.active:
-                self.send(self.basic_request(service="ADMIN", command="LOGOUT"))
-            if self._thread is not None:
-                self._thread.join(timeout=5)
-        except Exception as e:
-            self._logger.error(e)
-        self.active = False
 
     def _record_request(self, request: dict):
         """
@@ -579,6 +451,234 @@ class Stream:
         """
         return self.basic_request("ACCT_ACTIVITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
     
+class Stream(StreamBase):
+    def __init__(self, client):
+        super().__init__(client.tokens, client._get_streamer_info, client.logger)
+
+    def start(self, receiver=print, daemon: bool = True, ping_interval: int = 20, **kwargs):
+        """
+        Start the stream
+
+        Args:
+            receiver (function, optional): function to call when data is received. Defaults to print.
+            daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
+            ping_interval (int, optional): interval in seconds to send pings to the streamer. Defaults to 20.
+        """
+        if self.active and (self._thread and self._thread.is_alive()):
+            self._logger.warning("Stream already active.")
+            return
+        else:
+            def _start_asyncio():
+                asyncio.run(self._start_streamer(receiver, ping_interval, **kwargs))
+
+            self._thread = threading.Thread(target=_start_asyncio, daemon=daemon)
+            self._thread.start()
+
+    def __enter__(self):
+        self.start()
+        return self
+    
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.stop()
+
+    def __del__(self):
+        self.stop()
+
+    def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
+                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = [0,1,2,3,4],
+                   now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
+        """
+        Start the stream automatically at market open and close, will NOT erase subscriptions
+
+        Args:
+            receiver (function, optional): function to call when data is received. Defaults to print.
+            start_time (datetime.time, optional): time to start the stream. Defaults to 9:30 (for EST).
+            stop_time (datetime.time, optional): time to stop the stream. Defaults to 4:00 (for EST).
+            on_days (list[int], optional): day(s) to start the stream default: (0,1,2,3,4) = Mon-Fri, (0 = Monday, ..., 6 = Sunday). Defaults to (0,1,2,3,4).
+            now_timezone (zoneinfo.ZoneInfo, optional): timezone to use for now. Defaults to ZoneInfo("America/New_York").
+            daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
+        """
+        def checker():
+
+            while True:
+                now = datetime.datetime.now(now_timezone)
+                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
+                if in_hours and not self.active:
+                    if len(self.subscriptions) == 0:
+                        self._logger.warning("No subscriptions, starting stream anyways.")
+                    self.start(receiver=receiver, daemon=daemon, **kwargs)
+                elif not in_hours and self.active:
+                    self._logger.info("Stopping Stream.")
+                    self.stop(clear_subscriptions=False)
+                time.sleep(30)
+
+        threading.Thread(target=checker, daemon=daemon).start()
+
+        if not start_time <= datetime.datetime.now(now_timezone).time() <= stop_time:
+            self._logger.info("Stream was started outside of active hours and will launch when in hours.")
+    
+    def send(self, requests: list | dict):
+        """
+        Send a request to the stream
+
+        Args:
+            requests (list | dict): list of requests or a single request
+        """
+        if not isinstance(requests, list):
+            requests = [requests]
+
+        for request in requests:
+            self._record_request(request)
+
+        if self._event_loop is None:
+            self._logger.info("Stream event loop not initialized yet; request queued.")
+        elif not self.active:
+            self._logger.info("Stream is not active, request queued.")
+        else:
+            asyncio.run_coroutine_threadsafe(self._websocket.send(json.dumps({"requests": requests})), self._event_loop)
+
+    async def send_async(self, requests: list | dict):
+        """
+        Send a request to the stream
+
+        Args:
+            request (list | dict): list of requests or a single request
+        """
+        if not isinstance(requests, list):
+            requests = [requests]
+
+        for req in requests:
+            self._record_request(req)
+
+        payload = json.dumps({"requests": requests})
+
+        if self._event_loop is None:
+            self._logger.info("Stream event loop not initialized yet; request queued.")
+        elif not self.active:
+            self._logger.info("Stream is not active, request queued.")
+        else:
+            await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(self._websocket.send(payload), self._event_loop))
+
+    def stop(self, clear_subscriptions: bool = True):
+        """
+        Stop the stream
+
+        Args:
+            clear_subscriptions (bool, optional): clear records. Defaults to True.
+        """
+        if clear_subscriptions:
+            self.subscriptions = {}
+
+        self._should_stop = True
+        
+        if self.active and self._websocket:
+            try:
+                self.send(self.basic_request(service="ADMIN", command="LOGOUT"))
+            except Exception as e:
+                self._logger.error(e)
+            finally:
+                self.active = False
+
+        if self._event_loop and self._websocket:
+            try:
+                asyncio.run_coroutine_threadsafe(self._websocket.close(), self._event_loop).result(timeout=5)
+            except Exception as e:
+                self._logger.error(f"Error closing websocket: {e}")
+            finally:
+                self._event_loop = None
+                self._websocket = None
+        
+        if self._thread is not None:
+            self._thread.join(timeout=5)
+            self._thread = None
+
+class StreamAsync(StreamBase):
+    def __init__(self, client):
+        super().__init__(client.tokens, client._get_streamer_info, client.logger)
+        self._task = None
+
+    async def __aenter__(self):
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.stop()
+
+    async def start(self, receiver=print, ping_interval: int = 20, **kwargs):
+        """
+        Start the stream in the *current* event loop (no thread).
+        """
+        if self.active or (self._task and not self._task.done()):
+            self._logger.warning("Stream already active.")
+            return
+        else:
+            self._event_loop = asyncio.get_running_loop() #override with where we are called from
+            self._task = self._event_loop.create_task(
+                self._start_streamer(
+                    receiver_func=receiver,
+                    ping_timeout=ping_interval,
+                    **kwargs,
+                )
+            )
+
+    async def send(self, requests: list | dict):
+        """
+        Send a request to the stream
+
+        Args:
+            request (list | dict): list of requests or a single request
+        """
+        if not isinstance(requests, list):
+            requests = [requests]
+
+        for req in requests:
+            self._record_request(req)
+
+        payload = json.dumps({"requests": requests})
+
+        if self._event_loop is None:
+            self._logger.info("Stream event loop not initialized yet; request queued.")
+        elif not self.active:
+            self._logger.info("Stream is not active, request queued.")
+        else:
+            await self._websocket.send(payload)
+            
+
+    async def stop(self, clear_subscriptions: bool = True):
+        """
+        Stop the stream started with start_async.
+        """
+        if clear_subscriptions:
+            self.subscriptions = {}
+
+        self._should_stop = True
+
+        if self.active and self._websocket is not None:
+            try:
+                await self.send(self.basic_request("ADMIN", "LOGOUT"))
+            except Exception as e:
+                self._logger.error(f"Error sending LOGOUT: {e}")
+            finally:
+                self.active = False
+        
+        if self._websocket is not None:
+            try:
+                await self._websocket.close()
+            except Exception as e:
+                self._logger.error(f"Error closing websocket: {e}")
+            finally:
+                self._event_loop = None
+                self._websocket = None
+
+        if self._task is not None:
+            try:
+                await self._task
+            except Exception as e:
+                self._logger.error(f"Stream task error on shutdown: {e}")
+            finally:
+                self._task = None
+
+
 def translate(response) -> list[str]:
     """
     Translate field numbers to field names
@@ -588,7 +688,9 @@ def translate(response) -> list[str]:
     Returns:
         list[str]: list of field names
     """
-    return "TODO"
+    if not isinstance(response, list):
+        response = [response]
+    
     
 def translate_single(service: str, field: str|int) -> str:
     """
