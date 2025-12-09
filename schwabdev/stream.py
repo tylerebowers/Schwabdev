@@ -13,7 +13,6 @@ import time
 import zoneinfo
 import websockets
 import websockets.exceptions
-from .stream_fields import field_maps
 
 
 class StreamBase:
@@ -42,7 +41,7 @@ class StreamBase:
         self.subscriptions = {}                         # a dictionary of subscriptions
 
 
-    async def _start_streamer(self, receiver_func=print, ping_timeout: int = 30, **kwargs):
+    async def _run_streamer(self, receiver_func=print, ping_timeout: int = 30, **kwargs):
         """
         Start the streamer
 
@@ -81,11 +80,12 @@ class StreamBase:
                                                                    "SchwabClientChannel": self._streamer_info.get("schwabClientChannel"),
                                                                    "SchwabClientFunctionId": self._streamer_info.get("schwabClientFunctionId")})
                     await self._websocket.send(json.dumps(login_payload))
-                    self.active = True
                 
                     await call_receiver(await self._websocket.recv(), **kwargs)  # receive login response
+                    self.active = True
 
-                    # send subscriptions (that are queued or previously sent)
+                    # send subscriptions (that are recorded (queued or previously sent))
+                    print(self.subscriptions)
                     for service, subs in self.subscriptions.items():
                         grouped: dict[str, list[str]] = {} # group subscriptions by fields for more efficient requests
                         for key, fields in subs.items():
@@ -103,10 +103,10 @@ class StreamBase:
 
                     # main listener loop
                     if is_async_receiver:
-                        while self.active:
+                        while self.active and not self._should_stop:
                             await receiver_func(await self._websocket.recv(), **kwargs)
                     else:
-                        while self.active:
+                        while self.active and not self._should_stop:
                             receiver_func(await self._websocket.recv(), **kwargs)
                 
                 self._websocket = None
@@ -469,7 +469,7 @@ class Stream(StreamBase):
             return
         else:
             def _start_asyncio():
-                asyncio.run(self._start_streamer(receiver, ping_interval, **kwargs))
+                asyncio.run(self._run_streamer(receiver, ping_interval, **kwargs))
 
             self._thread = threading.Thread(target=_start_asyncio, daemon=daemon)
             self._thread.start()
@@ -517,7 +517,7 @@ class Stream(StreamBase):
         if not start_time <= datetime.datetime.now(now_timezone).time() <= stop_time:
             self._logger.info("Stream was started outside of active hours and will launch when in hours.")
     
-    def send(self, requests: list | dict):
+    def send(self, requests: list | dict, record: bool=True):
         """
         Send a request to the stream
 
@@ -527,8 +527,9 @@ class Stream(StreamBase):
         if not isinstance(requests, list):
             requests = [requests]
 
-        for request in requests:
-            self._record_request(request)
+        if record:
+            for request in requests:
+                self._record_request(request)
 
         if self._event_loop is None:
             self._logger.info("Stream event loop not initialized yet; request queued.")
@@ -573,7 +574,7 @@ class Stream(StreamBase):
         
         if self.active and self._websocket:
             try:
-                self.send(self.basic_request(service="ADMIN", command="LOGOUT"))
+                self.send(self.basic_request(service="ADMIN", command="LOGOUT"), record=False)
             except Exception as e:
                 self._logger.error(e)
             finally:
@@ -614,14 +615,44 @@ class StreamAsync(StreamBase):
         else:
             self._event_loop = asyncio.get_running_loop() #override with where we are called from
             self._task = self._event_loop.create_task(
-                self._start_streamer(
+                self._run_streamer(
                     receiver_func=receiver,
                     ping_timeout=ping_interval,
                     **kwargs,
                 )
             )
 
-    async def send(self, requests: list | dict):
+    async def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
+                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = [0,1,2,3,4],
+                   now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
+        """
+        Start the stream automatically at market open and close, will NOT erase subscriptions
+
+        Args:
+            receiver (function, optional): function to call when data is received. Defaults to print.
+            start_time (datetime.time, optional): time to start the stream. Defaults to 9:30 (for EST).
+            stop_time (datetime.time, optional): time to stop the stream. Defaults to 4:00 (for EST).
+            on_days (list[int], optional): day(s) to start the stream default: (0,1,2,3,4) = Mon-Fri, (0 = Monday, ..., 6 = Sunday). Defaults to (0,1,2,3,4).
+            now_timezone (zoneinfo.ZoneInfo, optional): timezone to use for now. Defaults to ZoneInfo("America/New_York").
+            daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
+        """
+        async def checker():
+
+            while True:
+                now = datetime.datetime.now(now_timezone)
+                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
+                if in_hours and not self.active:
+                    if len(self.subscriptions) == 0:
+                        self._logger.warning("No subscriptions, starting stream anyways.")
+                    await self.start(receiver=receiver, daemon=daemon, **kwargs)
+                elif not in_hours and self.active:
+                    self._logger.info("Stopping Stream.")
+                    await self.stop(clear_subscriptions=False)
+                await asyncio.sleep(30)
+
+        asyncio.create_task(checker())
+
+    async def send(self, requests: list | dict, record: bool=True):
         """
         Send a request to the stream
 
@@ -631,17 +662,16 @@ class StreamAsync(StreamBase):
         if not isinstance(requests, list):
             requests = [requests]
 
-        for req in requests:
-            self._record_request(req)
-
-        payload = json.dumps({"requests": requests})
+        if record:
+            for req in requests:
+                self._record_request(req)
 
         if self._event_loop is None:
             self._logger.info("Stream event loop not initialized yet; request queued.")
         elif not self.active:
             self._logger.info("Stream is not active, request queued.")
         else:
-            await self._websocket.send(payload)
+            await self._websocket.send(json.dumps({"requests": requests}))
             
 
     async def stop(self, clear_subscriptions: bool = True):
@@ -655,7 +685,7 @@ class StreamAsync(StreamBase):
 
         if self.active and self._websocket is not None:
             try:
-                await self.send(self.basic_request("ADMIN", "LOGOUT"))
+                await self.send(self.basic_request("ADMIN", "LOGOUT"), record=False)
             except Exception as e:
                 self._logger.error(f"Error sending LOGOUT: {e}")
             finally:
@@ -678,42 +708,3 @@ class StreamAsync(StreamBase):
             finally:
                 self._task = None
 
-
-def translate(response) -> list[str]:
-    """
-    Translate field numbers to field names
-
-    Args:
-        fields (list[str | int]): list of field numbers
-    Returns:
-        list[str]: list of field names
-    """
-    if not isinstance(response, list):
-        response = [response]
-    
-    
-def translate_single(service: str, field: str|int) -> str:
-    """
-    Translate field number to field name
-
-    Args:
-        field (str|int): field number
-    Returns:
-        str: field name
-    """
-    mapping = field_maps.get(service.upper(), None)
-    if mapping is None:
-        return str(field)
-    try:
-        if isinstance(mapping, dict):
-            return mapping.get(field, str(field))
-        elif isinstance(mapping, list):
-            index = int(field)
-            if 0 <= index < len(mapping):
-                return mapping[index]
-            else:
-                return str(field)
-        else:
-            return str(field)
-    except Exception:
-        return str(field)

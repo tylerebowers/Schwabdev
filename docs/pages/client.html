@@ -38,7 +38,7 @@
 <li><code>call_for_auth (function | None)</code>: Function to call for authentication, the function is called with one argument: the URL to visit for authentication, it is expected to return the full callback URL or code from the callback URL after the user has signed in. </li>
 </ul>
 <hr />
-<p>Schwabdev also has an Asyncronous client that can be used with <code>asyncio</code>:</p>
+<p>Schwabdev also has an Asyncronous client (<a href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py">useful for concurrent api calls</a>) that can be used with <code>asyncio</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">ClientAsync</span><span class="p">(</span>
     <span class="n">app_key</span><span class="p">,</span>
     <span class="n">app_secret</span><span class="p">,</span>

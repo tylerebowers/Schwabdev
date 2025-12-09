@@ -17,7 +17,6 @@ except ImportError:
     aiohttp = None
 
 from .enums import TimeFormat
-from .stream import Stream
 from .tokens import Tokens
 
 
@@ -119,11 +118,12 @@ class ClientBase:
             return l
     
     def _get_streamer_info(self):
+        self.tokens.update_tokens()
         response = requests.request("GET", f'{self._base_api_url}/trader/v1/userPreference', headers={'Authorization': f'Bearer {self.tokens.access_token}'})
         if response.ok:
             return response.json().get('streamerInfo', None)[0]
         else:
-            self._client.logger.error("Could not get streamerInfo")
+            self.logger.error("Could not get streamerInfo")
             return
 
 class Client(ClientBase):

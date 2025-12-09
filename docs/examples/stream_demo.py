@@ -20,7 +20,7 @@ def main():
     client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 
     # define a variable for the steamer:
-    streamer = client.stream
+    streamer = schwabdev.Stream(client)
 
 
     # example of using your own response handler, prints to main terminal.
@@ -43,39 +43,39 @@ def main():
     # these three do the same thing
     # streamer.send(streamer.basic_request("LEVELONE_EQUITIES", "ADD", parameters={"keys": "AMD,INTC", "fields": "0,1,2,3,4,5,6,7,8"}))
     # streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8", command="ADD"))
-    #streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8"))
+    streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8"))
 
 
-    # streamer.send(streamer.level_one_options("GOOGL 240712C00200000", "0,1,2,3,4,5,6,7,8")) # key must be from option chains api call.
-    # streamer.send(streamer.level_one_options("SPY   241014C00580000", "0,1,2,3,4,5,6,7,8"))
-    # streamer.send(streamer.level_one_options("SPXW  251208C06880000", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.level_one_options("GOOGL 240712C00200000", "0,1,2,3,4,5,6,7,8")) # option contract examples will likely be outdated
+    # streamer.send(streamer.level_one_options("SPY   241014C00580000", "0,1,2,3,4,5,6,7,8")) # option contract examples will likely be outdated
+    # streamer.send(streamer.level_one_options("SPXW  251208C06880000", "0,1,2,3,4,5,6,7,8")) # option contract examples will likely be outdated
 
     # streamer.send(streamer.level_one_futures("/ES", "0,1,2,3,4,5,6"))
 
-    # streamer.send(streamer.level_one_futures_options("./OZCZ23C565", "0,1,2,3,4,5"))
-    # streamer.send(streamer.level_one_futures_options("./OGG26C4140", "0,1,2,3,4,5"))
-    # streamer.send(streamer.level_one_futures_options("./OGG26C4240", "0,1,2,3,4,5"))
+    # streamer.send(streamer.level_one_futures_options("./OZCZ23C565", "0,1,2,3,4,5")) # option contract examples will likely be outdated
+    # streamer.send(streamer.level_one_futures_options("./OGG26C4140", "0,1,2,3,4,5")) # option contract examples will likely be outdated
+    # streamer.send(streamer.level_one_futures_options("./OGG26C4240", "0,1,2,3,4,5")) # option contract examples will likely be outdated
 
-    streamer.send(streamer.level_one_forex("EUR/USD", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.level_one_forex("EUR/USD", "0,1,2,3,4,5,6,7,8"))
 
-    # streamer.send(streamer.nyse_book(["F", "NIO"], "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.nyse_book(["F", "NIO"], "0,1,2,3"))
 
-    # streamer.send(streamer.nasdaq_book("AMD", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.nasdaq_book("AMD", "0,1,2,3"))
 
-    # streamer.send(streamer.options_book("GOOGL 240712C00200000", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.options_book("GOOGL 251212C00315000", "0,1,2,3")) # option contract examples will likely be outdated
 
     # streamer.send(streamer.chart_equity("AMD", "0,1,2,3,4,5,6,7,8"))
 
-    # streamer.send(streamer.chart_futures("/ES", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.chart_futures("/ES", "0,1,2,3,4,5,6"))
 
-    # streamer.send(streamer.screener_equity("NASDAQ_VOLUME_30", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.screener_equity("NASDAQ_VOLUME_30", "0,1,2,3,4"))
 
-    # streamer.send(streamer.screener_options("OPTION_CALL_TRADES_30", "0,1,2,3,4,5,6,7,8"))
+    # streamer.send(streamer.screener_options("OPTION_CALL_TRADES_30", "0,1,2,3,4"))
 
     # streamer.send(streamer.account_activity("Account Activity", "0,1,2,3"))
 
 
-    # stop the stream after 60 seconds (since this is a demo)
+    # stop the stream after 30 seconds (since this is a demo)
     time.sleep(30)
     streamer.stop()
     # if you don't want to clear the subscriptions, set clear_subscriptions=False

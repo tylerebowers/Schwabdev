@@ -2,3 +2,6 @@ body {
     font-family: Arial, sans-serif;
     background: #e6e6e6;
 }
+code {
+    font-family: 'Courier New', monospace;
+}

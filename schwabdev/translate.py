@@ -1,10 +1,12 @@
 """
 These fields are available to stream through the Schwab Streamer.
 This dict is meant for use in translating the numerical fields to a human-readable name.
-Access as field_maps[service][field]
+Access as field_maps[service][field] (for most)
 """
 
-field_maps = {
+import datetime
+
+stream_fields = {
     "LEVELONE_EQUITIES": ["Symbol", "Bid Price", "Ask Price", "Last Price", "Bid Size", "Ask Size", "Ask ID", "Bid ID",
                           "Total Volume", "Last Size", "High Price", "Low Price", "Close Price", "Exchange ID",
                           "Marginable", "Description", "Last ID", "Open Price", "Net Change", "52 Week High",
@@ -58,9 +60,63 @@ field_maps = {
     "OPTIONS_BOOK": {0: "Symbol", 1: "Market Snapshot Time", 2: "Bid Side Levels", 3: "Ask Side Levels",
                      "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
                      "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
-    "CHART_EQUITY": ["key", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Sequence",
-                     "Chart Time", "Chart Day"],
+    #"CHART_EQUITY": ["key", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Sequence", "Chart Time", "Chart Day"], # from schwab docs (wrong)
+    "CHART_EQUITY": ["key", "Sequence", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Chart Time", "Chart Day"], # corrected
     "CHART_FUTURES": ["key", "Chart Time", "Open Price", "High Price", "Low Price", "Close Price", "Volume"],
     "SCREENER_EQUITY": ["symbol", "timestamp", "sortField", "frequency", "Items"],
     "SCREENER_OPTION": ["symbol", "timestamp", "sortField", "frequency", "Items"],
     "ACCT_ACTIVITY": {"seq": "Sequence", "key": "Key", 1: "Account", 2: "Message Type", 3: "Message Data"}}
+
+def translate_data(response) -> list[str]:
+    """
+    Translate field numbers to field names
+
+    Returns:
+        list[str]: list of field names
+    """
+    if isinstance(response, dict) and "data" in response:
+        response = response.get("data", response)
+    if isinstance(response, list):
+        for item in response:
+            if isinstance(item, dict):
+                service = item.get("service", None)
+                timestamp = item.get("timestamp", None)
+                content = item.get("content", None)
+                if timestamp:
+                    item["timestamp"] = datetime.datetime.fromtimestamp(timestamp / 1000)
+
+                if service and content and service.startswith("LEVELONE_"):
+                    if isinstance(content, list):
+                        for quote in content:
+                            for field, value in quote.copy().items():
+                                if field.isdigit():
+                                    new_field = translate_field(service, field)
+                                    quote[new_field] = quote.pop(field)
+    return response
+    
+    
+def translate_field(service: str, field: str|int) -> str:
+    """
+    Translate field number to field name
+
+    Args:
+        field (str|int): field number
+    Returns:
+        str: field name
+    """
+    mapping = stream_fields.get(service.upper(), None)
+    if mapping is None:
+        return str(field)
+    try:
+        if isinstance(mapping, dict):
+            return mapping.get(field, str(field))
+        elif isinstance(mapping, list):
+            index = int(field)
+            if 0 <= index < len(mapping):
+                return mapping[index]
+            else:
+                return str(field)
+        else:
+            return str(field)
+    except Exception:
+        return str(field)

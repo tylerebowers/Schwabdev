@@ -25,7 +25,7 @@ logging.basicConfig(level=logging.INFO)
 
 # make a client
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
-streamer = client.stream
+streamer = schwabdev.Stream(client)
 
 # define a response handler
 shared_list: list[str] = []

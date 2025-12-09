@@ -52,7 +52,7 @@ def run(coro: asyncio.Future) -> object:
 async def _init_client() -> None:
     global client, streamer
     client = schwabdev.ClientAsync(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'), parsed=True)
-    streamer = client.stream
+    streamer = schwabdev.StreamAsync(client)
     logging.info(
         "Async Schwabdev client initialized.\n"
         "Client and Streamer created as 'client' and 'stream' variables, use `run(...)` to call async methods, and use quit() to exit."

@@ -19,7 +19,7 @@ async def main():
         data.append(message)
     
     async with schwabdev.ClientAsync(os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")) as client:
-        streamer = client.stream
+        streamer = schwabdev.StreamAsync(client)
         streamer.start(response_handler)
         async with asyncio.TaskGroup() as tg:
             for t in tickers:
