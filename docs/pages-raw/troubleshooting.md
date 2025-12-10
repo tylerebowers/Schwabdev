@@ -1,5 +1,7 @@
 ## Common Issues
 
+For issues not shown here, please ask in the <a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord server</a>.
+
 * `{'errors': [{'id': 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX', 'status': 401, 'title': 'Unauthorized', 'detail': 'Client not authorized'}]}`
     * **Cause:** You do not have access to both APIs and are attempting to access one that you have not added to your app.
     * **Fix:** Add both APIs **"Accounts and Trading Production"** and **"Market Data Production"** to your app.
@@ -36,41 +38,28 @@
     * **Cause:** Your refresh token is invalid (maybe you created a new refresh token on a different machine).
     * **Fix:** Manually update the refresh token by changing the date in `tokens.json` or by calling `client.tokens.update_tokens(force=True)`.
 
-*  `"can't register atexit after shutdown"`
+* `"can't register atexit after shutdown"`
     *  **Cause:** The main thread dies before the stream thread starts.
     *  **Fix:** Add a delay after starting or sending a request — something to let the stream thread start up before the main thread closes.
 
-*  API calls throwing errors despite access token and refresh token being valid / not expired.
-    *  **Fix:** Manually update refresh / access tokens by calling `client.tokens.update_tokens(force=True)`.
-
-*  Streaming `ACCT_ACTIVITY` yields no responses.
-    *  **Fix:** This is a known issue on Schwab's end.
-
-*  After signing in, you get an **"Access Denied"** web page.
+* After signing in, you get an **"Access Denied"** web page.
     *  **Fix:** Your callback URL is likely incorrect due to a trailing slash `/` at the end.
 
-*  App Registration Error
+* App Registration Error
     *  **Fix:** Email Schwab: `traderapi@schwab.com`
 
-*  Issue in streaming with websockets –
+* Issue in streaming with websockets –
     *  `"Unsupported extension: name = permessage-deflate, params = []"`
     *  **Cause:** You are using a proxy that is blocking streaming or your DNS is not correctly resolving.
     *  **Fix:** Change DNS servers (Google’s are known-working) or change/bypass the proxy.
 
-* 
-    *  `{'fault': {'faultstring': 'Body buffer overflow', 'detail': {'errorcode': 'protocol.http.TooBigBody'}}}`
+* `{'fault': {'faultstring': 'Body buffer overflow', 'detail': {'errorcode': 'protocol.http.TooBigBody'}}}`
     *  **Cause:** The call that you made exceeds the amount of data that can be returned.
     *  **Example:** The call `print(client.option_chains("$SPX").json())` returns too much data and will exceed the buffer size.
     *  **Fix:** Add additional parameters to limit the amount of data returned.
 
-*  can't register atexit after shutdown
-    *  **Cause:** The main thread dies before the stream thread starts.
-    *  **Fix:** Add a delay after starting or sending a request — something to let the stream thread start up before the main thread closes.
-
-*  Refresh token expiring in 7 days is too short.
+* Refresh token expiring in 7 days is too short.
     *  **Fix:** *I know.* 😅
 
 ---
-
-For issues not shown here, please ask in the [Discord](https://discord.gg/m7SSjr9rs9) server.
 

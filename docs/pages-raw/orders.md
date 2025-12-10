@@ -1,66 +1,55 @@
 # Placing Orders
 
-After making a client object (e.g. `client = schwabdev.Client(...)`) you can place orders using the `client.order_place(...)` method.
+After making a client object (e.g. `client = schwabdev.Client(...)`) you can place orders using methods outlined below.
 
 ### Notes
 
 * Orders are currently only supported for equities and options.
 * There is a limit of **120 orders per minute** and **4000 orders per day**.
+* If an order format is not shown here, place an order from a different platform (e.g. TOS) and use `client.order_details(...)` to infer the format. 
+* Fractional orders are not supported.
 
 ---
 
-### `client.order_place(account_hash, order)`
-
-Places an order on the specified account.
+### `client.place_order(account_hash, order)`
+Places an order for the account specified by account_hash. Returns Order ID in the headers (`order_id = resp.headers.get('location', '/').split('/')[-1]`), unless the order was instantly filled. Check response code for success.
 
 * `account_hash (str)`: Account hash to place the order on.
-* `order (dict)`: Order dict to place. Examples are shown below and in the Schwab documentation.
+* `order (dict)`: Order payload. See `orders.md` and the Schwab documentation for examples.
 
-Returns a `requests.Response` object.
-
-**Note**
-
-Get the order ID by checking the headers:
-
-```python
-order_id = resp.headers.get('location', '/').split('/')[-1]
-```
-
-*If the order is immediately filled, the ID might not be returned.*
 
 ---
 
 ### `client.order_details(account_hash, order_id)`
+Returns a `requests.Response` whose JSON body is a dict containing details for a specific order.
 
-Gets details for a specific order.
-
-* `account_hash (str)`: Account hash the order was placed on.
+* `account_hash (str)`: Account hash that the order was placed on.
 * `order_id (int)`: Order ID to get details for.
 
-Returns a `requests.Response` whose JSON body contains order details.
-
 ---
 
-### `client.order_cancel(account_hash, order_id)`
+### `client.cancel_order(account_hash, order_id)`
+Cancels a specific order and returns a `requests.Response`. The response is typically empty if successful, check the code to know for sure.
 
-Cancels a specific order.
-
-* `account_hash (str)`: Account hash the order was placed on.
+* `account_hash (str)`: Account hash that the order was placed on.
 * `order_id (int)`: Order ID to cancel.
 
-Returns a `requests.Response` that is empty if successful.
+---
+
+### `client.replace_order(account_hash, orderID, order)`
+Replaces an existing order with a new order definition. Returns a `requests.Response`, check the code to know if successful.
+
+* `account_hash (str)`: Account hash that the original order was placed on.
+* `order_id (int)`: Order ID to replace.
+* `order (dict)`: New order payload to replace the existing order with.
 
 ---
 
-### `client.order_replace(account_hash, orderID, order)`
+### `client.preview_order(account_hash, order)`
+Returns a `requests.Response` representing a preview of the order (fees, validation, balances, etc) without actually placing it.
 
-Replaces a specific order.
-
-* `account_hash (str)`: Account hash the order was placed on.
-* `orderID (int)`: Order ID to replace.
-* `order (dict)`: Order dict to replace `orderID` with.
-
-Returns a `requests.Response` that is empty if successful.
+* `account_hash (str)`: Account hash to preview the order on.
+* `order (dict)`: Order payload to preview. See `orders.md` and the Schwab documentation for examples.
 
 ---
 

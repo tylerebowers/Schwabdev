@@ -327,13 +327,14 @@ order = {"orderType": "LIMIT",
                 }
             ]
         }
-resp = client.order_place(account_hash, order)
+resp = client.place_order(account_hash, order)
 order_id = resp.headers.get('location', '/').split('/')[-1]
 ```
 
 </details>
 
 ---
+
 ### `client.order_details(account_hash, order_id)`
 Returns a `requests.Response` whose JSON body is a dict containing details for a specific order.
 
@@ -411,13 +412,13 @@ Cancels a specific order and returns a `requests.Response`. The response is typi
 <details><summary><u>Example</u></summary>
 
 ```python
-> client.order_cancel(account_hash, order_id)
+> client.cancel_order(account_hash, order_id)
 <requests.Response [200]>
 ```
 </details>
 
 ---
-### `client.order_replace(account_hash, orderID, order)`
+### `client.replace_order(account_hash, orderID, order)`
 Replaces an existing order with a new order definition. Returns a `requests.Response`, check the code to know if successful.
 
 * `account_hash (str)`: Account hash that the original order was placed on.
@@ -426,7 +427,7 @@ Replaces an existing order with a new order definition. Returns a `requests.Resp
 <details><summary><u>Example</u></summary>
 
 ```python
-> client.order_replace(account_hash, order_id, new_order)
+> client.replace_order(account_hash, order_id, new_order)
 <requests.Response [200]>
 ```
 </details>
@@ -477,16 +478,16 @@ Returns a `requests.Response` whose JSON body is a list of order dicts for **all
 </details>
 
 ---
-### `client.order_preview(account_hash, orderObject)`
-Returns a `requests.Response` representing a preview of the order.
+### `client.preview_order(account_hash, order)`
+Returns a `requests.Response` representing a preview of the order (fees, validation, balances, etc) without actually placing it.
 
 * `account_hash (str)`: Account hash to preview the order on.
-* `order_obj (dict)`: Order payload to preview. See `orders.md` and the Schwab documentation for examples.
+* `order (dict)`: Order payload to preview. See `orders.md` and the Schwab documentation for examples.
 
 <details><summary><u>Example</u></summary>
 
 ```python
-> client.order_preview(account_hash, orderObject)
+> client.preview_order(account_hash, orderObject)
 {
     "orderId":0,
     "orderStrategy":{

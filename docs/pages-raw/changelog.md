@@ -4,7 +4,7 @@
 * Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.
 * Tokens backend rework to use an sqlite database instead of a json file for concurrency handling (supports many clients at the same time).
 * Now including streamer fields with translator function.
-* Removed parameter `call_on_notify` and replaced with `call_on_auth` (called with auth url, expected to return the final redirect url).
+* Removed parameters `call_on_notify` and `capture_callback`; replaced with `call_on_auth` (called with auth url, expected to return the final redirect url).
 
 
 ## Version 2.5.1

@@ -344,7 +344,7 @@ If the parameter `fields="positions"` is set then each account will have a `posi
                 <span class="p">}</span>
             <span class="p">]</span>
         <span class="p">}</span>
-<span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">order_place</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">client</span><span class="o">.</span><span class="n">place_order</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">order</span><span class="p">)</span>
 <span class="n">order_id</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 </code></pre></div>
 
@@ -433,7 +433,7 @@ If the parameter `fields="positions"` is set then each account will have a `posi
 <details><summary><u>Example</u></summary>
 
 
-<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">client</span><span class="o">.</span><span class="n">order_cancel</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">order_id</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">client</span><span class="o">.</span><span class="n">cancel_order</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">order_id</span><span class="p">)</span>
 <span class="o">&lt;</span><span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="p">[</span><span class="mi">200</span><span class="p">]</span><span class="o">&gt;</span>
 </code></pre></div>
 
@@ -441,7 +441,7 @@ If the parameter `fields="positions"` is set then each account will have a `posi
 </details>
 
 <hr />
-<h3><code>client.order_replace(account_hash, orderID, order)</code></h3>
+<h3><code>client.replace_order(account_hash, orderID, order)</code></h3>
 <p>Replaces an existing order with a new order definition. Returns a <code>requests.Response</code>, check the code to know if successful.</p>
 <ul>
 <li><code>account_hash (str)</code>: Account hash that the original order was placed on.</li>
@@ -451,7 +451,7 @@ If the parameter `fields="positions"` is set then each account will have a `posi
 <details><summary><u>Example</u></summary>
 
 
-<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">client</span><span class="o">.</span><span class="n">order_replace</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">order_id</span><span class="p">,</span> <span class="n">new_order</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">client</span><span class="o">.</span><span class="n">replace_order</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">order_id</span><span class="p">,</span> <span class="n">new_order</span><span class="p">)</span>
 <span class="o">&lt;</span><span class="n">requests</span><span class="o">.</span><span class="n">Response</span> <span class="p">[</span><span class="mi">200</span><span class="p">]</span><span class="o">&gt;</span>
 </code></pre></div>
 
@@ -506,16 +506,16 @@ If the parameter `fields="positions"` is set then each account will have a `posi
 </details>
 
 <hr />
-<h3><code>client.order_preview(account_hash, orderObject)</code></h3>
-<p>Returns a <code>requests.Response</code> representing a preview of the order.</p>
+<h3><code>client.preview_order(account_hash, order)</code></h3>
+<p>Returns a <code>requests.Response</code> representing a preview of the order (fees, validation, balances, etc) without actually placing it.</p>
 <ul>
 <li><code>account_hash (str)</code>: Account hash to preview the order on.</li>
-<li><code>order_obj (dict)</code>: Order payload to preview. See <code>orders.md</code> and the Schwab documentation for examples.</li>
+<li><code>order (dict)</code>: Order payload to preview. See <code>orders.md</code> and the Schwab documentation for examples.</li>
 </ul>
 <details><summary><u>Example</u></summary>
 
 
-<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">client</span><span class="o">.</span><span class="n">order_preview</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">orderObject</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="o">&gt;</span> <span class="n">client</span><span class="o">.</span><span class="n">preview_order</span><span class="p">(</span><span class="n">account_hash</span><span class="p">,</span> <span class="n">orderObject</span><span class="p">)</span>
 <span class="p">{</span>
     <span class="s2">&quot;orderId&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
     <span class="s2">&quot;orderStrategy&quot;</span><span class="p">:{</span>

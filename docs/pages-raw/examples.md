@@ -1,6 +1,6 @@
 ### You can find all examples in the `/docs/examples/` folder <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples">here</a>.
 
-These examples use a `.env` file to store keys.
+These examples use a `.env` file to store keys (make this file in the same folder as your script).
 To use the `.env` file you need to install the Python <a target="_blank" href="https://pypi.org/project/python-dotenv/">python-dotenv</a> package.
 
 ```python

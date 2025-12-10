@@ -25,7 +25,7 @@ async def main():
         # the first parameter is used by the stream, additional parameters are passed to the handler
         def my_handler(message):
             print("test_handler:" + message)
-        streamer.start(my_handler)
+        await streamer.start(my_handler)
 
 
         # start steamer with default response handler (print):

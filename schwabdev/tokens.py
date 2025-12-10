@@ -1,20 +1,19 @@
 """
-This file contains a class to manage tokens
-Github: https://github.com/tylerebowers/Schwab-API-Python
+Schwabdev Tokens Module.
+Manages Schwab OAuth tokens including storage, retrieval, and refreshing.
+https://github.com/tylerebowers/Schwab-API-Python
 """
 import base64
 import datetime
-import http.server
 import logging
 import os
-import ssl
 import webbrowser
 import sqlite3
 import requests
 
 
 class Tokens:
-    def __init__(self,app_key: str, app_secret: str, callback_url: str, logger: logging.Logger, tokens_db: str="~/.schwabdev/tokens.db", capture_callback=False, call_for_auth=None):
+    def __init__(self,app_key: str, app_secret: str, callback_url: str, logger: logging.Logger, tokens_db: str="~/.schwabdev/tokens.db", call_for_auth=None):
         """
         Initialize a tokens manager
 
@@ -24,7 +23,6 @@ class Tokens:
             app_secret (str): App secret credential
             callback_url (str): Url for callback
             tokens_file (str): Path to tokens file
-            capture_callback (bool): Use a webserver with self-signed cert to callback
             call_for_auth (function | None): Function to call for custom auth flow
         """
         #parameter validation
@@ -62,7 +60,6 @@ class Tokens:
         self._access_token_timeout = 30 * 60                # in seconds (30 min from schwab)
         self._refresh_token_timeout = 7 * 24 * 60 * 60      # in seconds (7 days from schwab)
         self._logger = logger                               # logger
-        self._capture_callback = capture_callback           # use a webserver with self-signed cert to callback
 
         #init token database
         tokens_db = os.path.expanduser(tokens_db)
@@ -312,102 +309,6 @@ class Tokens:
         Refresh Token functions:
     """
 
-    def _generate_certificate(self, common_name="common_name", key_filepath="localhost.key", cert_filepath="localhost.crt"):
-        """
-        Generate a self-signed certificate for use in capturing the callback during authentication
-
-        Args:
-            common_name (str, optional): Common name for the certificate. Defaults to "common_name".
-            key_filepath (str, optional): Filepath for the key file. Defaults to "localhost.key".
-            cert_filepath (str, optional): Filepath for the certificate file. Defaults to "localhost.crt".
-
-        Notes:
-            Schwabdev will change the filepaths to ~/.schwabdev/* (user's home directory)
-
-        """
-        from cryptography import x509
-        from cryptography.hazmat.primitives import hashes, serialization
-        from cryptography.hazmat.primitives.asymmetric import rsa
-        from cryptography.x509.oid import NameOID
-
-        # make folders for cert files
-        os.makedirs(os.path.dirname(key_filepath), exist_ok=True)
-        os.makedirs(os.path.dirname(cert_filepath), exist_ok=True)
-
-        # create a key pair
-        key = rsa.generate_private_key(public_exponent=65537,key_size=2048)
-
-        # create a self-signed cert
-        builder = x509.CertificateBuilder()
-        builder = builder.subject_name(x509.Name([
-            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Schwabdev"),
-            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, "Authentication"),
-        ]))
-        builder = builder.issuer_name(x509.Name([
-            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
-        ]))
-        builder = builder.not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        builder = builder.not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=3650))
-        builder = builder.serial_number(x509.random_serial_number())
-        builder = builder.public_key(key.public_key())
-        builder = builder.add_extension(
-            x509.SubjectAlternativeName([x509.DNSName(common_name)]),
-            critical=False,
-        )
-        builder = builder.sign(key, hashes.SHA256())
-        with open(key_filepath, "wb") as f:
-            f.write(key.private_bytes(encoding=serialization.Encoding.PEM,
-                                      format=serialization.PrivateFormat.TraditionalOpenSSL,
-                                      encryption_algorithm=serialization.NoEncryption()))
-        with open(cert_filepath, "wb") as f:
-            f.write(builder.public_bytes(serialization.Encoding.PEM))
-        self._logger.info(f"Certificate generated and saved to {key_filepath} and {cert_filepath}")
-
-    def _launch_capture_server(self, url_base, url_port):
-
-        # class used to share code outside the http server
-        class SharedCode:
-            def __init__(self):
-                self.code = ""
-
-        # custom HTTP handler to silence logger and get code
-        class HTTPHandler(http.server.BaseHTTPRequestHandler):
-            shared = None
-
-            def log_message(self, format, *args):
-                pass  # silence logger
-
-            def do_GET(self):
-                if self.path.find("code=") != -1:
-                    self.shared.code = f"{self.path[self.path.index('code=') + 5:self.path.index('%40')]}@"
-                self.send_response(200, "OK")
-                self.end_headers()
-                self.wfile.write(b"You may now close this page.")
-
-        shared = SharedCode()
-
-        HTTPHandler.shared = shared
-        httpd = http.server.HTTPServer((url_base, url_port), HTTPHandler)
-        # httpd.socket.settimeout(1)
-
-        cert_filepath = os.path.expanduser("~/.schwabdev/localhost.crt")
-        key_filepath = os.path.expanduser("~/.schwabdev/localhost.key")
-        if not (os.path.isfile(cert_filepath) and os.path.isfile(key_filepath)):  # this does not check validity
-            self._generate_certificate(common_name=url_base, cert_filepath=cert_filepath, key_filepath=key_filepath)
-
-        ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-        ctx.load_cert_chain(certfile=cert_filepath, keyfile=key_filepath)
-        # ctx.load_default_certs()
-
-        print(f"[Schwabdev] Listening on port {url_port} for callback...")
-        httpd.socket = ctx.wrap_socket(httpd.socket, server_side=True)
-        while len(shared.code) < 1:  # wait for code
-            httpd.handle_request()
-
-        httpd.server_close()
-        return shared.code
-
     def get_auth_url(self):
         return f'https://api.schwabapi.com/v1/oauth/authorize?client_id={self._app_key}&redirect_uri={self._callback_url}'
 
@@ -430,7 +331,7 @@ class Tokens:
 
             # If refresh token was already updated by someone else, bail
             if self._refresh_token_issued > last_known_rt_issued:
-                self._logger.info("Refresh token updated elsewhere.")
+                self._logger.info("Refresh token updated elsewhere (Did you auth twice?)")
                 self._conn.rollback()
                 return
 
@@ -476,7 +377,7 @@ class Tokens:
         Get new access and refresh tokens using authorization code.
         """
 
-        try:
+        try: #check for newer tokens in the db
             last_known_rt_issued = self._refresh_token_issued
             self._load_tokens_from_db()
             if self._refresh_token_issued > last_known_rt_issued:
@@ -497,18 +398,8 @@ class Tokens:
                 self._logger.warning("Could not open browser for authorization (open the link manually)")
 
             # parse the callback url
-            url_split = self._callback_url.split("://")[-1].split(":")
-            url_base = url_split[0]
-            url_port = url_split[-1]  # this may or may not have the port
-
-            if self._capture_callback and not url_port.isdigit():  # if there is a port then capture the callback url
-                self._logger.error("Could not find port in callback url, so you will have to copy/paste the url.")
-                self._capture_callback = False
-            elif self._capture_callback:
-                # This returns the full callback URL; helper will parse the code
-                url_or_code = self._launch_capture_server(url_base, int(url_port))
-            else:
-                response_url = input("[Schwabdev] After authorizing, paste the address bar url here: ")
-                url_or_code = response_url  # helper will handle URL vs raw code
+        
+            response_url = input("[Schwabdev] After authorizing, paste the address bar url here: ")
+            url_or_code = response_url  # helper will handle URL vs raw code
 
             self.update_refresh_token_from_code(url_or_code)

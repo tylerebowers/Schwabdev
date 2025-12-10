@@ -9,51 +9,50 @@
 </head>
 <body>
 <h1>Placing Orders</h1>
-<p>After making a client object (e.g. <code>client = schwabdev.Client(...)</code>) you can place orders using the <code>client.order_place(...)</code> method.</p>
+<p>After making a client object (e.g. <code>client = schwabdev.Client(...)</code>) you can place orders using methods outlined below.</p>
 <h3>Notes</h3>
 <ul>
 <li>Orders are currently only supported for equities and options.</li>
 <li>There is a limit of <strong>120 orders per minute</strong> and <strong>4000 orders per day</strong>.</li>
+<li>If an order format is not shown here, place an order from a different platform (e.g. TOS) and use <code>client.order_details(...)</code> to infer the format. </li>
+<li>Fractional orders are not supported.</li>
 </ul>
 <hr />
-<h3><code>client.order_place(account_hash, order)</code></h3>
-<p>Places an order on the specified account.</p>
+<h3><code>client.place_order(account_hash, order)</code></h3>
+<p>Places an order for the account specified by account_hash. Returns Order ID in the headers (<code>order_id = resp.headers.get('location', '/').split('/')[-1]</code>), unless the order was instantly filled. Check response code for success.</p>
 <ul>
 <li><code>account_hash (str)</code>: Account hash to place the order on.</li>
-<li><code>order (dict)</code>: Order dict to place. Examples are shown below and in the Schwab documentation.</li>
+<li><code>order (dict)</code>: Order payload. See <code>orders.md</code> and the Schwab documentation for examples.</li>
 </ul>
-<p>Returns a <code>requests.Response</code> object.</p>
-<p><strong>Note</strong></p>
-<p>Get the order ID by checking the headers:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">order_id</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
-</code></pre></div>
-
-<p><em>If the order is immediately filled, the ID might not be returned.</em></p>
 <hr />
 <h3><code>client.order_details(account_hash, order_id)</code></h3>
-<p>Gets details for a specific order.</p>
+<p>Returns a <code>requests.Response</code> whose JSON body is a dict containing details for a specific order.</p>
 <ul>
-<li><code>account_hash (str)</code>: Account hash the order was placed on.</li>
+<li><code>account_hash (str)</code>: Account hash that the order was placed on.</li>
 <li><code>order_id (int)</code>: Order ID to get details for.</li>
 </ul>
-<p>Returns a <code>requests.Response</code> whose JSON body contains order details.</p>
 <hr />
-<h3><code>client.order_cancel(account_hash, order_id)</code></h3>
-<p>Cancels a specific order.</p>
+<h3><code>client.cancel_order(account_hash, order_id)</code></h3>
+<p>Cancels a specific order and returns a <code>requests.Response</code>. The response is typically empty if successful, check the code to know for sure.</p>
 <ul>
-<li><code>account_hash (str)</code>: Account hash the order was placed on.</li>
+<li><code>account_hash (str)</code>: Account hash that the order was placed on.</li>
 <li><code>order_id (int)</code>: Order ID to cancel.</li>
 </ul>
-<p>Returns a <code>requests.Response</code> that is empty if successful.</p>
 <hr />
-<h3><code>client.order_replace(account_hash, orderID, order)</code></h3>
-<p>Replaces a specific order.</p>
+<h3><code>client.replace_order(account_hash, orderID, order)</code></h3>
+<p>Replaces an existing order with a new order definition. Returns a <code>requests.Response</code>, check the code to know if successful.</p>
 <ul>
-<li><code>account_hash (str)</code>: Account hash the order was placed on.</li>
-<li><code>orderID (int)</code>: Order ID to replace.</li>
-<li><code>order (dict)</code>: Order dict to replace <code>orderID</code> with.</li>
+<li><code>account_hash (str)</code>: Account hash that the original order was placed on.</li>
+<li><code>order_id (int)</code>: Order ID to replace.</li>
+<li><code>order (dict)</code>: New order payload to replace the existing order with.</li>
 </ul>
-<p>Returns a <code>requests.Response</code> that is empty if successful.</p>
+<hr />
+<h3><code>client.preview_order(account_hash, order)</code></h3>
+<p>Returns a <code>requests.Response</code> representing a preview of the order (fees, validation, balances, etc) without actually placing it.</p>
+<ul>
+<li><code>account_hash (str)</code>: Account hash to preview the order on.</li>
+<li><code>order (dict)</code>: Order payload to preview. See <code>orders.md</code> and the Schwab documentation for examples.</li>
+</ul>
 <hr />
 <h2>Order Examples</h2>
 <p><em>Please adjust for your usage.</em></p>

@@ -19,7 +19,6 @@ client = schwabdev.Client(
     callback_url="https://127.0.0.1",
     tokens_db="~/.schwabdev/tokens.db",
     timeout=10,
-    capture_callback=False,
     call_for_auth=None,
 )
 ```
@@ -29,12 +28,11 @@ client = schwabdev.Client(
 * `callback_url (str)`: URL for callback (e.g. `"https://127.0.0.1"`).
 * `tokens_db (str)`: Path to tokens database (e.g. `"~/.schwabdev/tokens.db"`).
 * `timeout (int)`: Request timeout in seconds (how long to wait for a response).
-* `capture_callback (bool)`: If set to `True` then Schwabdev will use a webserver with a self-signed cert to capture the callback URL (no copy/pasting URLs during auth) after you have signed in your account. You must have a free port in your callback URL such as `https://127.0.0.1:7777`, then Schwabdev will listen on port `7777` and capture the callback. You may get a warning `net::ERR_CERT_AUTHORITY_INVALID` since it is a self-signed certificate but this is not an issue since it is a local server. Just click “Advanced” → “Proceed to ...” to send the code to Schwabdev (usually only warns the first time).
-* `call_for_auth (function | None)`: Function to call for authentication, the function is called with one argument: the URL to visit for authentication, it is expected to return the full callback URL or code from the callback URL after the user has signed in. 
+* `call_for_auth (function | None)`: Function to call for authentication, the function is called with one argument: the URL to visit for authentication, it is expected to return the full callback URL or code from the callback URL after the user has signed in, see an example in <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/extra/capture_callback.py">capture_callback.py</a>.
 
 ---
 
-Schwabdev also has an Asyncronous client ([useful for concurrent api calls](https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py)) that can be used with `asyncio`:
+Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py)">useful for concurrent api calls</a>) that can be used with `asyncio`:
 
 ```python
 client = schwabdev.ClientAsync(
@@ -43,9 +41,8 @@ client = schwabdev.ClientAsync(
     callback_url="https://127.0.0.1",
     tokens_db="~/.schwabdev/tokens.db",
     timeout=10,
-    parsed = False,
-    capture_callback=False,
     call_for_auth=None,
+    parsed = False,
 )
 ```
 
@@ -74,7 +71,7 @@ Otherwise, the client will start the process 30 minutes before the refresh token
 
 ### Notes
 * In order to use all API calls you must have both API sections added to your app: **Accounts and Trading Production** and **Market Data Production**.
-* If you are storing your code in a GitHub repo then use [dotenv](https://pypi.org/project/python-dotenv/) to store your keys, especially if you are using a git repo.
+* If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys, especially if you are using a git repo.
 With a GitHub repo you can include `*.env` in the `.gitignore` file to stop your credentials from getting committed.
 * Schwabdev uses the `logging` module to log/print information, warnings and errors. You can change the level of logging by setting
   `logging.basicConfig(level=logging.XXXX)`

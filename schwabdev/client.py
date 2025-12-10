@@ -1,7 +1,7 @@
 """
-This file contains functions to create a client class that accesses the Schwab api
-Coded by Tyler Bowers
-Github: https://github.com/tylerebowers/Schwab-API-Python
+Schwabdev Client & ClientAsync Module.
+For connecting to the Schwab API.
+https://github.com/tylerebowers/Schwab-API-Python
 """
 import datetime
 import logging
@@ -24,7 +24,7 @@ class ClientBase:
 
     _base_api_url = "https://api.schwabapi.com"
 
-    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, capture_callback=False, call_on_auth=None):
+    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, call_on_auth=None):
         """
         Initialize a client to access the Schwab API.
 
@@ -34,7 +34,6 @@ class ClientBase:
             callback_url (str): URL for callback.
             tokens_file (str): Path to tokens file.
             timeout (int): Request timeout in seconds - how long to wait for a response.
-            capture_callback (bool): Use a webserver with self-signed cert to capture callback with code (no copy/pasting urls during auth).
             use_session (bool): Use a requests session for requests instead of creating a new session for each request.
             call_on_notify (function | None): Function to call when user needs to be notified (e.g. for input)
         """
@@ -46,7 +45,7 @@ class ClientBase:
         self.version = "Schwabdev 2.6.0"                                    # version of the client
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
-        self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, capture_callback, call_on_auth)
+        self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, call_on_auth)
         self.tokens.update_tokens()                                               # ensure tokens are up to date on init
 
 
@@ -128,7 +127,7 @@ class ClientBase:
 
 class Client(ClientBase):
 
-    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, capture_callback=False, call_on_auth=None):
+    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, call_on_auth=None):
         """
         Initialize a client to access the Schwab API.
 
@@ -138,10 +137,9 @@ class Client(ClientBase):
             callback_url (str): URL for callback.
             tokens_file (str): Path to tokens file.
             timeout (int): Request timeout in seconds - how long to wait for a response.
-            capture_callback (bool): Use a webserver with self-signed cert to capture callback with code (no copy/pasting urls during auth).
             call_on_auth (function | None): Function to call for custom auth flow.
         """
-        super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, capture_callback, call_on_auth)
+        super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, call_on_auth)
 
         self._session = requests.Session()                                  # session to use in requests
         self._session.headers.update({'Authorization': f'Bearer {self.tokens.access_token}'})
@@ -570,10 +568,10 @@ class Client(ClientBase):
 
 class ClientAsync(ClientBase):
 
-    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, parsed:bool = False, capture_callback=False, call_on_auth=None):
+    def __init__(self, app_key, app_secret, callback_url="https://127.0.0.1", tokens_db="~/.schwabdev/tokens.db", timeout=10, call_on_auth=None, parsed:bool = False,):
         if aiohttp is None:
             raise ImportError("aiohttp is required to use ClientAsync")
-        super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, capture_callback, call_on_auth)
+        super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, call_on_auth)
         self._parsed = parsed
         self._session = self._get_session()                              
 
@@ -811,12 +809,12 @@ class ClientAsync(ClientBase):
         )
 
 
-    async def preview_order(self, accountHash: str, orderObject: dict, parsed: bool = None) -> aiohttp.ClientResponse:
+    async def preview_order(self, accountHash: str, order: dict, parsed: bool = None) -> aiohttp.ClientResponse:
         return await self._parse_response(
             await self._session.post(
                 f'/trader/v1/accounts/{accountHash}/previewOrder',
                 headers={'Content-Type': 'application/json'},
-                json=orderObject,
+                json=order,
             ),            
             parsed,
         )

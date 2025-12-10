@@ -1,7 +1,7 @@
 """
-This file contains functions to stream data
-Coded by Tyler Bowers
-Github: https://github.com/tylerebowers/Schwab-API-Python
+Schwabdev Stream & StreamAsync Module.
+For streaming data from Schwab Streamer API.
+https://github.com/tylerebowers/Schwab-API-Python
 """
 
 import asyncio
@@ -31,6 +31,7 @@ class StreamBase:
         self._websocket = None                          # the websocket
         self._event_loop = None                         # the asyncio loop
         self._thread = None                             # the thread that runs the stream
+        self._loop_ready = threading.Event()            # event to signal that the loop is ready
         self._should_stop = True                        # main stream loop
         self._backoff_time = 2.0                        # default backoff time (time to wait before retrying)
 
@@ -39,6 +40,7 @@ class StreamBase:
         
         self.active = False                             # whether the stream is active
         self.subscriptions = {}                         # a dictionary of subscriptions
+
 
 
     async def _run_streamer(self, receiver_func=print, ping_timeout: int = 30, **kwargs):
@@ -80,12 +82,12 @@ class StreamBase:
                                                                    "SchwabClientChannel": self._streamer_info.get("schwabClientChannel"),
                                                                    "SchwabClientFunctionId": self._streamer_info.get("schwabClientFunctionId")})
                     await self._websocket.send(json.dumps(login_payload))
+                    self._loop_ready.set()
                 
                     await call_receiver(await self._websocket.recv(), **kwargs)  # receive login response
                     self.active = True
 
                     # send subscriptions (that are recorded (queued or previously sent))
-                    print(self.subscriptions)
                     for service, subs in self.subscriptions.items():
                         grouped: dict[str, list[str]] = {} # group subscriptions by fields for more efficient requests
                         for key, fields in subs.items():
@@ -108,42 +110,32 @@ class StreamBase:
                     else:
                         while self.active and not self._should_stop:
                             receiver_func(await self._websocket.recv(), **kwargs)
-                
-                self._websocket = None
-                self.active = False
-                if self._should_stop:
-                    break
 
-            except websockets.exceptions.ConnectionClosedOK as e: # "received 1000 (OK); then sent 1000 (OK)"
-                self.active = False
-                self._logger.info("Stream connection closed.")
-                break
-            except websockets.exceptions.ConnectionClosed as e:
-                self.active = False
-                self._logger.info(f"Stream connection closed. (Without close frame)") # sent 1000 (OK); no close frame received
+            except (websockets.exceptions.ConnectionClosedOK, websockets.exceptions.ConnectionClosed) as e: # "received 1000 (OK); then sent 1000 (OK)", "sent 1000 (OK); no close frame received"
+                self._logger.info(f"Stream connection closed. ({e})")
                 break
             except websockets.exceptions.ConnectionClosedError as e: # lost internet connection
-                self.active = False
-                self._logger.error(e)
                 elapsed = (datetime.datetime.now(datetime.timezone.utc) - start_time).total_seconds()
                 if elapsed <= 90:
-                    self._logger.warning(f"Stream has crashed within 90 seconds, likely no subscriptions, invalid login, or lost connection (not restarting).")
+                    self._logger.warning(f"Stream has crashed within 90 seconds, likely no subscriptions, invalid login, or lost connection. Not restarting. {e}")
                     break
-                self._logger.error(f"Stream connection Error. Reconnecting in {self._backoff_time} seconds...")
-                await self._wait_for_backoff()
+                else:
+                    self._logger.error(f"Stream connection Error. Reconnecting in {self._backoff_time} seconds...")
+                    await self._wait_for_backoff()
             except Exception as e:  # stream has quit unexpectedly, try to reconnect
-                self.active = False
                 self._logger.error(e)
                 self._logger.warning(f"Stream connection lost to server, reconnecting...")
                 await self._wait_for_backoff()
+            finally:
+                self.active = False
+                self._websocket = None
 
     async def _wait_for_backoff(self):
         """
         Wait for the backoff time
         """
         await asyncio.sleep(self._backoff_time)
-        # exponential backoff and cap at 128s
-        self._backoff_time = min(self._backoff_time * 2, 256)
+        self._backoff_time = min(self._backoff_time * 2, 120)
 
 
     def _record_request(self, request: dict):
@@ -156,8 +148,8 @@ class StreamBase:
 
         try:
             def str_to_list(st):
-                if type(st) is str: return st.split(",")
-                elif type(st) is list: return st
+                return st.split(",") if isinstance(st, str) else st
+            
             service = request.get("service", None)
             command = request.get("command", None)
             parameters = request.get("parameters", None)
@@ -180,8 +172,8 @@ class StreamBase:
                 elif command == "UNSUBS":
                     for key in keys:
                         if key in self.subscriptions[service]:
-                            self.subscriptions[service].pop(key)
-                elif command == "VIEW":  # not sure if this is even working on Schwab's end :/
+                            del self.subscriptions[service][key]
+                elif command == "VIEW": 
                     for key in self.subscriptions[service].keys():
                         self.subscriptions[service][key] = fields
         except Exception as e:
@@ -468,11 +460,15 @@ class Stream(StreamBase):
             self._logger.warning("Stream already active.")
             return
         else:
+            self._loop_ready.clear()
+
             def _start_asyncio():
                 asyncio.run(self._run_streamer(receiver, ping_interval, **kwargs))
 
             self._thread = threading.Thread(target=_start_asyncio, daemon=daemon)
             self._thread.start()
+
+            self._loop_ready.wait(timeout=4.0)
 
     def __enter__(self):
         self.start()
@@ -623,7 +619,7 @@ class StreamAsync(StreamBase):
             )
 
     async def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = [0,1,2,3,4],
+                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] | tuple[int] = (0,1,2,3,4),
                    now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
         """
         Start the stream automatically at market open and close, will NOT erase subscriptions

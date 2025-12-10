@@ -1,7 +1,7 @@
 """
-These fields are available to stream through the Schwab Streamer.
-This dict is meant for use in translating the numerical fields to a human-readable name.
-Access as field_maps[service][field] (for most)
+Schwabdev Stream Field Mappings.
+Used to translate field numbers to field names.
+https://github.com/tylerebowers/Schwab-API-Python
 """
 
 import datetime

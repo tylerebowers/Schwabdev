@@ -1,6 +1,6 @@
 # Using the Streamer
 
-Examples can be found in [`docs/examples/`](https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/)
+Examples can be found in <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/">`docs/examples/`</a>.
 
 To first use the streamer, initialize the client as normal (e.g. `client = schwabdev.Client(...)`). Then create a streamer object by passing in the client. The synchronous or asynchronous streamer can be used interchangeably with the synchronous and asynchronous client.
 

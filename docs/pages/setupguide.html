@@ -11,9 +11,9 @@
 <h1>Setup Guide</h1>
 <ol>
 <li><strong>Set up your Schwab developer account and app:</strong><ol>
-<li><a href="https://developer.schwab.com/login">Create a Schwab developer account</a>. Use the <strong>same email</strong> as in your Schwab brokerage account.</li>
-<li>Request access to the <a href="https://developer.schwab.com/products/trader-api--individual">Trader API - Individual</a> API product.. </li>
-<li>Make a new Schwab individual developer app in the <a href="https://developer.schwab.com/dashboard/apps">dashboard</a> with callback URL <code>https://127.0.0.1</code><ul>
+<li><a target="_blank" href="https://developer.schwab.com/login">Create a Schwab developer account"</a>. Use the <strong>same email</strong> as in your Schwab brokerage account.</li>
+<li>Request access to the <a target="_blank" href="https://developer.schwab.com/products/trader-api--individual">Trader API - Individual</a>  API product.. </li>
+<li>Make a new Schwab individual developer app in the <a target="_blank" href="https://developer.schwab.com/dashboard/apps">dashboard</a> with callback URL <code>https://127.0.0.1</code><ul>
 <li>Multiple callbacks can be used by separating them with commas, e.g. you might also want a callback with a port on the end: <code>https://127.0.0.1:7777</code></li>
 <li>Callback URLs must be https and localhost addresses.</li>
 </ul>
@@ -23,7 +23,7 @@
 </ul>
 </li>
 <li>Wait until the app status is <strong>"Ready for use"</strong> (this can take a couple days). Note that <strong>"Approved - Pending" will not work</strong>.</li>
-<li>Enable TOS (<a href="https://www.schwab.com/trading/thinkorswim">Thinkorswim</a>) for your Schwab account; it is needed for orders and other API calls. You can do this by logging into your Schwab account on a TOS platform.</li>
+<li>Enable TOS (<a target="_blank" href="https://www.schwab.com/trading/thinkorswim">Thinkorswim</a>) for your Schwab account; it is needed for orders and other API calls. You can do this by logging into your Schwab account on a TOS platform.</li>
 </ol>
 </li>
 <li><strong>Install packages:</strong><ol>
@@ -40,7 +40,7 @@
 <li>The first time you run, you will have to sign in to your Schwab account using the generated link in the terminal.</li>
 <li>After signing in, agree to the terms, and select account(s). Then you will have to copy the link in the address bar and paste it into the terminal.</li>
 <li>Examples are in the GitHub <code>docs/examples/</code> folder <a href="examples.html">Add keys to a .env</a>.</li>
-<li>Questions? Join the <a href="https://discord.gg/m7SSjr9rs9">Discord group</a> or consult the documentation.</li>
+<li>Questions? Join the <a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord Group</a> or consult the documentation.</li>
 </ol>
 </li>
 </ol>
@@ -56,7 +56,7 @@
 <hr />
 <h3>Notes</h3>
 <ul>
-<li>If you are storing your code in a GitHub repo then use <a href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys.</li>
+<li>If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys.</li>
 <li><strong>On MacOS</strong> you need to make sure that you installed Python certificates.
   If you haven't or aren't sure, then in a terminal run:
   <code>open /Applications/Python\ 3.11/Install\ Certificates.command</code>
