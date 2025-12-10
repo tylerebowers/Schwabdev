@@ -273,6 +273,7 @@ class Tokens:
             self._load_tokens_from_db()
             if self._access_token_issued > last_known_at_issued:
                 self._logger.info(f"Access token updated elsewhere at {self._access_token_issued}.")
+                return 
         except:
             pass
 
@@ -309,10 +310,10 @@ class Tokens:
         Refresh Token functions:
     """
 
-    def get_auth_url(self):
+    def _get_auth_url(self):
         return f'https://api.schwabapi.com/v1/oauth/authorize?client_id={self._app_key}&redirect_uri={self._callback_url}'
 
-    def update_refresh_token_from_code(self, url_or_code: str) -> None:
+    def _update_refresh_token_from_code(self, url_or_code: str) -> None:
         """
         Get new access and refresh tokens using callback URL or authorization code,
         under an EXCLUSIVE sqlite transaction.
@@ -382,13 +383,14 @@ class Tokens:
             self._load_tokens_from_db()
             if self._refresh_token_issued > last_known_rt_issued:
                 self._logger.info(f"Refresh token updated elsewhere at {self._refresh_token_issued}.")
+                return
         except:
             pass
 
-        auth_url = self.get_auth_url()
+        auth_url = self._get_auth_url()
 
         if self.call_for_auth is not None and callable(self.call_for_auth):
-            self.update_refresh_token_from_code(self.call_for_auth(auth_url))
+            self._update_refresh_token_from_code(self.call_for_auth(auth_url))
         else:
             print(f"[Schwabdev] Open to authenticate: {auth_url}")
             try:
@@ -402,4 +404,4 @@ class Tokens:
             response_url = input("[Schwabdev] After authorizing, paste the address bar url here: ")
             url_or_code = response_url  # helper will handle URL vs raw code
 
-            self.update_refresh_token_from_code(url_or_code)
+            self._update_refresh_token_from_code(url_or_code)

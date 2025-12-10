@@ -19,7 +19,7 @@
 3. **Start Coding** 
     1. The first time you run, you will have to sign in to your Schwab account using the generated link in the terminal.
     2. After signing in, agree to the terms, and select account(s). Then you will have to copy the link in the address bar and paste it into the terminal.
-    3. Examples are in the GitHub `docs/examples/` folder [Add keys to a .env](examples.html).
+    3. Examples are in the <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/">`docs/examples/`</a> folder remember to [add your keys to a .env](examples.html) file.
     4. Questions? Join the <a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord Group</a> or consult the documentation.
 
 ---

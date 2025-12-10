@@ -94,6 +94,9 @@ streamer.send(
         parameters={"keys": "AMD,INTC", "fields": "0,1,2,3"},
     )
 )
+
+# With await for asynchronous streamer:
+await streamer.send(...)
 ```
 
 If you are using `schwabdev.Stream` (not `StreamAsync`) then sending requests can also be done asynchronously using the `streamer.send_async(message)` function:
@@ -105,12 +108,17 @@ await streamer.send_async(streamer.level_one_equities("AMD,INTC", "0,1,2,3"))
 
 ---
 
+## Translating field keys
+
+Schwabdev contains a translator map for all streamable asset fields. You can access the translator map using `schwabdev.stream_fields`. It is best to look at the <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/schwabdev/translate.py">Source</a> and <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/extra/translating_stream.py">Examples</a>.
+
+---
+
 ## Streamable assets
 
 **Notes:**
 
 * `"0"` must always be included in the fields.
-* The list of fields and their definitions can be found in the streamer guide PDF.
 * The maximum number of keys that can be subscribed to at once is **500**.
 * Shortcut function commands can be changed by setting the `command` parameter, e.g. `command="ADD"`. The default is the `"ADD"` command, except for `account_activity` which defaults to `"SUBS"`.
 * Each command is explained below:
@@ -118,29 +126,16 @@ await streamer.send_async(streamer.level_one_equities("AMD,INTC", "0,1,2,3"))
     * `"SUBS"` → overwrites **all** current subscriptions (in a particular service) with the list of symbols passed in.
     * `"UNSUBS"` → removes the list of symbols from current subscriptions for a particular service.
     * `"VIEW"` → change the list of subscribed fields for the passed-in symbols.
-    *Might not be functional on Schwab’s end.*
-* These shortcuts all send the same thing:
-
-```python
-streamer.basic_request(
-    "LEVELONE_EQUITIES",
-    "ADD",
-    parameters={"keys": "AMD,INTC", "fields": "0,1,2,3,4"},
-)
-streamer.level_one_equities("AMD,INTC", "0,1,2,3,4", command="ADD")
-streamer.level_one_equities(["AMD", "INTC"], "0,1,2,3,4")
-streamer.level_one_equities("AMD,INTC", ["0", "1", "2", "3", "4"])
-streamer.level_one_equities("AMD,INTC", "0,1,2,3,4")
-```
 
 * Different products have different methods of sending data:
 
     * `LEVELONE_EQUITIES`, `LEVELONE_OPTIONS`, `LEVELONE_FUTURES`, `LEVELONE_FUTURES_OPTIONS`, and `LEVELONE_FOREX` all stream **changes**, meaning that the data you receive overwrites the previous fields. Example:
-        * First you receive: `{"1": 20, "2": 25, "3": 997}`
-        * Then you receive: `{"2": 28}`
-        * The current data will be: `{"1": 20, "2": 28, "3": 997}`
+      * First you receive: `{"1": 20, "2": 25, "3": 997}`
+      * Then you receive: `{"2": 28}`
+      * The current data will be: `{"1": 20, "2": 28, "3": 997}`
   * `NYSE_BOOK`, `NASDAQ_BOOK`, `OPTIONS_BOOK`, `SCREENER_EQUITY`, and `SCREENER_OPTION` all stream **whole** data, meaning all fields.
-  * `CHART_EQUITY`, `CHART_FUTURES`, and `ACCT_ACTIVITY` stream **all-sequence** data, meaning you are given a sequence number for each response.
+  * `CHART_EQUITY`, `CHART_FUTURES`, and `ACCT_ACTIVITY` stream **all-sequence** data, meaning you are given a sequence number for each response. 
+      * The i'th sequence number is the i'th candle during that day since pre-market hours for charting.
 
 Listed below are the shortcut functions for all streamable assets.
 
@@ -200,7 +195,7 @@ Listed below are the shortcut functions for all streamable assets.
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Bid Price"<br>
 2: "Ask Price"<br>
@@ -296,7 +291,7 @@ Expiration is in `YYMMDD` format.
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Description"<br>
 2: "Bid Price"<br>
@@ -396,7 +391,7 @@ Year code is 2 characters (i.e. 2024 → `24`).
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Bid Price"<br>
 2: "Ask Price"<br>
@@ -479,7 +474,7 @@ Year code is 2 characters (i.e. 2024 → `24`).
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Bid Price"<br>
 2: "Ask Price"<br>
@@ -551,7 +546,7 @@ Key examples: `"EUR/USD"`, `"GBP/USD"`, `"EUR/JPY"`, `"EUR/GBP"`
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Bid Price"<br>
 2: "Ask Price"<br>
@@ -815,7 +810,7 @@ Key examples: `"F"`, `"NIO"`, `"ACU"`
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Market Snapshot Time"<br>
 2: "Bid Side Levels"<br>
@@ -1181,7 +1176,7 @@ Key examples: `"AMD"`, `"INTC"`
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Market Snapshot Time"<br>
 2: "Bid Side Levels"<br>
@@ -1401,7 +1396,7 @@ Expiration is in `YYMMDD` format.
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "Symbol"<br>
 1: "Market Snapshot Time"<br>
 2: "Bid Side Levels"<br>
@@ -1446,7 +1441,7 @@ Key examples: `"AMD"`, `"INTC"`
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 Note that Schwab's official docs are wrong, these are the correct fields: <br>
 0: "key"<br>
 1: "Sequence"<br>
@@ -1498,7 +1493,7 @@ Year code is 2 characters (i.e. 2024 → `24`).
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "key"<br>
 1: "Chart Time"<br>
 2: "Open Price"<br>
@@ -1662,7 +1657,7 @@ Key examples: `"$DJI_PERCENT_CHANGE_UP_60"`, `"NASDAQ_VOLUME_30"`
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "symbol"<br>
 1: "timestamp"<br>
 2: "sortField"<br>
@@ -1824,7 +1819,7 @@ Key examples: `"OPTION_PUT_PERCENT_CHANGE_UP_60"`, `"OPTION_CALL_TRADES_30"`
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 0: "symbol"<br>
 1: "timestamp"<br>
 2: "sortField"<br>
@@ -1975,7 +1970,7 @@ When using the account activity stream, the response message types (displayed in
 ```
 </details>
 <details><summary><u>Key Translations</u></summary>
-Schwabdev has a translator for fields, see above.<br>  
+Schwabdev has a translation map for fields, see above.<br>  
 "seq": "Sequence"<br>
 "key": "Key"<br>
 1: "Account"<br>

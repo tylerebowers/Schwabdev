@@ -1,8 +1,8 @@
 ## Version 3.0.0
 * Added Asyncronous Client (`schwabdev.ClientAsync`) for async/await usage
 * Added Asyncronous Streamer (`schwabdev.StreamAsync`) for async/await usage
-* Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.
 * Tokens backend rework to use an sqlite database instead of a json file for concurrency handling (supports many clients at the same time).
+* Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.
 * Now including streamer fields with translator function.
 * Removed parameters `call_on_notify` and `capture_callback`; replaced with `call_on_auth` (called with auth url, expected to return the final redirect url).
 

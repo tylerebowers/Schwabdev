@@ -14,6 +14,7 @@
 <div class="codehilite"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">schwabdev</span>
 
 <span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="n">app_key</span><span class="p">,</span> <span class="n">app_secret</span><span class="p">)</span>
+<span class="c1"># client = schwabdev.ClientAsync(...) # For an asynchronous client</span>
 </code></pre></div>
 
 <p>And from here on <code>client</code> can be used to make API calls. All calls can be found in the "API Calls" documentation tab and are also are outlined in <code>/docs/examples/api_demo.py</code>. Now let’s look at all of the parameters that can be passed to the client constructor:</p>
@@ -36,15 +37,15 @@
 <li><code>call_for_auth (function | None)</code>: Function to call for authentication, the function is called with one argument: the URL to visit for authentication, it is expected to return the full callback URL or code from the callback URL after the user has signed in, see an example in <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/extra/capture_callback.py">capture_callback.py</a>.</li>
 </ul>
 <hr />
-<p>Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py)">useful for concurrent api calls</a>) that can be used with <code>asyncio</code>:</p>
+<p>Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py">useful for concurrent api calls</a>) that can be used with <code>asyncio</code>:</p>
 <div class="codehilite"><pre><span></span><code><span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">ClientAsync</span><span class="p">(</span>
     <span class="n">app_key</span><span class="p">,</span>
     <span class="n">app_secret</span><span class="p">,</span>
     <span class="n">callback_url</span><span class="o">=</span><span class="s2">&quot;https://127.0.0.1&quot;</span><span class="p">,</span>
     <span class="n">tokens_db</span><span class="o">=</span><span class="s2">&quot;~/.schwabdev/tokens.db&quot;</span><span class="p">,</span>
     <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
-    <span class="n">parsed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="n">call_for_auth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">parsed</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
 </code></pre></div>
 

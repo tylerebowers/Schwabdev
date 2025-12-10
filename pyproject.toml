@@ -1,3 +1,46 @@
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "schwabdev"
+version = "3.0.0"
+description = "An easy and lightweight wrapper for using the Charles Schwab API."
+readme = { file = "README.md", content-type = "text/markdown" }
+authors = [{name = "Tyler Bowers", email = "tylerebowers@gmail.com"}]
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "tzdata",
+    "aiohttp",
+    "requests",
+    "websockets",
+]
+keywords = [
+    "python", 
+    "schwab", 
+    "api", 
+    "client", 
+    "finance", 
+    "trading", 
+    "stocks", 
+    "equities", 
+    "options", 
+    "forex", 
+    "futures",
+]
+classifiers=[
+    "Topic :: Office/Business :: Financial :: Investment",
+    "Development Status :: 5 - Production/Stable",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Developers",
+    "Natural Language :: English",
+]
+
+[project.urls]
+Homepage = "https://github.com/tylerebowers/Schwab-API-Python"
+Source = "https://github.com/tylerebowers/Schwab-API-Python"
+Youtube = "https://www.youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8"
+PyPI = "https://pypi.org/project/schwabdev/"

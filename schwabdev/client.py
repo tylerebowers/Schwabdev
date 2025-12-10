@@ -10,11 +10,7 @@ import urllib.parse
 from typing import Any
 import threading
 import requests
-
-try:
-    import aiohttp
-except ImportError:
-    aiohttp = None
+import aiohttp
 
 from .enums import TimeFormat
 from .tokens import Tokens
@@ -47,7 +43,6 @@ class ClientBase:
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, call_on_auth)
         self.tokens.update_tokens()                                               # ensure tokens are up to date on init
-
 
     def _parse_params(self, params: dict):
         """
@@ -145,10 +140,22 @@ class Client(ClientBase):
         self._session.headers.update({'Authorization': f'Bearer {self.tokens.access_token}'})
         self._session_lock = threading.RLock()
 
-    def _request(self, method: str, path: str, **kwargs) -> requests.Response:
-        if self.tokens.update_tokens():
+    def update_tokens(self, force_access_token:bool=False, force_refresh_token:bool=False) -> bool:
+        """
+        Update tokens if needed.
+
+        Returns:
+            bool: True if tokens were updated, False otherwise.
+        """
+        if self.tokens.update_tokens(force_access_token, force_refresh_token):
             with self._session_lock:
                 self._session.headers['Authorization'] = f'Bearer {self.tokens.access_token}'
+            return True
+        else:
+            return False
+
+    def _request(self, method: str, path: str, **kwargs) -> requests.Response:
+        self.update_tokens()
         with self._session_lock:
             return self._session.request(method, f'{self._base_api_url}{path}', timeout=self.timeout, **kwargs)
 
@@ -573,18 +580,28 @@ class ClientAsync(ClientBase):
             raise ImportError("aiohttp is required to use ClientAsync")
         super().__init__(app_key, app_secret, callback_url, tokens_db, timeout, call_on_auth)
         self._parsed = parsed
-        self._session = self._get_session()                              
+        self._session = aiohttp.ClientSession(base_url=self._base_api_url,
+                                              headers={'Authorization': f'Bearer {self.tokens.access_token}'}, 
+                                              timeout=aiohttp.ClientTimeout(total=self.timeout))
+        self._session_lock = threading.RLock()
+        
+    def update_tokens(self, force_access_token:bool=False, force_refresh_token:bool=False) -> bool:
+        """
+        Update tokens if needed.
 
-    def _get_session(self) -> aiohttp.ClientSession:
-        return aiohttp.ClientSession(base_url=self._base_api_url,
-                                     headers={'Authorization': f'Bearer {self.tokens.access_token}'}, 
-                                     timeout=aiohttp.ClientTimeout(total=self.timeout))
+        Returns:
+            bool: True if tokens were updated, False otherwise.
+        """
+        if self.tokens.update_tokens(force_access_token, force_refresh_token):
+            with self._session_lock:
+                self._session = self._session.headers['Authorization'] = f'Bearer {self.tokens.access_token}'
+            return True
+        else:
+            return False
 
     async def _checker(self):
         while True:
-            if self.tokens.update_tokens():
-                await self._session.close()
-                self._session = self._get_session()
+            self.update_tokens()
             await asyncio.sleep(30)
 
     async def __aenter__(self):

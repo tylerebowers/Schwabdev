@@ -1,5 +1,7 @@
 # Client API access
 
+Examples can be found in <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/">`docs/examples/`</a>.
+
 After making a client object i.e. `client = schwabdev.Client(...)` we are free to make api calls or start a stream. Below is a list of all possible calls that can be made with the api. You can also reference the <a target="_blank" href="https://developer.schwab.com/products/trader-api--individual">Schwab documentation</a>, each call is named similarly.
 
 ### Notes:

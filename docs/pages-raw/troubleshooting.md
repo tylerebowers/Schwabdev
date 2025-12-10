@@ -6,7 +6,7 @@ For issues not shown here, please ask in the <a target="_blank" href="https://di
     * **Cause:** You do not have access to both APIs and are attempting to access one that you have not added to your app.
     * **Fix:** Add both APIs **"Accounts and Trading Production"** and **"Market Data Production"** to your app.
     * **Cause:** The access token is expired; sometimes Schwab invalidates tokens when they make backend changes.
-    * **Fix:** Manually update the access token by calling `client.tokens.update_tokens(force_access_token=True)`.
+    * **Fix:** Manually update the access token by calling `client.update_tokens(force_access_token=True)`.
 
 * `"We are unable to complete your request. Please contact customer service for further assistance."` or `"Whitelabel Error Page This application has no configured error view, so you are seeing this as a fallback." (status=500)`
     * **Fix:** Your app is **"Approved - Pending"**, you must wait for status **"Ready for Use"**.
@@ -36,7 +36,7 @@ For issues not shown here, please ask in the <a target="_blank" href="https://di
 
 * `{"error":"unsupported_token_type","error_description":"400 Bad Request: \"{\"error_description\":\"Exception while authenticating refresh token..."`
     * **Cause:** Your refresh token is invalid (maybe you created a new refresh token on a different machine).
-    * **Fix:** Manually update the refresh token by changing the date in `tokens.json` or by calling `client.tokens.update_tokens(force=True)`.
+    * **Fix:** Manually update the refresh token by changing the date in `tokens.json` or by calling `client.update_tokens(force_refresh_token=True)`.
 
 * `"can't register atexit after shutdown"`
     *  **Cause:** The main thread dies before the stream thread starts.
@@ -48,8 +48,7 @@ For issues not shown here, please ask in the <a target="_blank" href="https://di
 * App Registration Error
     *  **Fix:** Email Schwab: `traderapi@schwab.com`
 
-* Issue in streaming with websockets –
-    *  `"Unsupported extension: name = permessage-deflate, params = []"`
+* Issue in streaming with websockets: `"Unsupported extension: name = permessage-deflate, params = []"`
     *  **Cause:** You are using a proxy that is blocking streaming or your DNS is not correctly resolving.
     *  **Fix:** Change DNS servers (Google’s are known-working) or change/bypass the proxy.
 

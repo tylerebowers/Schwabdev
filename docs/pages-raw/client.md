@@ -8,6 +8,7 @@ Making a client is as simple as:
 import schwabdev
 
 client = schwabdev.Client(app_key, app_secret)
+# client = schwabdev.ClientAsync(...) # For an asynchronous client
 ```
 
 And from here on `client` can be used to make API calls. All calls can be found in the "API Calls" documentation tab and are also are outlined in `/docs/examples/api_demo.py`. Now let’s look at all of the parameters that can be passed to the client constructor:
@@ -32,7 +33,7 @@ client = schwabdev.Client(
 
 ---
 
-Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py)">useful for concurrent api calls</a>) that can be used with `asyncio`:
+Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py">useful for concurrent api calls</a>) that can be used with `asyncio`:
 
 ```python
 client = schwabdev.ClientAsync(
@@ -62,7 +63,7 @@ If you want to access the access or refresh tokens you can call `client.tokens.a
 The access token can be easily updated/refreshed assuming that the refresh token is valid. Getting a new refresh token, however, requires user input. It is recommended to force-update the refresh token during weekends so it is valid during the week. To force-update the refresh token (this can be run concurrently on a separate script), make this call:
 
 ```python
-client.tokens.update_tokens(force_refresh_token=True)
+client.update_tokens(force_refresh_token=True)
 ```
 
 Otherwise, the client will start the process 30 minutes before the refresh token will expire.
