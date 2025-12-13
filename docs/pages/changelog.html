@@ -13,6 +13,7 @@
 <li>Added Asyncronous Client (<code>schwabdev.ClientAsync</code>) for async/await usage</li>
 <li>Added Asyncronous Streamer (<code>schwabdev.StreamAsync</code>) for async/await usage</li>
 <li>Tokens backend rework to use an sqlite database instead of a json file for concurrency handling (supports many clients at the same time).</li>
+<li>Added optional encryption for tokens database using <code>cryptography.fernet</code></li>
 <li>Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.</li>
 <li>Now including streamer fields with translator function.</li>
 <li>Removed parameters <code>call_on_notify</code> and <code>capture_callback</code>; replaced with <code>call_on_auth</code> (called with auth url, expected to return the final redirect url).</li>

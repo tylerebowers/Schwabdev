@@ -15,6 +15,7 @@ dependencies = [
     "aiohttp",
     "requests",
     "websockets",
+    "cryptography",
 ]
 keywords = [
     "python", 
@@ -40,7 +41,8 @@ classifiers=[
 ]
 
 [project.urls]
-Homepage = "https://github.com/tylerebowers/Schwab-API-Python"
-Source = "https://github.com/tylerebowers/Schwab-API-Python"
+Homepage = "https://github.com/tylerebowers/Schwabdev"
+Documentation = "https://tylerebowers.github.io/Schwabdev/"
+Source = "https://github.com/tylerebowers/Schwabdev"
 Youtube = "https://www.youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8"
 PyPI = "https://pypi.org/project/schwabdev/"

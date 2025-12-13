@@ -25,8 +25,3 @@ logging.basicConfig(level=logging.INFO)
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 #account_hash = client.linked_accounts().json()[0].get('hashValue')
 streamer = schwabdev.Stream(client)
-
-streamer.start(daemon=False)
-streamer.send(streamer.chart_futures("/ES", "0,1,2,3,4,5,7,8"))
-import time
-time.sleep(5)

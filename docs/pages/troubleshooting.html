@@ -17,7 +17,7 @@
 <li><strong>Cause:</strong> You do not have access to both APIs and are attempting to access one that you have not added to your app.</li>
 <li><strong>Fix:</strong> Add both APIs <strong>"Accounts and Trading Production"</strong> and <strong>"Market Data Production"</strong> to your app.</li>
 <li><strong>Cause:</strong> The access token is expired; sometimes Schwab invalidates tokens when they make backend changes.</li>
-<li><strong>Fix:</strong> Manually update the access token by calling <code>client.tokens.update_tokens(force_access_token=True)</code>.</li>
+<li><strong>Fix:</strong> Manually update the access token by calling <code>client.update_tokens(force_access_token=True)</code>.</li>
 </ul>
 </li>
 <li>
@@ -64,7 +64,7 @@
 <p><code>{"error":"unsupported_token_type","error_description":"400 Bad Request: \"{\"error_description\":\"Exception while authenticating refresh token..."</code></p>
 <ul>
 <li><strong>Cause:</strong> Your refresh token is invalid (maybe you created a new refresh token on a different machine).</li>
-<li><strong>Fix:</strong> Manually update the refresh token by changing the date in <code>tokens.json</code> or by calling <code>client.tokens.update_tokens(force=True)</code>.</li>
+<li><strong>Fix:</strong> Manually update the refresh token by changing the date in <code>tokens.json</code> or by calling <code>client.update_tokens(force_refresh_token=True)</code>.</li>
 </ul>
 </li>
 <li>

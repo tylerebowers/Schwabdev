@@ -4,7 +4,6 @@ This file contains examples for stream requests.
 
 import logging
 import os
-import time
 from dotenv import load_dotenv
 import asyncio
 import schwabdev
@@ -71,7 +70,7 @@ async def main():
 
 
         # stop the stream after 60 seconds (since this is a demo)
-        time.sleep(30)
+        await asyncio.sleep(60)
         await streamer.stop()  
         # if you don't want to clear the subscriptions, set clear_subscriptions=False
         # streamer.stop(clear_subscriptions=False)

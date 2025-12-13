@@ -22,6 +22,7 @@ Useful links:
 - Stream real-time data with a customizable response handler <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/stream_demo.py">Examples</a>.  
 - Place orders and get order details <a target="_blank" href="https://tylerebowers.github.io/Schwabdev/?source=pages%2Forders.html">Examples</a>. 
 - Support for Synchronous and Asynchronous programming <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/concurrent_api_calls.py">Examples</a>. 
+- Optional token database encryption for security <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/extra/encrypted_db_setup.py">Example</a>.
 - Optional automatic starting/stopping of streamer when market opens/closes.  
 - Streaming stability with automatic restarts if the streamer crashes.  
 

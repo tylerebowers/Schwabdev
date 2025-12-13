@@ -33,6 +33,7 @@
 <li><code>app_secret (str)</code>: App secret credential (e.g. <code>"xxxxxxxxxxxxxxxx"</code>).</li>
 <li><code>callback_url (str)</code>: URL for callback (e.g. <code>"https://127.0.0.1"</code>).</li>
 <li><code>tokens_db (str)</code>: Path to tokens database (e.g. <code>"~/.schwabdev/tokens.db"</code>).</li>
+<li><code>encryption</code> <code>(str | None)</code>: Encryption key to encrypt the tokens database, if <code>None</code> then no encryption is used. To create a key use <code>from cryptography.fernet import Fernet</code> and run <code>key = Fernet.generate_key()</code>, save the key using the string representation <code>key.decode()</code>. See example in <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/extra/encrypted_db_setup.py">encrypted_db_setup.py</a>.</li>
 <li><code>timeout (int)</code>: Request timeout in seconds (how long to wait for a response).</li>
 <li><code>call_for_auth (function | None)</code>: Function to call for authentication, the function is called with one argument: the URL to visit for authentication, it is expected to return the full callback URL or code from the callback URL after the user has signed in, see an example in <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/extra/capture_callback.py">capture_callback.py</a>.</li>
 </ul>
@@ -61,7 +62,7 @@
 </ul>
 <p>If you want to access the access or refresh tokens you can call <code>client.tokens.access_token</code> or <code>client.tokens.refresh_token</code>. </p>
 <p>The access token can be easily updated/refreshed assuming that the refresh token is valid. Getting a new refresh token, however, requires user input. It is recommended to force-update the refresh token during weekends so it is valid during the week. To force-update the refresh token (this can be run concurrently on a separate script), make this call:</p>
-<div class="codehilite"><pre><span></span><code><span class="n">client</span><span class="o">.</span><span class="n">tokens</span><span class="o">.</span><span class="n">update_tokens</span><span class="p">(</span><span class="n">force_refresh_token</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><code><span class="n">client</span><span class="o">.</span><span class="n">update_tokens</span><span class="p">(</span><span class="n">force_refresh_token</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 
 <p>Otherwise, the client will start the process 30 minutes before the refresh token will expire.</p>

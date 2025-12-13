@@ -26,7 +26,7 @@ def main():
     # example of using your own response handler, prints to main terminal.
     # the first parameter is used by the stream, additional parameters are passed to the handler
     def my_handler(message):
-        print("test_handler: " + message)
+        print("demo_handler: " + message)
     streamer.start(my_handler)
 
 
