@@ -53,7 +53,6 @@ class StreamBase:
             **kwargs: keyword arguments to pass to receiver_func
         """
         self._event_loop = asyncio.get_running_loop()
-        start_time = datetime.datetime.now(datetime.timezone.utc)
         is_async_receiver = True if asyncio.iscoroutinefunction(receiver_func) else False
         async def call_receiver(response, **kwargs):
             if is_async_receiver:
@@ -70,9 +69,8 @@ class StreamBase:
                 self._logger.error("Error getting streamer info, cannot start stream.")
                 self._logger.error(e)
                 return
-
+            start_time = datetime.datetime.now(datetime.timezone.utc)
             try:
-                start_time = datetime.datetime.now(datetime.timezone.utc)
                 self._logger.debug("Connecting to streaming server...")
                 async with websockets.connect(self._streamer_info.get('streamerSocketUrl'), ping_timeout=ping_timeout) as self._websocket:
                     self._logger.debug("Connected to streaming server.")

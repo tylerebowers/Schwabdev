@@ -275,7 +275,7 @@ class Tokens:
         return requests.post('https://api.schwabapi.com/v1/oauth/token', headers=headers, data=data, timeout=30)
 
 
-    def update_tokens(self, force_access_token=False, force_refresh_token=False, overwrite=False):
+    def update_tokens(self, force_access_token=False, force_refresh_token=False):
         """
         Checks if tokens need to be updated and updates if needed (only access token is automatically updated)
 
