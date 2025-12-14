@@ -2,6 +2,7 @@
 * Added Asyncronous Client (`schwabdev.ClientAsync`) for async/await usage
 * Added Asyncronous Streamer (`schwabdev.StreamAsync`) for async/await usage
 * Tokens backend rework to use an sqlite database instead of a json file for concurrency handling (supports many clients at the same time).
+* Added support for multiple clients running at the same time (sharing the same tokens database).
 * Added optional encryption for tokens database using `cryptography.fernet`
 * Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.
 * Now including streamer fields with translator function.

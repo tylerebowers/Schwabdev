@@ -55,6 +55,19 @@
 <li><code>parsed (bool)</code>: If set to <code>True</code> then all API responses will be returned as parsed JSON objects (dictionaries/lists). This can be overridden on a per-call basis by passing <code>parsed=True</code> or <code>parsed=False</code> to the API call. Several API calls related to Orders are not parsed by default since they cannot be. The aim of autoparsing is to reduce the amount of code needed for the user.</li>
 </ul>
 <hr />
+<h3>Notes</h3>
+<ul>
+<li>Multiple clients can be run at the same time, though they must share the same <code>tokens_db</code> file to avoid token conflicts and only one streamer can be run at a time.</li>
+<li>Clients are likely not thread-safe, but there are some inbuilt protections. If you want to use a client in multiple threads it is recommended to use a threading lock around the client calls.</li>
+<li>In order to use all API calls you must have both API sections added to your app: <strong>Accounts and Trading Production</strong> and <strong>Market Data Production</strong>.</li>
+<li>If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys, especially if you are using a git repo.
+With a GitHub repo you can include <code>*.env</code> in the <code>.gitignore</code> file to stop your credentials from getting committed.</li>
+<li>Schwabdev uses the <code>logging</code> module to log/print information, warnings and errors. You can change the level of logging by setting
+  <code>logging.basicConfig(level=logging.XXXX)</code>
+  where <code>XXXX</code> is the level of logging you want such as <code>INFO</code> or <code>WARNING</code>.</li>
+<li>There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).</li>
+</ul>
+<hr />
 <p>The Schwab API uses two tokens to use the API:</p>
 <ul>
 <li><strong>Refresh token</strong> – valid for 7 days, used to “refresh” the access token.</li>
@@ -66,17 +79,6 @@
 </code></pre></div>
 
 <p>Otherwise, the client will start the process 30 minutes before the refresh token will expire.</p>
-<hr />
-<h3>Notes</h3>
-<ul>
-<li>In order to use all API calls you must have both API sections added to your app: <strong>Accounts and Trading Production</strong> and <strong>Market Data Production</strong>.</li>
-<li>If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys, especially if you are using a git repo.
-With a GitHub repo you can include <code>*.env</code> in the <code>.gitignore</code> file to stop your credentials from getting committed.</li>
-<li>Schwabdev uses the <code>logging</code> module to log/print information, warnings and errors. You can change the level of logging by setting
-  <code>logging.basicConfig(level=logging.XXXX)</code>
-  where <code>XXXX</code> is the level of logging you want such as <code>INFO</code> or <code>WARNING</code>.</li>
-<li>There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).</li>
-</ul>
 </body>
 </html>
     

@@ -54,6 +54,20 @@ The parameters are the same as the synchronous client with the addition of:
 
 ---
 
+### Notes
+* Multiple clients can be run at the same time, though they must share the same `tokens_db` file to avoid token conflicts and only one streamer can be run at a time.
+* Clients are likely not thread-safe, but there are some inbuilt protections. If you want to use a client in multiple threads it is recommended to use a threading lock around the client calls.
+* In order to use all API calls you must have both API sections added to your app: **Accounts and Trading Production** and **Market Data Production**.
+* If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys, especially if you are using a git repo.
+With a GitHub repo you can include `*.env` in the `.gitignore` file to stop your credentials from getting committed.
+* Schwabdev uses the `logging` module to log/print information, warnings and errors. You can change the level of logging by setting
+  `logging.basicConfig(level=logging.XXXX)`
+  where `XXXX` is the level of logging you want such as `INFO` or `WARNING`.
+* There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).
+
+
+---
+
 The Schwab API uses two tokens to use the API:
 
 * **Refresh token** – valid for 7 days, used to “refresh” the access token.
@@ -68,16 +82,5 @@ client.update_tokens(force_refresh_token=True)
 ```
 
 Otherwise, the client will start the process 30 minutes before the refresh token will expire.
-
----
-
-### Notes
-* In order to use all API calls you must have both API sections added to your app: **Accounts and Trading Production** and **Market Data Production**.
-* If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys, especially if you are using a git repo.
-With a GitHub repo you can include `*.env` in the `.gitignore` file to stop your credentials from getting committed.
-* Schwabdev uses the `logging` module to log/print information, warnings and errors. You can change the level of logging by setting
-  `logging.basicConfig(level=logging.XXXX)`
-  where `XXXX` is the level of logging you want such as `INFO` or `WARNING`.
-* There are a maximum of 120 api requests per minute, 4000 order-related api calls per day, and 500 tickers concurrently streamed. If you exceed these limits you will get HTTP error 429 (Too Many Requests).
 
 

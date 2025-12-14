@@ -11,7 +11,7 @@ Useful links:
 * Join the <a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord</a> to ask questions or get help.
 * Read the <a target="_blank" href="https://tylerebowers.github.io/Schwabdev/">Documentation</a>.
 * View the <a target="_blank" href="https://pypi.org/project/schwabdev/">PyPi</a> package page.
-* Watch the <a target="_blank" href="https://youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8)">Youtube</a> tutorials.
+* Watch the <a target="_blank" href="https://www.youtube.com/playlist?list=PLs4JLWxBQIxpbvCj__DjAc0RRTlBz-TR8">Youtube</a> tutorials.
 * View the <a target="_blank" href="https://github.com/tylerebowers/Schwab-API-Python">Github</a> repository.
 
 
