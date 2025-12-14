@@ -4,14 +4,10 @@ It allows you to enter python code to test the api without restarting the whole 
 """
 
 import logging
-import sys
 import os
 from dotenv import load_dotenv
 import schwabdev
 
-if not sys.flags.interactive:
-    print("This file is intended to be run in interactive mode, with \"python -i async_playground.py\"\n"*3)
-    sys.exit(1)
 
 print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
 print("Documentation: https://tylerebowers.github.io/Schwabdev/")
@@ -29,5 +25,3 @@ logging.basicConfig(level=logging.INFO)
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
 #account_hash = client.linked_accounts().json()[0].get('hashValue')
 streamer = schwabdev.Stream(client)
-print("Client and Streamer created as 'client' and 'streamer' variables, use quit() to exit.")
-

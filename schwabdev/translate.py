@@ -1,10 +1,10 @@
 """
-These fields are available to stream through the Schwab Streamer.
-This dict is meant for use in translating the numerical fields to a human-readable name.
-Access as translate[service][field]
+Schwabdev Stream Field Mappings.
+Used to translate field numbers to field names.
+https://github.com/tylerebowers/Schwab-API-Python
 """
 
-translate = {
+stream_fields = {
     "LEVELONE_EQUITIES": ["Symbol", "Bid Price", "Ask Price", "Last Price", "Bid Size", "Ask Size", "Ask ID", "Bid ID",
                           "Total Volume", "Last Size", "High Price", "Low Price", "Close Price", "Exchange ID",
                           "Marginable", "Description", "Last ID", "Open Price", "Net Change", "52 Week High",
@@ -49,18 +49,18 @@ translate = {
                        "Close Price", "Exchange", "Description", "Open Price", "Net Change", "Percent Change",
                        "Exchange Name", "Digits", "Security Status", "Tick", "Tick Amount", "Product",
                        "Trading Hours", "Is Tradable", "Market Maker", "52 Week High", "52 Week Low", "Mark"],
-    "NYSE_BOOK": {0: "Symbol", 1: "Market Snapshot Time", 2: "Bid Side Levels", 3: "Ask Side Levels",
+    "NYSE_BOOK": {"0": "Symbol", "1": "Market Snapshot Time", "2": "Bid Side Levels", "3": "Ask Side Levels",
                   "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
                   "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
-    "NASDAQ_BOOK": {0: "Symbol", 1: "Market Snapshot Time", 2: "Bid Side Levels", 3: "Ask Side Levels",
+    "NASDAQ_BOOK": {"0": "Symbol", "1": "Market Snapshot Time", "2": "Bid Side Levels", "3": "Ask Side Levels",
                     "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
                     "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
-    "OPTIONS_BOOK": {0: "Symbol", 1: "Market Snapshot Time", 2: "Bid Side Levels", 3: "Ask Side Levels",
+    "OPTIONS_BOOK": {"0": "Symbol", "1": "Market Snapshot Time", "2": "Bid Side Levels", "3": "Ask Side Levels",
                      "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
                      "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
-    "CHART_EQUITY": ["key", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Sequence",
-                     "Chart Time", "Chart Day"],
+    #"CHART_EQUITY": ["key", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Sequence", "Chart Time", "Chart Day"], # from schwab docs (wrong)
+    "CHART_EQUITY": ["key", "Sequence", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Chart Time", "Chart Day"], # corrected
     "CHART_FUTURES": ["key", "Chart Time", "Open Price", "High Price", "Low Price", "Close Price", "Volume"],
     "SCREENER_EQUITY": ["symbol", "timestamp", "sortField", "frequency", "Items"],
     "SCREENER_OPTION": ["symbol", "timestamp", "sortField", "frequency", "Items"],
-    "ACCT_ACTIVITY": {"seq": "Sequence", "key": "Key", 1: "Account", 2: "Message Type", 3: "Message Data"}}
+    "ACCT_ACTIVITY": {"seq": "Sequence", "key": "Key", "1": "Account", "2": "Message Type", "3": "Message Data"}}

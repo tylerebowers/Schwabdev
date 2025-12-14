@@ -1,18 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Schwabdev Documentation</title>
-    <link rel="stylesheet" href="lib/index.css">
+    <style>
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .topbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #000080;
+            align-items: center;
+            color: #e6e6e6;
+            display: flex;
+            padding: 0 20px;
+            z-index: 1000;
+        }
+        .side-panel {
+            width: max-content;
+            background-color: #e6e6e6;
+            padding: 10px;
+            border-right: 3px solid #737373;
+            margin-top: 50px;
+            white-space: nowrap;
+            overflow-y: auto;
+        }
+        .tree {
+            list-style: none;
+        }
+        .tree li {
+            margin: 5px 0;
+        }
+        .tree li ul {
+            margin-left: 20px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .tree li ul a {
+            color: inherit;
+            text-decoration: underline;
+        }
+        .main-content {
+            flex-grow: 1;
+            margin-top: 50px;
+        }
+        .main-content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            overflow: auto;
+        }
+    </style>
+
     <script>
         const url = new URL(window.location);
-		function new_iframe_source(new_src) {
-			document.getElementById("content_iframe").src=new_src;
+        function new_iframe_source(new_src) {
+            document.getElementById("content_iframe").src = new_src;
             url.searchParams.set('source', new_src);
             window.history.pushState({}, null, url);
-		}
-	</script>
+        }
+    </script>
 </head>
 
 <body>
@@ -25,8 +89,7 @@
             <li>Getting Started
                 <ul>
                     <li onclick="new_iframe_source('pages/welcome.html')">Welcome</li>
-                    <li onclick="new_iframe_source('pages/quickstart.html')">Quick Start</li>
-                    <li onclick="new_iframe_source('pages/installation.html')">Installation</li>
+                    <li onclick="new_iframe_source('pages/setupguide.html')">Setup Guide</li>
                 </ul>
             </li>
             <li>Usage
@@ -41,8 +104,10 @@
             <li>Other
                 <ul>
                     <li onclick="new_iframe_source('pages/troubleshooting.html')">Troubleshooting</li>
-                    <li onclick="new_iframe_source('pages/changelog.html')">Changelog</li>
                     <li onclick="new_iframe_source('pages/pdfs/Schwab_Trader_API_Streamer_Guide.pdf')">Streamer Guide</li>
+                    <li onclick="new_iframe_source('pages/changelog.html')">Changelog</li>
+                    
+                    
                 </ul>
             </li>
             <li>Links
@@ -61,8 +126,9 @@
     </div>
 </body>
 <script>
-    if (url.searchParams.has('source')){
+    if (url.searchParams.has('source')) {
         new_iframe_source(url.searchParams.get('source'));
     }
 </script>
+
 </html>

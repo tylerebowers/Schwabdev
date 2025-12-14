@@ -1,67 +1,46 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schwabdev Documentation</title>
+    <meta charset="utf-8">
+    <title>examples</title>
     <link rel="stylesheet" href="../lib/pages.css">
-    <link rel="stylesheet" href="../lib/prism.css">
-    <script src="../lib/prism.js"></script>
-    <script>
-    async function loadCode(filePath, baseId) {
-        const response = await fetch(filePath);
-        const code = await response.text();
-        let block = document.getElementById(baseId);
-        let download = document.getElementById(baseId+"-download");
-        let copy = document.getElementById(baseId+"-copy");
-
-        block.textContent = code;
-        Prism.highlightElement(block);
-
-        if (!!download) {
-            download.setAttribute('href', filePath);
-        }
-        if (!!copy) {
-            copy.setAttribute()
-        }
-    }
-    </script>
+    <link rel="stylesheet" href="../lib/code.css">
 </head>
 <body>
+<h3>You can find all examples in the <code>/docs/examples/</code> folder <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples">here</a>.</h3>
+<p>These examples use a <code>.env</code> file to store keys (make this file in the same folder as your script).
+To use the <code>.env</code> file you need to install the Python <a target="_blank" href="https://pypi.org/project/python-dotenv/">python-dotenv</a> package.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># INCLUDE THIS FILE IN YOUR .gitignore TO AVOID LEAKING YOUR CREDENTIALS IF YOU ARE PUSHING TO GITHUB!</span>
+<span class="c1"># learn about gitignore https://git-scm.com/docs/gitignore</span>
 
-<div style="white-space: pre">
-These examples use the <code>.env</code> file to store keys.
-To use the <code>.env</code> file you need to install the Python <a target="_blank" href="https://pypi.org/project/python-dotenv/">python-dotenv</a> package.
-</div>
+<span class="n">app_key</span> <span class="o">=</span> <span class="s2">&quot;Your app key&quot;</span>
+<span class="n">app_secret</span> <span class="o">=</span> <span class="s2">&quot;Your app secret&quot;</span>
+<span class="n">callback_url</span> <span class="o">=</span> <span class="s2">&quot;https://127.0.0.1&quot;</span>
+</code></pre></div>
 
-<pre><code id="dotenv-code" class="language-python">
-    # INCLUDE THIS FILE IN YOUR .gitignore TO AVOID LEAKING YOUR CREDENTIALS IF YOU ARE PUSHING TO GITHUB!
-    # learn about gitignore https://git-scm.com/docs/gitignore
-
-    app_key = "Your app key"
-    app_secret = "Your app secret"
-    callback_url = "https://127.0.0.1"
-</code></pre>
-<a id="dotenv-code-download" href="../examples/.env" download>Download .env Template</a>
-
-<div style="white-space: pre">
-You can find all examples in the <code>docs/examples/</code> folder <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples">here</a>.
-These are the same example files (except no jupyter notebooks), just run them like a normal python file with your keys in the <code>.env</code> file.:
-</div>
-
-<button onclick="loadCode('../examples/api_demo.py', 'main-code')">All API Calls</button>
-<button onclick="loadCode('../examples/stream_demo.py', 'main-code')">All Stream Requests</button>
-<button onclick="loadCode('../examples/playground.py', 'main-code')">Playground</button>
-<button onclick="loadCode('../examples/processing_streaming_data.py', 'main-code')">Processing Stream Data</button>
-<br>
-<a id="main-code-download" href="" download>Download the shown file</a>
-<br>
-<!--<a id="main-code-copy" href="" download>Copy this code</a>-->
-
-<pre><code id="main-code" class="language-python" data-src="">
-    #Use the buttons above to select an example file
-</code></pre>
-
-
+<h3>Main Examples</h3>
+<ul>
+<li>api_demo.py - Examples of all api calls that can be made, orders are commented out to avoid accidental trades.</li>
+<li>async_api_calls.py - Example of making asynchronous api calls with <code>schwabdev.ClientAsync</code>.</li>
+<li>jupyter_demo.ipynb - Notebook demonstrating usage of Schwabdev in a Jupyter notebook.</li>
+<li>playground.py - A python interactive session to test code snippets, run via <code>python -i playground.py</code></li>
+<li>stream_demo.py - Example of all real-time streamable assets for the streaming client.</li>
+</ul>
+<h3>Extra Examples (in /extras/ folder)</h3>
+<ul>
+<li>api_gui_demo.py - A simple GUI application demonstrating Schwabdev functionality using Tkinter.</li>
+<li>async_api_demo_parsed.py - An asynchronous example demonstrating parsed data from various endpoints.</li>
+<li>async_playground.py - An interactive asynchronous python session to test code snippets, run via <code>python -i async_playground.py</code></li>
+<li>async_stream_demo.py - An asynchronous example demonstrating real-time streaming data.</li>
+<li>capture_callback.py - A custom auth flow using a web server to capture OAuth2 callback codes.</li>
+<li>charting.py - Graphing streamed data using matplotlib.</li>
+<li>concurrent_stream_calls.py - Demonstrates making concurrent streaming calls using asyncio.</li>
+<li>encrypted_db_setup.py - Example of setting up an encrypted tokens database using the <code>cryptography</code> package.</li>
+<li>processing_streaming_data.py - An example of processing streamed data.</li>
+<li>template.py - A template file for all of these examples.</li>
+<li>translating_stream.py - An example of translating level_one_equities streaming data fields into a human-readable format.</li>
+</ul>
 </body>
 </html>
+    
