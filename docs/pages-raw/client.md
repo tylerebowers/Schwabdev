@@ -35,7 +35,7 @@ client = schwabdev.Client(
 
 ---
 
-Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/concurrent_api_calls.py">useful for concurrent api calls</a>) that can be used with `asyncio`:
+Schwabdev also has an Asyncronous client (<a target="_blank" href="https://github.com/tylerebowers/Schwabdev/blob/main/docs/examples/async_api_calls.py">useful for concurrent api calls</a>) that can be used with `asyncio`:
 
 ```python
 client = schwabdev.ClientAsync(
