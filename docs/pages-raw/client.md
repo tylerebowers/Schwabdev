@@ -19,6 +19,7 @@ client = schwabdev.Client(
     app_secret,
     callback_url="https://127.0.0.1",
     tokens_db="~/.schwabdev/tokens.db",
+    encryption=None,
     timeout=10,
     call_for_auth=None,
 )
@@ -42,6 +43,7 @@ client = schwabdev.ClientAsync(
     app_secret,
     callback_url="https://127.0.0.1",
     tokens_db="~/.schwabdev/tokens.db",
+    encryption=None,
     timeout=10,
     call_for_auth=None,
     parsed = False,
