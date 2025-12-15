@@ -17,10 +17,10 @@
 <li>Make a new Schwab individual developer app in the <a target="_blank" href="https://developer.schwab.com/dashboard/apps">dashboard</a> with callback URL <code>https://127.0.0.1</code><ul>
 <li>Multiple callbacks can be used by separating them with commas, e.g. you might also want a callback with a port on the end: <code>https://127.0.0.1:7777</code></li>
 <li>Callback URLs must be https and localhost addresses.</li>
-</ul>
-</li>
 <li>Add <strong>both</strong> API products to the app: <strong>"Accounts and Trading Production"</strong> and <strong>"Market Data Production"</strong>. Both are needed for full functionality.<ul>
 <li>If you didn't during app creation: Apps Dashboard &gt; View Details &gt; Modify App &gt; APIs.</li>
+</ul>
+</li>
 </ul>
 </li>
 <li>Wait until the app status is <strong>"Ready for use"</strong> (this can take a couple days). Note that <strong>"Approved - Pending" will not work</strong>.</li>
@@ -34,7 +34,6 @@
 <li>MacOS requires installation of Python certificates (see notes below).</li>
 </ul>
 </li>
-<li>Install <code>aiohttp</code> if you want to use the async client: <code>pip install aiohttp</code></li>
 </ol>
 </li>
 <li><strong>Start Coding</strong> <ol>
@@ -51,7 +50,7 @@
 
 <span class="n">client</span> <span class="o">=</span> <span class="n">schwabdev</span><span class="o">.</span><span class="n">Client</span><span class="p">(</span><span class="s2">&quot;Your app key&quot;</span><span class="p">,</span> <span class="s2">&quot;Your app secret&quot;</span><span class="p">)</span>  <span class="c1"># create a client</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">account_linked</span><span class="p">()</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>  <span class="c1"># make api calls</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">client</span><span class="o">.</span><span class="n">quotes</span><span class="p">(</span><span class="s2">&quot;AMD&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">())</span>  <span class="c1"># make api calls</span>
 </code></pre></div>
 
 <hr />
@@ -69,7 +68,7 @@
 <li><code>tzdata</code> – used for timezone data</li>
 <li><code>requests</code> – used for HTTP requests (API calls)</li>
 <li><code>websockets</code> – used for streaming</li>
-<li><code>cryptography</code> – used for making self-signed certificates</li>
+<li><code>cryptography</code> – used for encryption of the token database (optional)</li>
 <li><code>aiohttp</code> – used for asynchronous HTTP requests (async client), <strong>not</strong> included by default</li>
 </ul>
 </body>
