@@ -1,5 +1,7 @@
 # Setup Guide
 
+Watch the <a target="_blank" href="https://youtu.be/69cniU1CTf8">Youtube</a> tutorial.
+
 1. **Set up your Schwab developer account and app:**
     1. <a target="_blank" href="https://developer.schwab.com/login">Create a Schwab developer account"</a>. Use the **same email** as in your Schwab brokerage account.
     2. Request access to the <a target="_blank" href="https://developer.schwab.com/products/trader-api--individual">Trader API - Individual</a>  API product.. 
