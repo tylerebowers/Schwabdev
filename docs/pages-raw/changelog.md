@@ -1,13 +1,19 @@
 ## Version 3.0.0
 * Added Asyncronous Client (`schwabdev.ClientAsync`) for async/await usage
 * Added Asyncronous Streamer (`schwabdev.StreamAsync`) for async/await usage
+    * Stream now initialized as `schwabdev.Stream(client)` or `schwabdev.StreamAsync(client)`
 * Tokens backend rework to use an sqlite database instead of a json file for concurrency handling.
 * Added support for multiple clients running at the same time (sharing the same tokens database).
 * Added optional encryption for tokens database using `cryptography.fernet`
 * Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.
 * Now including streamer fields with package.
 * Removed parameters `call_on_notify` and `capture_callback`; replaced with `call_on_auth` (called with auth url, expected to return the final redirect url).
-* Renamed several api calls to be more intuitive (e.g. `client.order_place` -> `client.place_order`).
+* Renamed several api calls to be more intuitive;
+    * `client.account_linked()` -> `client.linked_accounts()`
+    * `client.order_place()` -> `client.place_order()`
+    * `client.order_cancel()` -> `client.cancel_order()`
+    * `client.order_replace()` -> `client.replace_order()`
+    * New api call: `client.preview_order()` 
 
 
 ## Version 2.5.1
