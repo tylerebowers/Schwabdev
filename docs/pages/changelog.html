@@ -11,14 +11,24 @@
 <h2>Version 3.0.0</h2>
 <ul>
 <li>Added Asyncronous Client (<code>schwabdev.ClientAsync</code>) for async/await usage</li>
-<li>Added Asyncronous Streamer (<code>schwabdev.StreamAsync</code>) for async/await usage</li>
+<li>Added Asyncronous Streamer (<code>schwabdev.StreamAsync</code>) for async/await usage<ul>
+<li>Stream now initialized as <code>schwabdev.Stream(client)</code> or <code>schwabdev.StreamAsync(client)</code></li>
+</ul>
+</li>
 <li>Tokens backend rework to use an sqlite database instead of a json file for concurrency handling.</li>
 <li>Added support for multiple clients running at the same time (sharing the same tokens database).</li>
 <li>Added optional encryption for tokens database using <code>cryptography.fernet</code></li>
 <li>Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.</li>
 <li>Now including streamer fields with package.</li>
 <li>Removed parameters <code>call_on_notify</code> and <code>capture_callback</code>; replaced with <code>call_on_auth</code> (called with auth url, expected to return the final redirect url).</li>
-<li>Renamed several api calls to be more intuitive (e.g. <code>client.order_place</code> -&gt; <code>client.place_order</code>).</li>
+<li>Renamed several api calls to be more intuitive;<ul>
+<li><code>client.account_linked()</code> -&gt; <code>client.linked_accounts()</code></li>
+<li><code>client.order_place()</code> -&gt; <code>client.place_order()</code></li>
+<li><code>client.order_cancel()</code> -&gt; <code>client.cancel_order()</code></li>
+<li><code>client.order_replace()</code> -&gt; <code>client.replace_order()</code></li>
+<li>New api call: <code>client.preview_order()</code> </li>
+</ul>
+</li>
 </ul>
 <h2>Version 2.5.1</h2>
 <ul>
