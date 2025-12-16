@@ -7,7 +7,7 @@
 * Added optional encryption for tokens database using `cryptography.fernet`
 * Standard client no longer uses a background thread to check tokens, and instead checks/refreshes tokens on each request.
 * Now including streamer fields with package.
-* Removed parameters `call_on_notify` and `capture_callback`; replaced with `call_on_auth` (called with auth url, expected to return the final redirect url).
+* Removed parameters `call_on_notify` and `capture_callback`; replaced with `call_on_auth` (called with auth url, expected to return the callback url or code).
 * Renamed several api calls to be more intuitive;
     * `client.account_linked()` -> `client.linked_accounts()`
     * `client.order_place()` -> `client.place_order()`
