@@ -1,6 +1,5 @@
 """
-!!! Run this file with `python -i playground.py` !!!
-It allows you to enter python code to test the api without restarting the whole program.
+Example of translating field numbers to field names in a streaming response.
 """
 
 import logging

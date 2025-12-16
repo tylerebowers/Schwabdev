@@ -1,3 +1,6 @@
+"""
+Example of making concurrent stream requests.
+"""
 import os
 import asyncio
 import dotenv

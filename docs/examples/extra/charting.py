@@ -1,3 +1,7 @@
+"""
+Example of real-time charting of streaming market data using Matplotlib.
+"""
+
 import json
 import os
 import threading
