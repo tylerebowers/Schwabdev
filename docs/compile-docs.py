@@ -46,7 +46,7 @@ def process_folder(src_dir, dst_dir):
     for md_path in src_dir.glob("*.md"):
         rel_path = md_path.relative_to(src_dir)
         dst_path = (dst_dir / rel_path).with_suffix(".html")
-        md_text = md_path.read_text()
+        md_text = md_path.read_text(encoding='utf-8')
         html_doc = convert_markdown_to_html(md_text, md_path.stem)
         dst_path.write_text(html_doc)
         print(f"Converted: {md_path} -> {dst_path}")
