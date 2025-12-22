@@ -1908,6 +1908,27 @@ When using the account activity stream, the response message types (displayed in
     }
   ]
 }
+
+# Order Filled (seperate from AMD order above/below):
+{
+  "data": [
+    {
+      "service": "ACCT_ACTIVITY",
+      "timestamp": 0000000000000,
+      "command": "SUBS",
+      "content": [
+        {
+          "1": "########", 
+          "2": "OrderFillCompleted", 
+          "3": "{\"SchwabOrderID\":\"########\",\"AccountNumber\":\"########\",\"BaseEvent\":{\"EventType\":\"OrderFillCompleted\",\"OrderFillCompletedEventOrderLegQuantityInfo\":{\"EventType\":\"OrderFillCompleted\",\"LegId\":\"########\",\"LegStatus\":\"LegClosed\",\"QuantityInfo\":{\"ExecutionID\":\"20250320-EST-ngOMS-#######\",\"CumulativeQuantity\":{\"lo\":\"1000000\",\"signScale\":12},\"LeavesQuantity\":{\"signScale\":12},\"AveragePrice\":{\"lo\":\"213409100\",\"signScale\":12}},\"PriceImprovement\":{\"lo\":\"10900\",\"signScale\":12},\"LegSubStatus\":\"LegSubStatusFilled\",\"ExecutionInfo\":{\"ExecutionSequenceNumber\":1,\"ExecutionId\":\"20250320-EST-ngOMS-########\",\"VenueExecutionID\":\"########\",\"ExecutionQuantity\":{\"lo\":\"1000000\",\"signScale\":12},\"ExecutionPrice\":{\"lo\":\"213409100\",\"signScale\":12},\"ExecutionTimeStamp\":{\"DateTimeString\":\"2025-03-20 13:43:45.620\"},\"ExecutionTransType\":\"Fill\",\"ExecutionBroker\":\"CDRG\",\"ExecutionCapacityCode\":\"Agency\",\"RouteName\":\"CES_NMS_F3_J2\",\"RouteSequenceNumber\":1,\"VenuExecutionTimeStamp\":{\"DateTimeString\":\"2025-03-20 13:43:45.576\"},\"ReportingCapacityCode\":\"RC_Agency\",\"PrincipalAmmount\":{\"lo\":\"213410000\",\"signScale\":12},\"ActualChargedCommissionAmount\":{\"signScale\":12},\"AsOfTimeStamp\":{},\"ActualChargedFeesCommissionAndTax\":{\"StateTaxWithholding\":{\"signScale\":12},\"FederalTaxWithholding\":{\"signScale\":12},\"SECFees\":{\"signScale\":12},\"ORF\":{\"signScale\":12},\"FTT\":{\"signScale\":12},\"TaxWithholding1446\":{\"signScale\":12},\"GoodsAndServicesTax\":{\"signScale\":12},\"IOF\":{\"signScale\":12},\"TAF\":{\"signScale\":12},\"CommissionAmount\":{\"signScale\":12}},\"ClientOrderID\":\"#######.#\"},\"OrderInfoForTransactionPosting\":{\"LimitPrice\":{\"lo\":\"213500000\",\"signScale\":12},\"OrderTypeCode\":\"Limit\",\"BuySellCode\":\"Buy\",\"Quantity\":{\"lo\":\"1000000\",\"signScale\":12},\"StopPrice\":{},\"Symbol\":\"AAPL\",\"SchwabSecurityID\":\"1973757747\",\"SolicitedCode\":\"Unsolicited\",\"AccountingRuleCode\":\"Cash\",\"SettlementType\":\"SettlementType_Regular\",\"OrderCreatedUserID\":\"####\",\"OrderCreatedUserType\":\"Venue\",\"ClientProductCode\":\"##\"}}}}"
+          "seq": 6, 
+          "key": "Account Activity"
+        }
+      ]
+    }
+  ]
+}
+
 # Cancel order:
 {
   "data": [
