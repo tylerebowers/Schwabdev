@@ -37,7 +37,7 @@ class ClientBase:
         if timeout <= 0:
             raise Exception("Timeout must be greater than 0 and is recommended to be 5 seconds or more.")
 
-        self.version = "Schwabdev 3.0.0"                                    # version of the client
+        self.version = "Schwabdev 3.0.1"                                    # version of the client
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, encryption, call_on_auth)
@@ -596,7 +596,7 @@ class ClientAsync(ClientBase):
         """
         if self.tokens.update_tokens(force_access_token, force_refresh_token):
             with self._session_lock:
-                self._session = self._session.headers['Authorization'] = f'Bearer {self.tokens.access_token}'
+                self._session.headers['Authorization'] = f'Bearer {self.tokens.access_token}'
             return True
         else:
             return False
