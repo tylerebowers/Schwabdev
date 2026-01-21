@@ -1,3 +1,6 @@
+## Version 3.0.1
+* Issue with async streamer token updating fixed.
+
 ## Version 3.0.0
 * Added Asyncronous Client (`schwabdev.ClientAsync`) for async/await usage
 * Added Asyncronous Streamer (`schwabdev.StreamAsync`) for async/await usage
