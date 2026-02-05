@@ -11,8 +11,9 @@ Useful links:
 
 * Join the <a target="_blank" href="https://discord.gg/m7SSjr9rs9">Discord</a> to ask questions or get help.
 * Read the <a target="_blank" href="https://tylerebowers.github.io/Schwabdev/">Documentation</a>.
-* View the <a target="_blank" href="https://pypi.org/project/schwabdev/">PyPi</a> package page.
 * Watch the <a target="_blank" href="https://youtu.be/69cniU1CTf8">Youtube</a> tutorial.
+* Chat with the Schwabdev <a target="_blank" href="https://chatgpt.com/g/g-697d2ca9a1188191920e9c3c1eedc4f8-schwabdev-assistant">ChatGPT</a> assistant.
+* View the <a target="_blank" href="https://pypi.org/project/schwabdev/">PyPi</a> package page.
 * View the <a target="_blank" href="https://github.com/tylerebowers/Schwab-API-Python">Github</a> repository.
 
 ### What can this program do?

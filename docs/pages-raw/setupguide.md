@@ -39,6 +39,7 @@ print(client.quotes("AMD").json())  # make api calls
 
 ### Notes
 
+* Schwabdev has a <a target="_blank" href="https://chatgpt.com/g/g-697d2ca9a1188191920e9c3c1eedc4f8-schwabdev-assistant">ChatGPT</a> assistant, which generally works well and can be a good starting point.
 * If you are storing your code in a GitHub repo then use <a target="_blank" href="https://pypi.org/project/python-dotenv/">dotenv</a> to store your keys.
 * **On MacOS** you need to make sure that you installed Python certificates.
   If you haven't or aren't sure, then in a terminal run:
