@@ -50,13 +50,13 @@ stream_fields = {
                        "Exchange Name", "Digits", "Security Status", "Tick", "Tick Amount", "Product",
                        "Trading Hours", "Is Tradable", "Market Maker", "52 Week High", "52 Week Low", "Mark"],
     "NYSE_BOOK": {"0": "Symbol", "1": "Market Snapshot Time", "2": "Bid Side Levels", "3": "Ask Side Levels",
-                  "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
+                  "Price Levels": ["Price", "Aggregate Size", "Market Maker Count", "Array of Market Makers"],
                   "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
     "NASDAQ_BOOK": {"0": "Symbol", "1": "Market Snapshot Time", "2": "Bid Side Levels", "3": "Ask Side Levels",
-                    "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
+                    "Price Levels": ["Price", "Aggregate Size", "Market Maker Count", "Array of Market Makers"],
                     "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
     "OPTIONS_BOOK": {"0": "Symbol", "1": "Market Snapshot Time", "2": "Bid Side Levels", "3": "Ask Side Levels",
-                     "Price Levels": ["Price", "Aggregate Size", "Market Maker Count" "Array of Market Makers"],
+                     "Price Levels": ["Price", "Aggregate Size", "Market Maker Count", "Array of Market Makers"],
                      "Market Makers": ["Market Maker ID", "Size", "Quote Time"]},
     #"CHART_EQUITY": ["key", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Sequence", "Chart Time", "Chart Day"], # from schwab docs (wrong)
     "CHART_EQUITY": ["key", "Sequence", "Open Price", "High Price", "Low Price", "Close Price", "Volume", "Chart Time", "Chart Day"], # corrected
