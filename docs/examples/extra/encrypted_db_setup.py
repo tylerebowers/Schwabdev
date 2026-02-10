@@ -32,4 +32,4 @@ os.environ['encryption'] = key.decode() # store the key in an environment variab
 client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'), encryption=os.getenv('encryption'))
 print("Now that you are authenticated, the encrypted tokens are saved in the database.")
 print("You can now create new Client instances using the same encryption key to access the tokens.")
-print("If you want to remove encryption, create a new Client without the encryption parameter.")
+print("If you want to remove encryption, create a new Client without the encryption parameter and redo the authentication process.")
