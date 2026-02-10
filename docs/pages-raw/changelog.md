@@ -1,3 +1,7 @@
+## Version 3.0.2
+* Improve datetime handling
+* Move version string from client.version to schwabdev.__version__
+
 ## Version 3.0.1
 * Issue with async streamer token updating fixed.
 

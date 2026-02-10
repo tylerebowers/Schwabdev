@@ -37,7 +37,6 @@ class ClientBase:
         if timeout <= 0:
             raise Exception("Timeout must be greater than 0 and is recommended to be 5 seconds or more.")
 
-        self.version = "Schwabdev 3.0.1"                                    # version of the client
         self.timeout = timeout                                              # timeout to use in requests
         self.logger = logging.getLogger("Schwabdev")  # init the logger
         self.tokens = Tokens(app_key, app_secret, callback_url, self.logger, tokens_db, encryption, call_on_auth)
@@ -73,7 +72,7 @@ class ClientBase:
         Returns:
             str | None: converted time (or None passed through)
         """
-        if dt is None or not isinstance(dt, datetime.datetime):
+        if dt is None or not (isinstance(dt, datetime.datetime) or isinstance(dt, datetime.date)):
             return dt
         match format:
             case TimeFormat.ISO_8601 | TimeFormat.ISO_8601.value:
@@ -402,8 +401,8 @@ class Client(ClientBase):
 
     def option_chains(self, symbol: str, contractType: str | None = None, strikeCount: int | None = None, includeUnderlyingQuote: bool | None = None, 
                       strategy: str | None = None, interval: str | None = None, strike: float | None = None, range: str | None = None, 
-                      fromDate: datetime.datetime | str | None = None, toDate: datetime.datetime | str | None = None, volatility: float | None = None, 
-                      underlyingPrice: float | None = None, interestRate: float | None = None, daysToExpiration: int | None = None, 
+                      fromDate: datetime.datetime | datetime.date | str | None = None, toDate: datetime.datetime | datetime.date | str | None = None, 
+                      volatility: float | None = None, underlyingPrice: float | None = None, interestRate: float | None = None, daysToExpiration: int | None = None, 
                       expMonth: str | None = None, optionType: str | None = None, entitlement: str | None = None) -> requests.Response:
         """
         Get Option Chain including information on options contracts associated with each expiration for a ticker.
@@ -520,7 +519,7 @@ class Client(ClientBase):
                              headers={"accept": "application/json"}, 
                              params=self._parse_params({'sort': sort, 'frequency': frequency}))
 
-    def market_hours(self, symbols: list[str], date: datetime.datetime | str | None = None) -> requests.Response:
+    def market_hours(self, symbols: list[str], date: datetime.datetime | datetime.date | str | None = None) -> requests.Response:
         """
         Get Market Hours for dates in the future across different markets.
 
@@ -535,7 +534,7 @@ class Client(ClientBase):
                              params=self._parse_params({'markets': self._format_list(symbols), 
                                                          'date': self._time_convert(date, TimeFormat.YYYY_MM_DD)}))
 
-    def market_hour(self, market_id: str, date: datetime.datetime | str | None = None) -> requests.Response:
+    def market_hour(self, market_id: str, date: datetime.datetime | datetime.date | str | None = None) -> requests.Response:
         """
         Get Market Hours for dates in the future for a single market.
 
@@ -952,7 +951,7 @@ class ClientAsync(ClientBase):
 
     async def option_chains(self, symbol: str, contractType: str | None = None, strikeCount: int | None = None, includeUnderlyingQuote: bool | None = None, 
                       strategy: str | None = None, interval: str | None = None, strike: float | None = None, range: str | None = None, 
-                      fromDate: datetime.datetime | str | None = None, toDate: datetime.datetime | str | None = None, volatility: float | None = None, 
+                      fromDate: datetime.datetime | datetime.date  | str | None = None, toDate: datetime.datetime | datetime.date | str | None = None, volatility: float | None = None, 
                       underlyingPrice: float | None = None, interestRate: float | None = None, daysToExpiration: int | None = None, 
                       expMonth: str | None = None, optionType: str | None = None, entitlement: str | None = None, parsed: bool | None = None) -> aiohttp.ClientResponse:
         """
@@ -1097,7 +1096,7 @@ class ClientAsync(ClientBase):
             parsed,
         )
 
-    async def market_hours(self, symbols: list[str], date: datetime.datetime | str = None, parsed: bool | None = None) -> aiohttp.ClientResponse:
+    async def market_hours(self, symbols: list[str], date: datetime.datetime | datetime.date | str = None, parsed: bool | None = None) -> aiohttp.ClientResponse:
         """
         Get Market Hours for dates in the future across different markets.
 
@@ -1121,7 +1120,7 @@ class ClientAsync(ClientBase):
             parsed,
         )
 
-    async def market_hour(self, market_id: str, date: datetime.datetime | str = None, parsed: bool | None = None) -> aiohttp.ClientResponse:
+    async def market_hour(self, market_id: str, date: datetime.datetime | datetime.date | str = None, parsed: bool | None = None) -> aiohttp.ClientResponse:
         """
         Get Market Hours for dates in the future for a single market.
 
