@@ -69,6 +69,12 @@ class StreamBase:
                 self._logger.error("Error getting streamer info, cannot start stream.")
                 self._logger.error(e)
                 return
+
+            if self._streamer_info is None:
+                self._logger.warning(f"Streamer info unavailable, retrying in {self._backoff_time}s...")
+                await self._wait_for_backoff()
+                continue
+
             start_time = datetime.datetime.now(datetime.timezone.utc)
             try:
                 self._logger.debug("Connecting to streaming server...")
@@ -192,6 +198,9 @@ class StreamBase:
         """
         if self._streamer_info is None:
             self._streamer_info = self._get_streamer_info()
+
+        if self._streamer_info is None:
+            raise ConnectionError("Streamer info unavailable")
 
         # remove None parameters
         if parameters is not None:

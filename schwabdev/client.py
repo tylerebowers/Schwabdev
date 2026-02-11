@@ -115,7 +115,7 @@ class ClientBase:
         if response.ok:
             return response.json().get('streamerInfo', None)[0]
         else:
-            self.logger.error("Could not get streamerInfo")
+            self.logger.error(f"Could not get streamerInfo (HTTP {response.status_code})")
             return
 
 class Client(ClientBase):
