@@ -1,3 +1,6 @@
+## Version 3.0.3
+* Better handling of internal streamer info api request.
+
 ## Version 3.0.2
 * Improve datetime handling
 * Move version string from `client.version` to `schwabdev.__version__`
