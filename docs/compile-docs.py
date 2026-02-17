@@ -3,24 +3,20 @@ Convert all .md files in pages-raw/ to .html files in pages/
 """
 
 from pathlib import Path
-import markdown
 
+import markdown
 
 
 def convert_markdown_to_html(md_text: str, title: str) -> str:
     md = markdown.Markdown(
-        extensions=[
-            "fenced_code",    
-            "codehilite",     
-            "tables"
-        ],
+        extensions=["fenced_code", "codehilite", "tables"],
         extension_configs={
             "codehilite": {
                 "linenums": False,
                 "guess_lang": True,
                 "noclasses": False,  # use CSS classes; works with Pygments CSS
             }
-        }
+        },
     )
 
     body_html = md.convert(md_text)
@@ -46,10 +42,11 @@ def process_folder(src_dir, dst_dir):
     for md_path in src_dir.glob("*.md"):
         rel_path = md_path.relative_to(src_dir)
         dst_path = (dst_dir / rel_path).with_suffix(".html")
-        md_text = md_path.read_text(encoding='utf-8')
+        md_text = md_path.read_text(encoding="utf-8")
         html_doc = convert_markdown_to_html(md_text, md_path.stem)
         dst_path.write_text(html_doc)
         print(f"Converted: {md_path} -> {dst_path}")
+
 
 if __name__ == "__main__":
     base_dir = Path(__file__).parent

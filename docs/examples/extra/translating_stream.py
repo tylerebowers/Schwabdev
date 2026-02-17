@@ -2,13 +2,14 @@
 Example of translating field numbers to field names in a streaming response.
 """
 
+import datetime
+import json
 import logging
 import os
-from dotenv import load_dotenv
-import schwabdev
-import json
-import datetime
 
+from dotenv import load_dotenv
+
+import schwabdev
 
 
 def translate_data(response) -> list[str]:
@@ -32,12 +33,12 @@ def translate_data(response) -> list[str]:
                         for field, value in quote.copy().items():
                             if field.isdigit():
                                 new_field = translate_field(service, field)
-                                quote[new_field] = quote.pop(field)                           
-                                      
+                                quote[new_field] = quote.pop(field)
+
     return response
-    
-    
-def translate_field(service: str, field: str|int) -> str:
+
+
+def translate_field(service: str, field: str | int) -> str:
     """
     Translate field number to field name
 
@@ -63,6 +64,7 @@ def translate_field(service: str, field: str|int) -> str:
     except Exception:
         return str(field)
 
+
 if __name__ == "__main__":
     print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
     print("Documentation: https://tylerebowers.github.io/Schwabdev/")
@@ -71,19 +73,20 @@ if __name__ == "__main__":
     load_dotenv()  # load environment variables from .env file
 
     # warn user if they have not added their keys to the .env
-    if not len(os.getenv('app_key')) > 0 or not len(os.getenv('app_secret')) > 0:
+    if not len(os.getenv("app_key")) > 0 or not len(os.getenv("app_secret")) > 0:
         raise Exception("Add you app key and app secret to the .env file.")
 
     # set logging level
     logging.basicConfig(level=logging.INFO)
 
-    client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
+    client = schwabdev.Client(
+        os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")
+    )
     streamer = schwabdev.Stream(client)
 
     def response_handler(msg):
         translated = translate_data(json.loads(msg))
         print(translated)
-
 
     streamer.start(response_handler)
 
@@ -91,5 +94,6 @@ if __name__ == "__main__":
     # streamer.send(streamer.nyse_book(["F"], "0,1,2,3,4,5,6,7,8"))
 
     import time
+
     time.sleep(30)
     streamer.stop()

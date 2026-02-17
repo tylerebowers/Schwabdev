@@ -1,32 +1,54 @@
 """
 Example of making concurrent stream requests.
 """
-import os
+
 import asyncio
-import dotenv
 import logging
+import os
+
+import dotenv
+
 import schwabdev
 
 dotenv.load_dotenv()
 
-STOP_AT = 10 # number of messages to receive before stopping
+STOP_AT = 10  # number of messages to receive before stopping
 
 logging.basicConfig(level=logging.INFO)
 
-tickers = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "AMD", "NVDA", "META", "INTC", "CSCO"]
+tickers = [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "TSLA",
+    "AMD",
+    "NVDA",
+    "META",
+    "INTC",
+    "CSCO",
+]
+
 
 async def main():
 
     data = []
+
     def response_handler(message):
         data.append(message)
-    
-    async with schwabdev.ClientAsync(os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")) as client:
+
+    async with schwabdev.ClientAsync(
+        os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")
+    ) as client:
         streamer = schwabdev.StreamAsync(client)
         await streamer.start(response_handler)
         async with asyncio.TaskGroup() as tg:
             for t in tickers:
-                tg.create_task(streamer.send(streamer.level_one_equities(t, fields="0,1,2,3,4,5,6,7,8,9")))
+                tg.create_task(
+                    streamer.send(
+                        streamer.level_one_equities(t, fields="0,1,2,3,4,5,6,7,8,9")
+                    )
+                )
 
         counter = 0
         while True:
@@ -37,6 +59,7 @@ async def main():
                 await streamer.stop()
                 break
             await asyncio.sleep(0.1)
-            
+
+
 if __name__ == "__main__":
     asyncio.run(main())

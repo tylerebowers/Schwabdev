@@ -6,7 +6,9 @@ import datetime
 import logging
 import os
 from time import sleep
+
 from dotenv import load_dotenv
+
 import schwabdev
 
 print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
@@ -19,12 +21,16 @@ load_dotenv()  # load environment variables from .env file
 logging.basicConfig(level=logging.INFO)
 
 # create client
-client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
+client = schwabdev.Client(
+    os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")
+)
 
 print("\nGet account number and hashes for linked accounts")
 linked_accounts = client.linked_accounts().json()
 print(linked_accounts)
-account_hash = linked_accounts[0].get('hashValue') # this will get the first linked account
+account_hash = linked_accounts[0].get(
+    "hashValue"
+)  # this will get the first linked account
 sleep(3)
 
 print("\nGet details for all linked accounts")
@@ -36,24 +42,30 @@ print(client.account_details(account_hash, fields="positions").json())
 sleep(3)
 
 print("\nGet orders for a linked account")
-print(client.account_orders(account_hash, datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30), datetime.datetime.now(datetime.timezone.utc)).json())
+print(
+    client.account_orders(
+        account_hash,
+        datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30),
+        datetime.datetime.now(datetime.timezone.utc),
+    ).json()
+)
 sleep(3)
 
 
-order = {"orderType": "LIMIT",
-            "session": "NORMAL",
-            "duration": "DAY",
-            "orderStrategyType": "SINGLE",
-            "price": '10.00',
-            "orderLegCollection": [
-                {"instruction": "BUY",
-                "quantity": 1,
-                "instrument": {"symbol": "INTC",
-                                "assetType": "EQUITY"
-                                }
-                }
-            ]
+order = {
+    "orderType": "LIMIT",
+    "session": "NORMAL",
+    "duration": "DAY",
+    "orderStrategyType": "SINGLE",
+    "price": "10.00",
+    "orderLegCollection": [
+        {
+            "instruction": "BUY",
+            "quantity": 1,
+            "instrument": {"symbol": "INTC", "assetType": "EQUITY"},
         }
+    ],
+}
 
 # Uncomment below to enable order placing/details/cancelling demo
 """ 
@@ -73,14 +85,18 @@ sleep(3)
 """
 
 print("\nReplace specific order")
-#client.replace_order(account_hash, order_id, order)
+# client.replace_order(account_hash, order_id, order)
 print("No demo implemented")
 sleep(3)
 
 
 print("\nGet up to 3000 orders for all accounts for the past 30 days")
-print(client.account_orders_all(datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30),
-                                datetime.datetime.now(datetime.timezone.utc)).json())
+print(
+    client.account_orders_all(
+        datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30),
+        datetime.datetime.now(datetime.timezone.utc),
+    ).json()
+)
 sleep(3)
 
 
@@ -89,12 +105,19 @@ print(client.preview_order(account_hash, order).json())
 
 
 print("\nGet all transactions for an account")
-print(client.transactions(account_hash, datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30), datetime.datetime.now(datetime.timezone.utc), "TRADE").json())
+print(
+    client.transactions(
+        account_hash,
+        datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(days=30),
+        datetime.datetime.now(datetime.timezone.utc),
+        "TRADE",
+    ).json()
+)
 sleep(3)
 
 
 print("\nGet details for a specific transaction")
-#print(client.transaction_details(account_hash, transactionId).json())
+# print(client.transaction_details(account_hash, transactionId).json())
 print("No demo implemented")
 sleep(3)
 
@@ -110,7 +133,7 @@ sleep(3)
 
 print("\nGet a single quote")
 print(client.quote("INTC").json())
-#print(client.quote("SPXW  241111P06000000").json()) # expired contract now, just an example
+# print(client.quote("SPXW  241111P06000000").json()) # expired contract now, just an example
 sleep(3)
 
 print("\nGet an option chain")

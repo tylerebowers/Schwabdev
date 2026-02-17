@@ -3,30 +3,30 @@ Example of real-time charting of streaming market data using Matplotlib.
 """
 
 import json
+import logging
 import os
 import threading
 import time
-import logging
 from collections import deque
 from datetime import datetime
 
 import dotenv
-import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import matplotlib.pyplot as plt
 
 import schwabdev
 
 SYMBOLS = ["AMD"]
-MAX_POINTS = 300 
+MAX_POINTS = 300
 FIELD = "3"
 
 logging.basicConfig(level=logging.INFO)
 
 dotenv.load_dotenv()
 
-client = schwabdev.Client(os.getenv('app_key'),
-                          os.getenv('app_secret'),
-                          os.getenv('callback_url'))
+client = schwabdev.Client(
+    os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")
+)
 streamer = schwabdev.Stream(client)
 shared_list: list[str] = []
 
@@ -34,12 +34,14 @@ shared_list: list[str] = []
 time_data = {sym: deque(maxlen=MAX_POINTS) for sym in SYMBOLS}
 price_data = {sym: deque(maxlen=MAX_POINTS) for sym in SYMBOLS}
 
+
 def response_handler(message: str):
     shared_list.append(message)
 
+
 streamer.start(response_handler)
 streamer.send(streamer.level_one_equities(",".join(SYMBOLS), f"0,{FIELD}"))
-#streamer.send(streamer.level_one_futures(",".join(SYMBOLS), f"0,{FIELD}"))
+# streamer.send(streamer.level_one_futures(",".join(SYMBOLS), f"0,{FIELD}"))
 
 
 def consumer_loop():

@@ -4,13 +4,18 @@ It allows you to enter python code to test the api without restarting the whole 
 """
 
 import logging
-import sys
 import os
+import sys
+
 from dotenv import load_dotenv
+
 import schwabdev
 
 if not sys.flags.interactive:
-    print("This file is intended to be run in interactive mode, with \"python -i async_playground.py\"\n"*3)
+    print(
+        'This file is intended to be run in interactive mode, with "python -i async_playground.py"\n'
+        * 3
+    )
     sys.exit(1)
 
 print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
@@ -20,14 +25,17 @@ print("Documentation: https://tylerebowers.github.io/Schwabdev/")
 load_dotenv()  # load environment variables from .env file
 
 # warn user if they have not added their keys to the .env
-if not len(os.getenv('app_key')) > 0 or not len(os.getenv('app_secret')) > 0:
+if not len(os.getenv("app_key")) > 0 or not len(os.getenv("app_secret")) > 0:
     raise Exception("Add you app key and app secret to the .env file.")
 
 # set logging level
 logging.basicConfig(level=logging.INFO)
 
-client = schwabdev.Client(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'))
-#account_hash = client.linked_accounts().json()[0].get('hashValue')
+client = schwabdev.Client(
+    os.getenv("app_key"), os.getenv("app_secret"), os.getenv("callback_url")
+)
+# account_hash = client.linked_accounts().json()[0].get('hashValue')
 streamer = schwabdev.Stream(client)
-print("Client and Streamer created as 'client' and 'streamer' variables, use quit() to exit.")
-
+print(
+    "Client and Streamer created as 'client' and 'streamer' variables, use quit() to exit."
+)

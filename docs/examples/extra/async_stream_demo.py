@@ -2,11 +2,14 @@
 This file contains examples for stream requests.
 """
 
+import asyncio
 import logging
 import os
+
 from dotenv import load_dotenv
-import asyncio
+
 import schwabdev
+
 
 async def main():
 
@@ -15,17 +18,15 @@ async def main():
         os.getenv("app_secret"),
         os.getenv("callback_url"),
     ) as client:
-        
         # define a variable for the steamer:
         streamer = schwabdev.StreamAsync(client)
-
 
         # example of using your own response handler, prints to main terminal.
         # the first parameter is used by the stream, additional parameters are passed to the handler
         def my_handler(message):
             print("test_handler:" + message)
-        await streamer.start(my_handler)
 
+        await streamer.start(my_handler)
 
         # start steamer with default response handler (print):
         # streamer.start()
@@ -36,12 +37,12 @@ async def main():
         # service) you can use the "SUBS" command. Unsubscribing uses the "UNSUBS" command. To change the list of fields use
         # the "VIEW" command.
 
-
         # these three do the same thing
         # await streamer.send(streamer.basic_request("LEVELONE_EQUITIES", "ADD", parameters={"keys": "AMD,INTC", "fields": "0,1,2,3,4,5,6,7,8"}))
         # await streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8", command="ADD"))
-        await streamer.send(streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8"))
-
+        await streamer.send(
+            streamer.level_one_equities("AMD,INTC", "0,1,2,3,4,5,6,7,8")
+        )
 
         # await streamer.send(streamer.level_one_options("GOOGL 240712C00200000", "0,1,2,3,4,5,6,7,8")) # key must be from option chains api call.
         # await streamer.send(streamer.level_one_options("SPY   241014C00580000", "0,1,2,3,4,5,6,7,8"))
@@ -68,16 +69,16 @@ async def main():
 
         # await streamer.send(streamer.account_activity("Account Activity", "0,1,2,3"))
 
-
         # stop the stream after 60 seconds (since this is a demo)
         await asyncio.sleep(60)
-        await streamer.stop()  
+        await streamer.stop()
         # if you don't want to clear the subscriptions, set clear_subscriptions=False
         # streamer.stop(clear_subscriptions=False)
         # if True, the next time you start the stream it will resubscribe to the previous subscriptions
         # (except if program is restarted)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
     print("Documentation: https://tylerebowers.github.io/Schwabdev/")
 

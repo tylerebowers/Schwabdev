@@ -6,3 +6,5 @@ schwabdev.egg-info/
 tokens.json
 /build
 /docs/examples/tests
+.DS_Store
+.history

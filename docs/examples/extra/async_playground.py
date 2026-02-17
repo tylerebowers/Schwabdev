@@ -3,16 +3,21 @@
 It allows you to enter python code to test the api without restarting the whole program.
 """
 
-import logging
-import sys
-import os
-from dotenv import load_dotenv
 import asyncio
+import logging
+import os
+import sys
 import threading
+
+from dotenv import load_dotenv
+
 import schwabdev
 
 if not sys.flags.interactive:
-    print("This file is intended to be run in interactive mode, with \"python -i async_playground.py\"\n"*3)
+    print(
+        'This file is intended to be run in interactive mode, with "python -i async_playground.py"\n'
+        * 3
+    )
     sys.exit(1)
 
 print("Welcome to Schwabdev, The Unofficial Schwab API Python Wrapper!")
@@ -22,7 +27,7 @@ print("Documentation: https://tylerebowers.github.io/Schwabdev/")
 load_dotenv()  # load environment variables from .env file
 
 # warn user if they have not added their keys to the .env
-if len(os.getenv('app_key')) != 32 or len(os.getenv('app_secret')) != 16:
+if len(os.getenv("app_key")) != 32 or len(os.getenv("app_secret")) != 16:
     raise Exception("Add you app key and app secret to the .env file.")
 
 # set logging level
@@ -51,7 +56,12 @@ def run(coro: asyncio.Future) -> object:
 
 async def _init_client() -> None:
     global client, streamer
-    client = schwabdev.ClientAsync(os.getenv('app_key'), os.getenv('app_secret'), os.getenv('callback_url'), parsed=True)
+    client = schwabdev.ClientAsync(
+        os.getenv("app_key"),
+        os.getenv("app_secret"),
+        os.getenv("callback_url"),
+        parsed=True,
+    )
     streamer = schwabdev.StreamAsync(client)
     logging.info(
         "Async Schwabdev client initialized.\n"

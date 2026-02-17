@@ -11,14 +11,15 @@ Environment:
         callback_url=YOUR_CALLBACK_URL
 """
 
-import os
+import datetime
 import json
 import logging
-import datetime
+import os
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import messagebox, ttk
 
 from dotenv import load_dotenv
+
 import schwabdev
 
 # ------------------ Client setup ------------------ #
@@ -94,9 +95,7 @@ API_CONFIG = {
                 "options": ["", "positions"],  # from docstring
             },
         ],
-        "call": lambda c, p: c.account_details_all(
-            fields=p.get("fields") or None
-        ),
+        "call": lambda c, p: c.account_details_all(fields=p.get("fields") or None),
     },
     "account_details": {
         "label": "Account Details (Single)",
@@ -157,7 +156,8 @@ API_CONFIG = {
         ],
         "call": lambda c, p: c.account_orders(
             p.get("accountHash"),
-            now_utc() - datetime.timedelta(days=p.get("days_back") or default_days_back()),
+            now_utc()
+            - datetime.timedelta(days=p.get("days_back") or default_days_back()),
             now_utc(),
             maxResults=p.get("maxResults"),
             status=p.get("status") or None,
@@ -192,9 +192,7 @@ API_CONFIG = {
     },
     "order_details": {
         "label": "Order Details",
-        "description": (
-            "Get a specific order by its ID for a specific account."
-        ),
+        "description": ("Get a specific order by its ID for a specific account."),
         "params": [
             {
                 "name": "accountHash",
@@ -216,9 +214,7 @@ API_CONFIG = {
     },
     "cancel_order": {
         "label": "Cancel Order",
-        "description": (
-            "Cancel a specific order by its ID for a specific account."
-        ),
+        "description": ("Cancel a specific order by its ID for a specific account."),
         "params": [
             {
                 "name": "accountHash",
@@ -300,7 +296,8 @@ API_CONFIG = {
             },
         ],
         "call": lambda c, p: c.account_orders_all(
-            now_utc() - datetime.timedelta(days=p.get("days_back") or default_days_back()),
+            now_utc()
+            - datetime.timedelta(days=p.get("days_back") or default_days_back()),
             now_utc(),
             maxResults=p.get("maxResults"),
             status=p.get("status") or None,
@@ -367,7 +364,8 @@ API_CONFIG = {
         ],
         "call": lambda c, p: c.transactions(
             p.get("accountHash"),
-            now_utc() - datetime.timedelta(days=p.get("days_back") or default_days_back()),
+            now_utc()
+            - datetime.timedelta(days=p.get("days_back") or default_days_back()),
             now_utc(),
             p.get("types") or "TRADE",
             symbol=p.get("symbol") or None,
@@ -375,9 +373,7 @@ API_CONFIG = {
     },
     "transaction_details": {
         "label": "Transaction Details",
-        "description": (
-            "Get specific transaction information for a specific account."
-        ),
+        "description": ("Get specific transaction information for a specific account."),
         "params": [
             {
                 "name": "accountHash",
@@ -406,13 +402,10 @@ API_CONFIG = {
         "params": [],
         "call": lambda c, p: c.preferences(),
     },
-
     # -------------- Market Data -------------- #
     "quotes": {
         "label": "Quotes (Multiple Symbols)",
-        "description": (
-            "Get quotes for a list of tickers."
-        ),
+        "description": ("Get quotes for a list of tickers."),
         "params": [
             {
                 "name": "symbols",
@@ -442,9 +435,7 @@ API_CONFIG = {
     },
     "quote": {
         "label": "Quote (Single Symbol)",
-        "description": (
-            "Get quote for a single symbol."
-        ),
+        "description": ("Get quote for a single symbol."),
         "params": [
             {
                 "name": "symbol_id",
@@ -530,9 +521,7 @@ API_CONFIG = {
     },
     "option_expiration_chain": {
         "label": "Option Expiration Chain",
-        "description": (
-            "Get an option expiration chain for a ticker."
-        ),
+        "description": ("Get an option expiration chain for a ticker."),
         "params": [
             {
                 "name": "symbol",
@@ -547,9 +536,7 @@ API_CONFIG = {
     },
     "price_history": {
         "label": "Price History",
-        "description": (
-            "Get price history for a ticker."
-        ),
+        "description": ("Get price history for a ticker."),
         "params": [
             {
                 "name": "symbol",
@@ -730,9 +717,7 @@ API_CONFIG = {
     },
     "instrument_cusip": {
         "label": "Instrument by CUSIP",
-        "description": (
-            "Get instrument for a single CUSIP."
-        ),
+        "description": ("Get instrument for a single CUSIP."),
         "params": [
             {
                 "name": "cusip_id",
@@ -749,6 +734,7 @@ API_CONFIG = {
 
 
 # ------------------ GUI logic ------------------ #
+
 
 class SchwabGuiApp:
     def __init__(self, root):
@@ -821,7 +807,9 @@ class SchwabGuiApp:
         button_frame.grid(row=1, column=0, sticky="ew")
         button_frame.columnconfigure(0, weight=1)
 
-        self.call_button = ttk.Button(button_frame, text="Call API", command=self.call_api)
+        self.call_button = ttk.Button(
+            button_frame, text="Call API", command=self.call_api
+        )
         self.call_button.grid(row=0, column=0, sticky="w", pady=5)
 
         # Result text
@@ -833,12 +821,18 @@ class SchwabGuiApp:
         self.result_text = tk.Text(result_frame, wrap="none", height=20)
         self.result_text.grid(row=0, column=0, sticky="nsew")
 
-        y_scroll = ttk.Scrollbar(result_frame, orient="vertical", command=self.result_text.yview)
+        y_scroll = ttk.Scrollbar(
+            result_frame, orient="vertical", command=self.result_text.yview
+        )
         y_scroll.grid(row=0, column=1, sticky="ns")
-        x_scroll = ttk.Scrollbar(result_frame, orient="horizontal", command=self.result_text.xview)
+        x_scroll = ttk.Scrollbar(
+            result_frame, orient="horizontal", command=self.result_text.xview
+        )
         x_scroll.grid(row=1, column=0, sticky="ew")
 
-        self.result_text.configure(yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set)
+        self.result_text.configure(
+            yscrollcommand=y_scroll.set, xscrollcommand=x_scroll.set
+        )
 
     def on_endpoint_change(self, event=None):
         name = self.endpoint_var.get()
@@ -925,7 +919,10 @@ class SchwabGuiApp:
                 raw = var.get().strip()
                 if raw == "":
                     if meta.get("required"):
-                        messagebox.showerror("Missing parameter", f"{meta.get('label', name)} is required.")
+                        messagebox.showerror(
+                            "Missing parameter",
+                            f"{meta.get('label', name)} is required.",
+                        )
                         return
                     value = None
                 else:
@@ -933,13 +930,19 @@ class SchwabGuiApp:
                         try:
                             value = int(raw)
                         except ValueError:
-                            messagebox.showerror("Invalid value", f"{meta.get('label', name)} must be an integer.")
+                            messagebox.showerror(
+                                "Invalid value",
+                                f"{meta.get('label', name)} must be an integer.",
+                            )
                             return
                     elif dtype == "float":
                         try:
                             value = float(raw)
                         except ValueError:
-                            messagebox.showerror("Invalid value", f"{meta.get('label', name)} must be a number.")
+                            messagebox.showerror(
+                                "Invalid value",
+                                f"{meta.get('label', name)} must be a number.",
+                            )
                             return
                     elif dtype == "list_str":
                         value = [s.strip() for s in raw.split(",") if s.strip()]
@@ -953,7 +956,10 @@ class SchwabGuiApp:
                 raw = widget.get("1.0", "end-1c").strip()
                 if raw == "":
                     if meta.get("required"):
-                        messagebox.showerror("Missing parameter", f"{meta.get('label', name)} is required.")
+                        messagebox.showerror(
+                            "Missing parameter",
+                            f"{meta.get('label', name)} is required.",
+                        )
                         return
                     value = None
                 else:

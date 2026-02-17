@@ -11,12 +11,12 @@ import logging
 import threading
 import time
 import zoneinfo
+
 import websockets
 import websockets.exceptions
 
 
 class StreamBase:
-
     def __init__(self, tokens, get_streamer_info, logger: logging.Logger):
         """
         Initialize the stream object to stream data from Schwab Streamer
@@ -24,26 +24,26 @@ class StreamBase:
         Args:
             client (Client): Client object needed to get streamer info
         """
-        self._tokens = tokens                           # tokens object
-        self._get_streamer_info = get_streamer_info     # function to get streamer info
-        self._logger = logger                           # logger
+        self._tokens = tokens  # tokens object
+        self._get_streamer_info = get_streamer_info  # function to get streamer info
+        self._logger = logger  # logger
 
-        self._websocket = None                          # the websocket
-        self._event_loop = None                         # the asyncio loop
-        self._thread = None                             # the thread that runs the stream
-        self._loop_ready = threading.Event()            # event to signal that the loop is ready
-        self._should_stop = True                        # main stream loop
-        self._backoff_time = 2.0                        # default backoff time (time to wait before retrying)
+        self._websocket = None  # the websocket
+        self._event_loop = None  # the asyncio loop
+        self._thread = None  # the thread that runs the stream
+        self._loop_ready = threading.Event()  # event to signal that the loop is ready
+        self._should_stop = True  # main stream loop
+        self._backoff_time = 2.0  # default backoff time (time to wait before retrying)
 
-        self._streamer_info = None                      # streamer info from api call
-        self._request_id = 0                            # a counter for the request id
-        
-        self.active = False                             # whether the stream is active
-        self.subscriptions = {}                         # a dictionary of subscriptions
+        self._streamer_info = None  # streamer info from api call
+        self._request_id = 0  # a counter for the request id
 
+        self.active = False  # whether the stream is active
+        self.subscriptions = {}  # a dictionary of subscriptions
 
-
-    async def _run_streamer(self, receiver_func=print, ping_timeout: int = 30, **kwargs):
+    async def _run_streamer(
+        self, receiver_func=print, ping_timeout: int = 30, **kwargs
+    ):
         """
         Start the streamer
 
@@ -53,16 +53,18 @@ class StreamBase:
             **kwargs: keyword arguments to pass to receiver_func
         """
         self._event_loop = asyncio.get_running_loop()
-        is_async_receiver = True if asyncio.iscoroutinefunction(receiver_func) else False
+        is_async_receiver = (
+            True if asyncio.iscoroutinefunction(receiver_func) else False
+        )
+
         async def call_receiver(response, **kwargs):
             if is_async_receiver:
                 await receiver_func(response, **kwargs)
             else:
                 receiver_func(response, **kwargs)
-        
+
         self._should_stop = False
         while not self._should_stop:
-
             try:
                 self._streamer_info = self._get_streamer_info()
             except Exception as e:
@@ -71,38 +73,68 @@ class StreamBase:
                 return
 
             if self._streamer_info is None:
-                self._logger.warning(f"Streamer info unavailable, retrying in {self._backoff_time}s...")
+                self._logger.warning(
+                    f"Streamer info unavailable, retrying in {self._backoff_time}s..."
+                )
                 await self._wait_for_backoff()
                 continue
 
             start_time = datetime.datetime.now(datetime.timezone.utc)
             try:
                 self._logger.debug("Connecting to streaming server...")
-                async with websockets.connect(self._streamer_info.get('streamerSocketUrl'), ping_timeout=ping_timeout) as self._websocket:
+                async with websockets.connect(
+                    self._streamer_info.get("streamerSocketUrl"),
+                    ping_timeout=ping_timeout,
+                ) as self._websocket:
                     self._logger.debug("Connected to streaming server.")
-                    login_payload = self.basic_request(service="ADMIN",
-                                                       command="LOGIN",
-                                                       parameters={"Authorization": self._tokens.access_token,
-                                                                   "SchwabClientChannel": self._streamer_info.get("schwabClientChannel"),
-                                                                   "SchwabClientFunctionId": self._streamer_info.get("schwabClientFunctionId")})
+                    login_payload = self.basic_request(
+                        service="ADMIN",
+                        command="LOGIN",
+                        parameters={
+                            "Authorization": self._tokens.access_token,
+                            "SchwabClientChannel": self._streamer_info.get(
+                                "schwabClientChannel"
+                            ),
+                            "SchwabClientFunctionId": self._streamer_info.get(
+                                "schwabClientFunctionId"
+                            ),
+                        },
+                    )
                     await self._websocket.send(json.dumps(login_payload))
                     self._loop_ready.set()
-                
-                    await call_receiver(await self._websocket.recv(), **kwargs)  # receive login response
+
+                    await call_receiver(
+                        await self._websocket.recv(), **kwargs
+                    )  # receive login response
                     self.active = True
 
                     # send subscriptions (that are recorded (queued or previously sent))
                     for service, subs in self.subscriptions.items():
-                        grouped: dict[str, list[str]] = {} # group subscriptions by fields for more efficient requests
+                        grouped: dict[
+                            str, list[str]
+                        ] = {}  # group subscriptions by fields for more efficient requests
                         for key, fields in subs.items():
-                            grouped.setdefault(self._list_to_string(fields), []).append(key)
-                        reqs = [] # list of requests to send for this service
+                            grouped.setdefault(self._list_to_string(fields), []).append(
+                                key
+                            )
+                        reqs = []  # list of requests to send for this service
                         for fields, keys in grouped.items():
-                            reqs.append(self.basic_request(service=service, command="ADD", parameters={"keys": self._list_to_string(keys), "fields": fields}))
+                            reqs.append(
+                                self.basic_request(
+                                    service=service,
+                                    command="ADD",
+                                    parameters={
+                                        "keys": self._list_to_string(keys),
+                                        "fields": fields,
+                                    },
+                                )
+                            )
                         if reqs:
                             self._logger.debug(f"Sending subscriptions: {reqs}")
                             await self._websocket.send(json.dumps({"requests": reqs}))
-                            await call_receiver(await self._websocket.recv(), **kwargs)  # receive subscription response
+                            await call_receiver(
+                                await self._websocket.recv(), **kwargs
+                            )  # receive subscription response
 
                     # reset backoff time
                     self._backoff_time = 2.0
@@ -115,20 +147,33 @@ class StreamBase:
                         while self.active and not self._should_stop:
                             receiver_func(await self._websocket.recv(), **kwargs)
 
-            except (websockets.exceptions.ConnectionClosedOK, websockets.exceptions.ConnectionClosed) as e: # "received 1000 (OK); then sent 1000 (OK)", "sent 1000 (OK); no close frame received"
+            except (
+                websockets.exceptions.ConnectionClosedOK,
+                websockets.exceptions.ConnectionClosed,
+            ) as e:  # "received 1000 (OK); then sent 1000 (OK)", "sent 1000 (OK); no close frame received"
                 self._logger.info(f"Stream connection closed. ({e})")
                 break
-            except websockets.exceptions.ConnectionClosedError as e: # lost internet connection
-                elapsed = (datetime.datetime.now(datetime.timezone.utc) - start_time).total_seconds()
+            except (
+                websockets.exceptions.ConnectionClosedError
+            ) as e:  # lost internet connection
+                elapsed = (
+                    datetime.datetime.now(datetime.timezone.utc) - start_time
+                ).total_seconds()
                 if elapsed <= 90:
-                    self._logger.warning(f"Stream has crashed within 90 seconds, likely no subscriptions, invalid login, or lost connection. Not restarting. {e}")
+                    self._logger.warning(
+                        f"Stream has crashed within 90 seconds, likely no subscriptions, invalid login, or lost connection. Not restarting. {e}"
+                    )
                     break
                 else:
-                    self._logger.error(f"Stream connection Error. Reconnecting in {self._backoff_time} seconds...")
+                    self._logger.error(
+                        f"Stream connection Error. Reconnecting in {self._backoff_time} seconds..."
+                    )
                     await self._wait_for_backoff()
             except Exception as e:  # stream has quit unexpectedly, try to reconnect
                 self._logger.error(e)
-                self._logger.warning(f"Stream connection lost to server, reconnecting...")
+                self._logger.warning(
+                    "Stream connection lost to server, reconnecting..."
+                )
                 await self._wait_for_backoff()
             finally:
                 self.active = False
@@ -141,7 +186,6 @@ class StreamBase:
         await asyncio.sleep(self._backoff_time)
         self._backoff_time = min(self._backoff_time * 2, 120)
 
-
     def _record_request(self, request: dict):
         """
         Record the request into self.subscriptions (for the event of crashes)
@@ -151,9 +195,10 @@ class StreamBase:
         """
 
         try:
+
             def str_to_list(st):
                 return st.split(",") if isinstance(st, str) else st
-            
+
             service = request.get("service", None)
             command = request.get("command", None)
             parameters = request.get("parameters", None)
@@ -168,7 +213,9 @@ class StreamBase:
                         if key not in self.subscriptions[service]:
                             self.subscriptions[service][key] = fields
                         else:
-                            self.subscriptions[service][key] = list(set(fields) | set(self.subscriptions[service][key]))
+                            self.subscriptions[service][key] = list(
+                                set(fields) | set(self.subscriptions[service][key])
+                            )
                 elif command == "SUBS":
                     self.subscriptions[service] = {}
                     for key in keys:
@@ -177,7 +224,7 @@ class StreamBase:
                     for key in keys:
                         if key in self.subscriptions[service]:
                             del self.subscriptions[service][key]
-                elif command == "VIEW": 
+                elif command == "VIEW":
                     for key in self.subscriptions[service].keys():
                         self.subscriptions[service][key] = fields
         except Exception as e:
@@ -205,15 +252,19 @@ class StreamBase:
         # remove None parameters
         if parameters is not None:
             for key in parameters.keys():
-                if parameters[key] is None: del parameters[key]
+                if parameters[key] is None:
+                    del parameters[key]
 
         self._request_id += 1
-        request = {"service": service.upper(),
-                   "command": command.upper(),
-                   "requestid": self._request_id,
-                   "SchwabClientCustomerId": self._streamer_info.get("schwabClientCustomerId"),
-                   "SchwabClientCorrelId": self._streamer_info.get("schwabClientCorrelId")}
-        if parameters is not None and len(parameters) > 0: request["parameters"] = parameters
+        request = {
+            "service": service.upper(),
+            "command": command.upper(),
+            "requestid": self._request_id,
+            "SchwabClientCustomerId": self._streamer_info.get("schwabClientCustomerId"),
+            "SchwabClientCorrelId": self._streamer_info.get("schwabClientCorrelId"),
+        }
+        if parameters is not None and len(parameters) > 0:
+            request["parameters"] = parameters
         return request
 
     @staticmethod
@@ -227,11 +278,18 @@ class StreamBase:
         Returns:
             str: converted string
         """
-        if isinstance(ls, str): return ls
-        elif hasattr(ls, '__iter__'): return ",".join(map(str, ls)) # yes, this is true for string too but those are caught first
-        else: return str(ls)
+        if isinstance(ls, str):
+            return ls
+        elif hasattr(ls, "__iter__"):
+            return ",".join(
+                map(str, ls)
+            )  # yes, this is true for string too but those are caught first
+        else:
+            return str(ls)
 
-    def level_one_equities(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def level_one_equities(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Level one equities
 
@@ -243,9 +301,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("LEVELONE_EQUITIES", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "LEVELONE_EQUITIES",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def level_one_options(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def level_one_options(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Level one options
 
@@ -260,9 +327,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("LEVELONE_OPTIONS", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "LEVELONE_OPTIONS",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def level_one_futures(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def level_one_futures(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Level one futures
 
@@ -279,9 +355,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("LEVELONE_FUTURES", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "LEVELONE_FUTURES",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def level_one_futures_options(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def level_one_futures_options(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Level one futures options
 
@@ -299,9 +384,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("LEVELONE_FUTURES_OPTIONS", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "LEVELONE_FUTURES_OPTIONS",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def level_one_forex(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def level_one_forex(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Level one forex
 
@@ -316,9 +410,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("LEVELONE_FOREX", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "LEVELONE_FOREX",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def nyse_book(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def nyse_book(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         NYSE book orders
 
@@ -330,9 +433,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("NYSE_BOOK", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "NYSE_BOOK",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def nasdaq_book(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def nasdaq_book(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         NASDAQ book orders
 
@@ -344,9 +456,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("NASDAQ_BOOK", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "NASDAQ_BOOK",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def options_book(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def options_book(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Options book orders
 
@@ -361,9 +482,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("OPTIONS_BOOK", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "OPTIONS_BOOK",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def chart_equity(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def chart_equity(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Chart equity
 
@@ -375,9 +505,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("CHART_EQUITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "CHART_EQUITY",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def chart_futures(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def chart_futures(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Chart futures
 
@@ -394,9 +533,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("CHART_FUTURES", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "CHART_FUTURES",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def screener_equity(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def screener_equity(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Screener equity
 
@@ -414,9 +562,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("SCREENER_EQUITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "SCREENER_EQUITY",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def screener_options(self, keys: str | list, fields: str | list, command: str = "ADD") -> dict:
+    def screener_options(
+        self, keys: str | list, fields: str | list, command: str = "ADD"
+    ) -> dict:
         """
         Screener option key format:
 
@@ -434,9 +591,18 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("SCREENER_OPTION", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
+        return self.basic_request(
+            "SCREENER_OPTION",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
 
-    def account_activity(self, keys="Account Activity", fields="0,1,2,3", command: str = "SUBS") -> dict:
+    def account_activity(
+        self, keys="Account Activity", fields="0,1,2,3", command: str = "SUBS"
+    ) -> dict:
         """
         Account activity
 
@@ -448,13 +614,23 @@ class StreamBase:
         Returns:
             dict: stream request
         """
-        return self.basic_request("ACCT_ACTIVITY", command, parameters={"keys": Stream._list_to_string(keys), "fields": Stream._list_to_string(fields)})
-    
+        return self.basic_request(
+            "ACCT_ACTIVITY",
+            command,
+            parameters={
+                "keys": Stream._list_to_string(keys),
+                "fields": Stream._list_to_string(fields),
+            },
+        )
+
+
 class Stream(StreamBase):
     def __init__(self, client):
         super().__init__(client.tokens, client._get_streamer_info, client.logger)
 
-    def start(self, receiver=print, daemon: bool = True, ping_interval: int = 20, **kwargs):
+    def start(
+        self, receiver=print, daemon: bool = True, ping_interval: int = 20, **kwargs
+    ):
         """
         Start the stream
 
@@ -480,16 +656,23 @@ class Stream(StreamBase):
     def __enter__(self):
         self.start()
         return self
-    
+
     def __exit__(self, exc_type, exc_value, traceback):
         self.stop()
 
     def __del__(self):
         self.stop()
 
-    def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] = [0,1,2,3,4],
-                   now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
+    def start_auto(
+        self,
+        receiver=print,
+        start_time: datetime.time = datetime.time(9, 29, 0),
+        stop_time: datetime.time = datetime.time(16, 0, 0),
+        on_days: list[int] = [0, 1, 2, 3, 4],
+        now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"),
+        daemon: bool = True,
+        **kwargs,
+    ):
         """
         Start the stream automatically at market open and close, will NOT erase subscriptions
 
@@ -501,14 +684,19 @@ class Stream(StreamBase):
             now_timezone (zoneinfo.ZoneInfo, optional): timezone to use for now. Defaults to ZoneInfo("America/New_York").
             daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
         """
+
         def checker():
 
             while True:
                 now = datetime.datetime.now(now_timezone)
-                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
+                in_hours = (start_time <= now.time() <= stop_time) and (
+                    now.weekday() in on_days
+                )
                 if in_hours and not self.active:
                     if len(self.subscriptions) == 0:
-                        self._logger.warning("No subscriptions, starting stream anyways.")
+                        self._logger.warning(
+                            "No subscriptions, starting stream anyways."
+                        )
                     self.start(receiver=receiver, daemon=daemon, **kwargs)
                 elif not in_hours and self.active:
                     self._logger.info("Stopping Stream.")
@@ -518,9 +706,11 @@ class Stream(StreamBase):
         threading.Thread(target=checker, daemon=daemon).start()
 
         if not start_time <= datetime.datetime.now(now_timezone).time() <= stop_time:
-            self._logger.info("Stream was started outside of active hours and will launch when in hours.")
-    
-    def send(self, requests: list | dict, record: bool=True):
+            self._logger.info(
+                "Stream was started outside of active hours and will launch when in hours."
+            )
+
+    def send(self, requests: list | dict, record: bool = True):
         """
         Send a request to the stream
 
@@ -539,7 +729,10 @@ class Stream(StreamBase):
         elif not self.active:
             self._logger.info("Stream is not active, request queued.")
         else:
-            asyncio.run_coroutine_threadsafe(self._websocket.send(json.dumps({"requests": requests})), self._event_loop)
+            asyncio.run_coroutine_threadsafe(
+                self._websocket.send(json.dumps({"requests": requests})),
+                self._event_loop,
+            )
 
     async def send_async(self, requests: list | dict):
         """
@@ -561,7 +754,11 @@ class Stream(StreamBase):
         elif not self.active:
             self._logger.info("Stream is not active, request queued.")
         else:
-            await asyncio.wrap_future(asyncio.run_coroutine_threadsafe(self._websocket.send(payload), self._event_loop))
+            await asyncio.wrap_future(
+                asyncio.run_coroutine_threadsafe(
+                    self._websocket.send(payload), self._event_loop
+                )
+            )
 
     def stop(self, clear_subscriptions: bool = True):
         """
@@ -574,10 +771,12 @@ class Stream(StreamBase):
             self.subscriptions = {}
 
         self._should_stop = True
-        
+
         if self.active and self._websocket:
             try:
-                self.send(self.basic_request(service="ADMIN", command="LOGOUT"), record=False)
+                self.send(
+                    self.basic_request(service="ADMIN", command="LOGOUT"), record=False
+                )
             except Exception as e:
                 self._logger.error(e)
             finally:
@@ -585,16 +784,19 @@ class Stream(StreamBase):
 
         if self._event_loop and self._websocket:
             try:
-                asyncio.run_coroutine_threadsafe(self._websocket.close(), self._event_loop).result(timeout=5)
+                asyncio.run_coroutine_threadsafe(
+                    self._websocket.close(), self._event_loop
+                ).result(timeout=5)
             except Exception as e:
                 self._logger.error(f"Error closing websocket: {e}")
             finally:
                 self._event_loop = None
                 self._websocket = None
-        
+
         if self._thread is not None:
             self._thread.join(timeout=5)
             self._thread = None
+
 
 class StreamAsync(StreamBase):
     def __init__(self, client):
@@ -616,7 +818,9 @@ class StreamAsync(StreamBase):
             self._logger.warning("Stream already active.")
             return
         else:
-            self._event_loop = asyncio.get_running_loop() #override with where we are called from
+            self._event_loop = (
+                asyncio.get_running_loop()
+            )  # override with where we are called from
             self._task = self._event_loop.create_task(
                 self._run_streamer(
                     receiver_func=receiver,
@@ -625,9 +829,16 @@ class StreamAsync(StreamBase):
                 )
             )
 
-    async def start_auto(self, receiver=print, start_time: datetime.time = datetime.time(9, 29, 0),
-                   stop_time: datetime.time = datetime.time(16, 0, 0), on_days: list[int] | tuple[int] = (0,1,2,3,4),
-                   now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"), daemon: bool = True, **kwargs):
+    async def start_auto(
+        self,
+        receiver=print,
+        start_time: datetime.time = datetime.time(9, 29, 0),
+        stop_time: datetime.time = datetime.time(16, 0, 0),
+        on_days: list[int] | tuple[int] = (0, 1, 2, 3, 4),
+        now_timezone: zoneinfo.ZoneInfo = zoneinfo.ZoneInfo("America/New_York"),
+        daemon: bool = True,
+        **kwargs,
+    ):
         """
         Start the stream automatically at market open and close, will NOT erase subscriptions
 
@@ -639,14 +850,19 @@ class StreamAsync(StreamBase):
             now_timezone (zoneinfo.ZoneInfo, optional): timezone to use for now. Defaults to ZoneInfo("America/New_York").
             daemon (bool, optional): whether to run the thread in the background (as a daemon). Defaults to True.
         """
+
         async def checker():
 
             while True:
                 now = datetime.datetime.now(now_timezone)
-                in_hours = (start_time <= now.time() <= stop_time) and (now.weekday() in on_days)
+                in_hours = (start_time <= now.time() <= stop_time) and (
+                    now.weekday() in on_days
+                )
                 if in_hours and not self.active:
                     if len(self.subscriptions) == 0:
-                        self._logger.warning("No subscriptions, starting stream anyways.")
+                        self._logger.warning(
+                            "No subscriptions, starting stream anyways."
+                        )
                     await self.start(receiver=receiver, daemon=daemon, **kwargs)
                 elif not in_hours and self.active:
                     self._logger.info("Stopping Stream.")
@@ -655,7 +871,7 @@ class StreamAsync(StreamBase):
 
         asyncio.create_task(checker())
 
-    async def send(self, requests: list | dict, record: bool=True):
+    async def send(self, requests: list | dict, record: bool = True):
         """
         Send a request to the stream
 
@@ -675,7 +891,6 @@ class StreamAsync(StreamBase):
             self._logger.info("Stream is not active, request queued.")
         else:
             await self._websocket.send(json.dumps({"requests": requests}))
-            
 
     async def stop(self, clear_subscriptions: bool = True):
         """
@@ -693,7 +908,7 @@ class StreamAsync(StreamBase):
                 self._logger.error(f"Error sending LOGOUT: {e}")
             finally:
                 self.active = False
-        
+
         if self._websocket is not None:
             try:
                 await self._websocket.close()
@@ -710,4 +925,3 @@ class StreamAsync(StreamBase):
                 self._logger.error(f"Stream task error on shutdown: {e}")
             finally:
                 self._task = None
-

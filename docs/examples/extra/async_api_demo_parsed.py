@@ -4,10 +4,10 @@ import asyncio
 import datetime
 import logging
 import os
+
 from dotenv import load_dotenv
 
 import schwabdev
-
 
 print("Welcome to Schwabdev (async demo), The Unofficial Schwab API Python Wrapper!")
 print("Documentation: https://tylerebowers.github.io/Schwabdev/")
@@ -25,9 +25,8 @@ async def main():
         os.getenv("app_key"),
         os.getenv("app_secret"),
         os.getenv("callback_url"),
-        parsed=True # parsed can also be set per request if override is needed.
+        parsed=True,  # parsed can also be set per request if override is needed.
     ) as client:
-
         # small helper instead of time.sleep
         async def pause():
             await asyncio.sleep(3)
@@ -99,23 +98,25 @@ async def main():
         now = datetime.datetime.now(datetime.timezone.utc)
         thirty_days_ago = now - datetime.timedelta(days=30)
         print(await client.account_orders_all(thirty_days_ago, now))
-        
+
         await pause()
 
         print("\nPreview an order")
         print(await client.preview_order(account_hash, order))
-        
+
         await pause()
 
         print("\nGet all transactions for an account")
         now = datetime.datetime.now(datetime.timezone.utc)
         thirty_days_ago = now - datetime.timedelta(days=30)
-        print(await client.transactions(
-            account_hash,
-            thirty_days_ago,
-            now,
-            "TRADE",
-        ))
+        print(
+            await client.transactions(
+                account_hash,
+                thirty_days_ago,
+                now,
+                "TRADE",
+            )
+        )
         await pause()
 
         print("\nGet details for a specific transaction")
@@ -133,9 +134,9 @@ async def main():
 
         print("\nGet a single quote")
         print(await client.quote("INTC"))
-        
+
         # print(await client.quote("SPXW  241111P06000000")  # example of an expired contract
-        # 
+        #
         await pause()
 
         print("\nGet an option chain")
