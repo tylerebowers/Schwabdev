@@ -343,6 +343,8 @@ class Tokens:
                 else:
                     self._logger.error(f"Could not get new access token; refresh_token likely invalid. ({response.text})")
                     self._conn.rollback()  # release lock, no write performed
+                    self._logger.warning("Falling back to full re-authorization flow...")
+                    self._update_refresh_token() # get a new refresh token (and access token) with full auth flow since refresh token is likely invalid.
                     return
             except Exception as e:
                 self._logger.error(f"[Schwabdev] Could not update access token ({e})")
