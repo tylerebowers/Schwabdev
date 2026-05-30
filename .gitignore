@@ -6,3 +6,4 @@ schwabdev.egg-info/
 tokens.db
 /build
 /docs/examples/tests
+.venv/
