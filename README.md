@@ -18,6 +18,7 @@ Useful links:
 
 ### What can this program do?
 - Automatic token management and refreshes.  
+- Model Context Protocol (MCP) Server for local AI integrations (Cursor, Claude Desktop, etc.) <a target="_blank" href="https://tylerebowers.github.io/Schwabdev/?source=pages%2Fmcp.html">Documentation</a>.
 - Authenticate and access the full api with minimal code. <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/api_demo.py">Examples</a>.  
 - Stream real-time data with a customizable response handler <a target="_blank" href="https://github.com/tylerebowers/Schwabdev/tree/main/docs/examples/stream_demo.py">Examples</a>.  
 - Place orders and get order details <a target="_blank" href="https://tylerebowers.github.io/Schwabdev/?source=pages%2Forders.html">Examples</a>. 

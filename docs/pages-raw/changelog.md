@@ -1,3 +1,8 @@
+## Version 3.1.0
+* Added a comprehensive local Model Context Protocol (MCP) server (`mcp_server.py`) for AI integrations (Cursor, Claude Desktop, etc.)
+* 24 specialized tools covering portfolio details, transactions, order safety builders, dry-run previews, and execution
+* Non-interactive headless re-authentication flow to prevent standard stdin deadlocks on token expiry
+
 ## Version 3.0.5
 * Added support for new app secret / app key lengths
 

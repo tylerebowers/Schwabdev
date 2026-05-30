@@ -1,0 +1,156 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>mcp</title>
+    <link rel="stylesheet" href="../lib/pages.css">
+    <link rel="stylesheet" href="../lib/code.css">
+</head>
+<body>
+<h1>Model Context Protocol (MCP) Server</h1>
+<p>Schwabdev includes a first-class local <strong>MCP (Model Context Protocol) Server</strong>. This allows you to integrate your Charles Schwab developer account with AI assistants (such as <strong>Claude Desktop</strong>, <strong>Cursor IDE</strong>, and others) using a local standard protocol. </p>
+<p>The AI assistant can inspect account details, look up quotes/option chains, build orders, and execute trades securely under your direct terminal supervision.</p>
+<hr />
+<h2>What is MCP?</h2>
+<p>The Model Context Protocol (MCP) is an open-standard protocol that enables LLM clients to securely read data from and execute actions in local tools/databases. By running the Schwabdev MCP server locally on your machine, your AI assistant can invoke Schwab API endpoints on demand as part of your conversation.</p>
+<hr />
+<h2>1. Quick Start</h2>
+<h3>Installation</h3>
+<p>Ensure you have the virtual environment activated and the required <code>fastmcp</code> package installed:</p>
+<div class="codehilite"><pre><span></span><code>pip<span class="w"> </span>install<span class="w"> </span>fastmcp
+</code></pre></div>
+
+<h3>Configuration</h3>
+<p>The MCP server uses a two-tier configuration loader. Environment variables take precedence over config file values.</p>
+<h4>Option A: Environment Variables</h4>
+<p>Configure these in your terminal profile (e.g., <code>~/.bashrc</code> or <code>~/.zshrc</code>):</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">export</span><span class="w"> </span><span class="nv">SCHWAB_APP_KEY</span><span class="o">=</span><span class="s2">&quot;your_developer_app_key&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCHWAB_APP_SECRET</span><span class="o">=</span><span class="s2">&quot;your_developer_app_secret&quot;</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCHWAB_CALLBACK_URL</span><span class="o">=</span><span class="s2">&quot;https://127.0.0.1&quot;</span><span class="w">      </span><span class="c1"># Matches Schwab developer portal callback</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCHWAB_TOKENS_DB</span><span class="o">=</span><span class="s2">&quot;~/.schwabdev/tokens.db&quot;</span><span class="w">     </span><span class="c1"># Token database location</span>
+<span class="nb">export</span><span class="w"> </span><span class="nv">SCHWAB_ENCRYPTION_KEY</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="w">                     </span><span class="c1"># Optional Fernet key for token DB encryption</span>
+</code></pre></div>
+
+<h4>Option B: Configuration File Fallback</h4>
+<p>Create the configuration directory and file:</p>
+<div class="codehilite"><pre><span></span><code>mkdir<span class="w"> </span>-p<span class="w"> </span>~/.schwabdev
+touch<span class="w"> </span>~/.schwabdev/mcp_config.json
+chmod<span class="w"> </span><span class="m">600</span><span class="w"> </span>~/.schwabdev/mcp_config.json
+</code></pre></div>
+
+<p>Populate <code>~/.schwabdev/mcp_config.json</code> with your credentials:</p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;app_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;your_developer_app_key&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;app_secret&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;your_developer_app_secret&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;callback_url&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://127.0.0.1&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;tokens_db&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;~/.schwabdev/tokens.db&quot;</span><span class="p">,</span>
+<span class="w">  </span><span class="nt">&quot;encryption_key&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><em>Note: If the configuration file exists and has permissions more permissive than <code>0600</code>, the server logs a warning on startup for security reasons.</em></p>
+<hr />
+<h2>2. The 7-Day Token Expiry Solution</h2>
+<p>Schwab API refresh tokens expire every <strong>7 days</strong>. When they expire, standard headless processes normally deadlock waiting for keyboard inputs (<code>input()</code>). </p>
+<p>To prevent this, the Schwabdev MCP Server runs headless by default: if a tool call determines authentication is needed, it yields an <code>AuthenticationRequiredError</code> containing full instructions and a login URL back to the AI assistant (which presents it to you).</p>
+<h3>Standalone Re-Authentication</h3>
+<h4>Method A: Interactive Browser Mode</h4>
+<p>Run the following in your terminal to complete browser login and save tokens:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>mcp_server.py<span class="w"> </span>--auth
+</code></pre></div>
+
+<p>This opens your browser, logins to Schwab, prompts you to select accounts, and redirects to your callback URL (e.g., <code>https://127.0.0.1?code=...</code>). Copy this callback URL, paste it into the terminal prompt, and press Enter.</p>
+<h4>Method B: Headless Update Mode</h4>
+<p>If your MCP client alerts you that auth is required, copy the redirect URL from your browser and update the token DB directly:</p>
+<div class="codehilite"><pre><span></span><code>python<span class="w"> </span>mcp_server.py<span class="w"> </span>--auth<span class="w"> </span><span class="s2">&quot;PASTE_THE_FULL_REDIRECT_URL_HERE&quot;</span>
+</code></pre></div>
+
+<hr />
+<h2>3. Integration with LLM Clients</h2>
+<h3>Claude Desktop</h3>
+<p>Add this config block to your Claude Desktop configuration file:
+* <strong>MacOS:</strong> <code>~/Library/Application Support/Claude/claude_desktop_config.json</code>
+* <strong>Windows:</strong> <code>%APPDATA%\Claude\claude_desktop_config.json</code>
+* <strong>Linux:</strong> <code>~/.config/Claude/claude_desktop_config.json</code></p>
+<div class="codehilite"><pre><span></span><code><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;schwabdev&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="s2">&quot;/absolute/path/to/your/Schwabdev/mcp_server.py&quot;</span>
+<span class="w">      </span><span class="p">],</span>
+<span class="w">      </span><span class="nt">&quot;env&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="nt">&quot;SCHWAB_APP_KEY&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;YOUR_APP_KEY&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;SCHWAB_APP_SECRET&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;YOUR_APP_SECRET&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;SCHWAB_CALLBACK_URL&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;https://127.0.0.1&quot;</span><span class="p">,</span>
+<span class="w">        </span><span class="nt">&quot;SCHWAB_TOKENS_DB&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/absolute/path/to/your/tokens.db&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3>Cursor IDE</h3>
+<ol>
+<li>Open Cursor Settings -&gt; <strong>Features</strong> -&gt; <strong>MCP</strong>.</li>
+<li>Click <strong>+ Add New MCP Server</strong>.</li>
+<li>Fill in details:</li>
+<li><strong>Name:</strong> <code>schwabdev</code></li>
+<li><strong>Type:</strong> <code>command</code></li>
+<li><strong>Command:</strong> <code>python /absolute/path/to/your/Schwabdev/mcp_server.py</code></li>
+<li>Provide environment variables in your terminal profile, or configure them using the fallback <code>~/.schwabdev/mcp_config.json</code> file.</li>
+</ol>
+<hr />
+<h2>4. Exposed Tools (24 Tools)</h2>
+<p>The server exposes 24 tools categorised into four functional areas:</p>
+<h3>Accounts &amp; Portfolio (9 Tools)</h3>
+<ul>
+<li><strong><code>get_linked_accounts</code></strong>: Retrieves Schwab account numbers and encrypted hash values. <strong>Call this tool first.</strong> The resulting account hash is required by almost all other tools.</li>
+<li><strong><code>get_account_details</code></strong>: Retrieves details including balances and optionally position details (use <code>fields="positions"</code>).</li>
+<li><strong><code>get_all_account_details</code></strong>: Gets details across all linked accounts.</li>
+<li><strong><code>get_account_orders</code></strong>: Gets orders for a specific account within a date range.</li>
+<li><strong><code>get_all_orders</code></strong>: Retrieves orders across all accounts.</li>
+<li><strong><code>get_transactions</code></strong>: Returns transaction ledger records.</li>
+<li><strong><code>get_transaction_details</code></strong>: Inspects a specific ledger transaction.</li>
+<li><strong><code>get_preferences</code></strong>: Returns Schwab account preferences.</li>
+<li><strong><code>get_auth_status</code></strong>: Diagnostic check showing access and refresh token expiry times.</li>
+</ul>
+<h3>Market Data (8 Tools)</h3>
+<ul>
+<li><strong><code>get_quotes</code></strong>: Gets quotes for multiple comma-separated symbols (e.g. <code>AAPL,MSFT</code>). <strong>Prefer this over get_quote.</strong></li>
+<li><strong><code>get_quote</code></strong>: Real-time quote for a single symbol.</li>
+<li><strong><code>get_option_chains</code></strong>: Option contracts, expirations, and pricing chains.</li>
+<li><strong><code>get_option_expiration_chain</code></strong>: Available expiration dates for a symbol.</li>
+<li><strong><code>get_price_history</code></strong>: Historical daily/intraday candles.</li>
+<li><strong><code>get_movers</code></strong>: Lists index movers ($SPX, NYSE, COMPX) during market hours.</li>
+<li><strong><code>get_market_hours</code></strong>: Hours of operations.</li>
+<li><strong><code>get_instruments</code></strong>: Search by prefix/regex or get fundamentals.</li>
+</ul>
+<h3>Safety Order Builders (3 Tools)</h3>
+<ul>
+<li><strong><code>build_equity_market_order</code></strong>: Helper to construct standard Market order payloads.</li>
+<li><strong><code>build_equity_limit_order</code></strong>: Helper to construct standard Limit order payloads.</li>
+<li><strong><code>build_option_order</code></strong>: Helper to construct Option orders using OCC symbols.</li>
+</ul>
+<h3>Live Order Execution (4 Tools)</h3>
+<ul>
+<li><strong><code>preview_order</code></strong>: Validates a constructed order JSON without executing it. Returns costs and fees.</li>
+<li><strong><code>place_order</code></strong>: ⚠️ <strong>REAL TRADE.</strong> Sends order JSON to Schwab for execution.</li>
+<li><strong><code>cancel_order</code></strong>: ⚠️ <strong>REAL CANCEL.</strong> Cancels an active working order.</li>
+<li><strong><code>replace_order</code></strong>: ⚠️ <strong>REAL REPLACE.</strong> Modifies an active order.</li>
+</ul>
+<hr />
+<h2>5. Order Safety Protocol</h2>
+<p>To prevent accidental trade executions, AI assistants are instructed to enforce a strict <strong>Order Safety Protocol</strong>:</p>
+<ol>
+<li><strong>Safety Builders First</strong>: The assistant must always use <code>build_*</code> tools to generate the correct JSON payload.</li>
+<li><strong>Preview Before Placing</strong>: The assistant must pass the generated payload to <code>preview_order</code> to check commissions, fees, and buying power effects.</li>
+<li><strong>Explicit Consent</strong>: The assistant must print the preview results and wait for your explicit confirmation before calling <code>place_order</code>.</li>
+</ol>
+<hr />
+<h2>6. Privacy &amp; Safety Warning</h2>
+<p>All financial data returned by tools is processed locally, but it is transmitted to your third-party LLM provider (e.g., Anthropic, OpenAI, or Google) as part of your conversation history. Do not use this server if you do not want your account numbers (masked), balances, positions, and trades sent to these providers.</p>
+</body>
+</html>
+    
